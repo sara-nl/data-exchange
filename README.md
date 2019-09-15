@@ -50,6 +50,7 @@ source venv/bin/activate
 
 # Install the requirements.
 pip install -r requirements.txt
+pip install psycopg2~=2.8.3
 ```
 
 To run the backend, activate the virtualenv, run migrations and run the server:

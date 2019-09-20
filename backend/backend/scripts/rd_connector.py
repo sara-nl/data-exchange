@@ -44,10 +44,9 @@ def download_file(options, filename, filepath=''):
                              local_path=download_location)
         print(f'File succesfully downloaded to: {download_location}')
 
-        return download_location
     else:
         print('Could not locate the file')
-        return ''
+        raise FileNotFoundError
 
 
 def main():

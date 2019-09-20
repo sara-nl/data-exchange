@@ -194,7 +194,7 @@ if __name__ == "__main__":
     parser.add_argument('-password', type=str,
                         help='Password of Research Drive account', default='prototypingfutures')
     parser.add_argument('-download_dir', type=str,
-                        help='Directory where downloaded folders are store', default='downloads')
+                        help='Directory where downloaded folders are store', default='files')
 
     args = parser.parse_args()
 

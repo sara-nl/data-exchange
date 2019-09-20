@@ -7,7 +7,7 @@ import argparse
 from rd_connector import download_file
 
 
-class RunContainer:
+class RunEnvironment:
     def __init__(self, alg_file_name, data_file_name, download_dir=''):
         self.alg_file = alg_file_name
         self.data_file = data_file_name
@@ -150,7 +150,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    run_env = RunContainer(args.alg_file, args.data_file, args.download_dir)
+    run_env = RunEnvironment(args.alg_file, args.data_file, args.download_dir)
 
     # run_env.download_files(args.username, args.password)
     # run_env.run_algorithm()

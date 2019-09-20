@@ -20,10 +20,12 @@ def download_and_run(alg_file, data_file, username, password, download_dir):
     try:
         # download the files
         alg_file_path, data_file_path = create_files(download_dir)
-        download_from_rd(alg_file, data_file,
-                         username, password, alg_file_path, data_file_path)
+        download_files(alg_file, data_file,
+                       username, password, alg_file_path, data_file_path)
 
         # change permissions of files
+        # alg_file:  read and execute
+        # data_file: read
         os.chmod(alg_file_path, 0o555)
         os.chmod(data_file_path, 0o444)
 
@@ -45,6 +47,7 @@ def download_and_run(alg_file, data_file, username, password, download_dir):
         os.remove(alg_file_path)
         os.remove(data_file_path)
 
+    # If anything goes wrong, remove files
     except Exception as e:
         stop_running(alg_file_path, data_file_path)
 
@@ -86,6 +89,17 @@ def remove_files(alg_file_path, data_file_path):
 
     if data_file_path:
         os.remove(data_file_path)
+
+
+def download_files(alg_file, data_file, username, password, alg_file_path, data_file_path):
+    """
+        Downloads both the algorithm and data
+
+        TODO change to better download function
+    """
+
+    download_from_rd(alg_file, data_file, username,
+                     password, alg_file_path, data_file_path)
 
 
 def download_from_rd(alg_file, data_file, username, password, alg_file_path, data_file_path):

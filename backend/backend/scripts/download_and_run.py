@@ -44,8 +44,7 @@ def download_and_run(alg_file, data_file, username, password, download_dir):
         print(f"Output file can be found in {os.getcwd()+download_dir}")
 
         # Delete algorithm and data files
-        os.remove(alg_file_path)
-        os.remove(data_file_path)
+        remove_files(alg_file_path, data_file_path)
 
     # If anything goes wrong, remove files
     except Exception as e:

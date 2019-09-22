@@ -39,7 +39,7 @@ class RunContainer:
 
             print("=== Running Finished ===")
         except:
-            self.stop_running(error=e)
+            self.stop_running()
 
     def download_files(self, username, password):
         """

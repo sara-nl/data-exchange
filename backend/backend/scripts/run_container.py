@@ -11,9 +11,9 @@ from rd_connector import download_file
 
 
 class RunContainer:
-    def __init__(self, alg_file_name, data_file_name, download_dir=''):
-        self.alg_file = alg_file_name
-        self.data_file = data_file_name
+    def __init__(self, algorithm_file_name, data_file_name, download_dir=''):
+        self.algorithm_file_name = algorithm_file_name
+        self.data_file_name = data_file_name
 
         self.download_dir = download_dir
 
@@ -56,9 +56,9 @@ class RunContainer:
 
             print("Changed file permissions to read-only")
             # change permissions of files
-            # alg_file:  read and execute
+            # algorithm_file:  read and execute
             # data_file: read
-            os.chmod(self.temp_alg_file, 0o555)
+            os.chmod(self.temp_algorithm_file, 0o555)
             os.chmod(self.temp_data_file, 0o444)
 
             print("Files are ready to use\n")
@@ -76,7 +76,7 @@ class RunContainer:
 
         client = docker.from_env()
 
-        command = f"python3 -u /tmp/files/{self.temp_alg_name} /tmp/files/{self.temp_data_name}"
+        command = f"python3 -u /tmp/files/{self.temp_algorithm_name} /tmp/files/{self.temp_data_name}"
         image = 'python'
 
         self.container = client.containers.run(
@@ -120,13 +120,13 @@ class RunContainer:
         if not os.path.exists(self.download_dir):
             os.mkdir(self.download_dir)
 
-        self.temp_alg_file = tempfile.NamedTemporaryFile(
+        self.temp_algorithm_file = tempfile.NamedTemporaryFile(
             suffix=".py", dir=self.download_dir, delete=False).name
 
         self.temp_data_file = tempfile.NamedTemporaryFile(
             suffix=".data", dir=self.download_dir, delete=False).name
 
-        self.temp_alg_name = self.temp_alg_file.split("/")[-1]
+        self.temp_algorithm_name = self.temp_algorithm_file.split("/")[-1]
         self.temp_data_name = self.temp_data_file.split("/")[-1]
 
     def download_from_rd(self, username, password):
@@ -141,12 +141,12 @@ class RunContainer:
             'webdav_password': password
         }
 
-        if self.alg_file and self.data_file:
+        if self.algorithm_file_name and self.data_file_name:
             try:
-                download_file(options, filename=self.alg_file,
-                              filepath=self.temp_alg_file)
+                download_file(options, filename=self.algorithm_file_name,
+                              filepath=self.temp_algorithm_file)
 
-                download_file(options, filename=self.data_file,
+                download_file(options, filename=self.data_file_name,
                               filepath=self.temp_data_file)
             except FileNotFoundError as e:
                 self.stop_running(e)
@@ -171,8 +171,8 @@ class RunContainer:
             Removes downloaded files.
         """
 
-        if self.temp_alg_file:
-            os.remove(self.temp_alg_file)
+        if self.temp_algorithm_file:
+            os.remove(self.temp_algorithm_file)
 
         if self.temp_data_file:
             os.remove(self.temp_data_file)
@@ -185,7 +185,7 @@ def containerStatus(client, container): return client.containers.get(
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description='Arguments to connect to resource drive')
-    parser.add_argument('-alg_file', type=str,
+    parser.add_argument('-algorithm_file', type=str,
                         help='File with the algorithm', default='test_algorithm.py')
     parser.add_argument('-data_file', type=str,
                         help='File with data', default='test_data.txt')
@@ -198,7 +198,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    run_env = RunContainer(args.alg_file, args.data_file, args.download_dir)
+    run_env = RunContainer(args.algorithm_file, args.data_file, args.download_dir)
 
     # run_env.download_files(args.username, args.password)
     # run_env.run_algorithm()

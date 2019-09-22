@@ -31,8 +31,7 @@ def list_files(options):
 
 def download_file(options, filename, filepath=''):
     """
-        Downloads file from research drive and
-        store is in temporary file
+        Downloads file from research drive and store is in temporary file
     """
 
     client = wc.Client(options)

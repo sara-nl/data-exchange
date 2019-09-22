@@ -8,7 +8,7 @@ from rd_connector import download_file
 
 
 class RunEnvironment:
-    def __init__(self, algorithm_file_name, data_file_name, download_dir=''):
+    def __init__(self, algorithm_file_name, data_file_name, download_dir=""):
         self.algorithm_file_name = algorithm_file_name
         self.data_file_name = data_file_name
 
@@ -28,13 +28,17 @@ class RunEnvironment:
         try:
             proc = subprocess.Popen(
                 [f"python3 {self.temp_algorithm_file} {self.temp_data_file}"],
-                shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+                shell=True,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+            )
 
             # Collect output and write to file
             self.collect_ouput(proc)
 
             print(
-                f"Output file can be found in {os.path.join(os.getcwd(), self.download_dir)}")
+                f"Output file can be found in {os.path.join(os.getcwd(), self.download_dir)}"
+            )
 
             # Delete algorithm and data files
             self.remove_files()
@@ -69,10 +73,12 @@ class RunEnvironment:
             os.mkdir(self.download_dir)
 
         self.temp_algorithm_file = tempfile.NamedTemporaryFile(
-            suffix=".py", dir=self.download_dir, delete=False).name
+            suffix=".py", dir=self.download_dir, delete=False
+        ).name
 
         self.temp_data_file = tempfile.NamedTemporaryFile(
-            suffix=".data", dir=self.download_dir, delete=False).name
+            suffix=".data", dir=self.download_dir, delete=False
+        ).name
 
     def download_from_rd(self, username, password):
         """
@@ -80,19 +86,23 @@ class RunEnvironment:
         """
 
         options = {
-            'webdav_hostname': "https://researchdrive.surfsara.nl",
-            'webdav_root': '/remote.php/nonshib-webdav/',
-            'webdav_login': username,
-            'webdav_password': password
+            "webdav_hostname": "https://researchdrive.surfsara.nl",
+            "webdav_root": "/remote.php/nonshib-webdav/",
+            "webdav_login": username,
+            "webdav_password": password,
         }
 
         if self.algorithm_file_name and self.data_file_name:
             try:
-                download_file(options, filename=self.algorithm_file_name,
-                              filepath=self.temp_algorithm_file)
+                download_file(
+                    options,
+                    filename=self.algorithm_file_name,
+                    filepath=self.temp_algorithm_file,
+                )
 
-                download_file(options, filename=self.data_file_name,
-                              filepath=self.temp_data_file)
+                download_file(
+                    options, filename=self.data_file_name, filepath=self.temp_data_file
+                )
             except FileNotFoundError as e:
                 self.stop_running(e)
         else:
@@ -103,7 +113,7 @@ class RunEnvironment:
             Collects all output from stdout and stderr
         """
 
-        output_file = open(f"{self.download_dir}/output.txt", 'w')
+        output_file = open(f"{self.download_dir}/output.txt", "w")
 
         output = f"Standard out:\n{proc.stdout.read().decode('utf-8')}"
         output += f"Standard error:\n{proc.stderr.read().decode('utf-8')}"
@@ -113,7 +123,7 @@ class RunEnvironment:
         print("\nProgram Output:")
         print(output)
 
-    def stop_running(self, error=''):
+    def stop_running(self, error=""):
         """
             Called if program stops runnings, deletes downloaded files
         """
@@ -140,22 +150,39 @@ if __name__ == "__main__":
     """
 
     parser = argparse.ArgumentParser(
-        description='Arguments to connect to resource drive')
-    parser.add_argument('-algorithm_file', type=str,
-                        help='File with the algorithm', default='test_algorithm.py')
-    parser.add_argument('-data_file', type=str,
-                        help='File with data', default='test_data.txt')
-    parser.add_argument('-username', type=str,
-                        help='Username of Research Drive account', default='tijs@wearebit.com')
-    parser.add_argument('-password', type=str,
-                        help='Password of Research Drive account', default='prototypingfutures')
-    parser.add_argument('-download_dir', type=str,
-                        help='Directory where downloaded folders are store', default='files_con01')
+        description="Arguments to connect to resource drive"
+    )
+    parser.add_argument(
+        "-algorithm_file",
+        type=str,
+        help="File with the algorithm",
+        default="test_algorithm.py",
+    )
+    parser.add_argument(
+        "-data_file", type=str, help="File with data", default="test_data.txt"
+    )
+    parser.add_argument(
+        "-username",
+        type=str,
+        help="Username of Research Drive account",
+        default="tijs@wearebit.com",
+    )
+    parser.add_argument(
+        "-password",
+        type=str,
+        help="Password of Research Drive account",
+        default="prototypingfutures",
+    )
+    parser.add_argument(
+        "-download_dir",
+        type=str,
+        help="Directory where downloaded folders are store",
+        default="files_con01",
+    )
 
     args = parser.parse_args()
 
-    run_env = RunEnvironment(
-        args.algorithm_file, args.data_file, args.download_dir)
+    run_env = RunEnvironment(args.algorithm_file, args.data_file, args.download_dir)
 
     # run_env.download_files(args.username, args.password)
     # run_env.run_algorithm()

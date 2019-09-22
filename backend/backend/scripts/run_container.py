@@ -11,7 +11,7 @@ from rd_connector import download_file
 
 
 class RunContainer:
-    def __init__(self, algorithm_file_name, data_file_name, download_dir=''):
+    def __init__(self, algorithm_file_name, data_file_name, download_dir=""):
         self.algorithm_file_name = algorithm_file_name
         self.data_file_name = data_file_name
 
@@ -77,13 +77,20 @@ class RunContainer:
         client = docker.from_env()
 
         command = f"python3 -u /tmp/files/{self.temp_algorithm_name} /tmp/files/{self.temp_data_name}"
-        image = 'python'
+        image = "python"
 
         self.container = client.containers.run(
-            image, command, detach=True, network_disabled=True,
+            image,
+            command,
+            detach=True,
+            network_disabled=True,
             volumes={
-                os.path.join(os.getcwd(), self.download_dir): {'bind': '/tmp/files', 'mode': 'ro'}
-            })
+                os.path.join(os.getcwd(), self.download_dir): {
+                    "bind": "/tmp/files",
+                    "mode": "ro",
+                }
+            },
+        )
 
         print(f"Created container {format(self.container.id)}")
         print(f"Container status: {self.container.status}\n")
@@ -99,15 +106,16 @@ class RunContainer:
 
         container_stream = self.container.logs(stream=True)
         for lines in container_stream:
-            print(lines.decode('utf-8'), end='')
+            print(lines.decode("utf-8"), end="")
 
-        output = self.container.logs().decode('utf-8')
+        output = self.container.logs().decode("utf-8")
         output_file = tempfile.NamedTemporaryFile(
-            prefix="output_", suffix=".txt", dir=self.download_dir, delete=False)
+            prefix="output_", suffix=".txt", dir=self.download_dir, delete=False
+        )
 
         self.temp_output_file = output_file.name
 
-        with open(self.temp_output_file, 'w') as f:
+        with open(self.temp_output_file, "w") as f:
             f.write(output)
 
         print(f"\nOutput in {self.temp_output_file}\n")
@@ -121,10 +129,12 @@ class RunContainer:
             os.mkdir(self.download_dir)
 
         self.temp_algorithm_file = tempfile.NamedTemporaryFile(
-            suffix=".py", dir=self.download_dir, delete=False).name
+            suffix=".py", dir=self.download_dir, delete=False
+        ).name
 
         self.temp_data_file = tempfile.NamedTemporaryFile(
-            suffix=".data", dir=self.download_dir, delete=False).name
+            suffix=".data", dir=self.download_dir, delete=False
+        ).name
 
         self.temp_algorithm_name = self.temp_algorithm_file.split("/")[-1]
         self.temp_data_name = self.temp_data_file.split("/")[-1]
@@ -135,25 +145,29 @@ class RunContainer:
         """
 
         options = {
-            'webdav_hostname': "https://researchdrive.surfsara.nl",
-            'webdav_root': '/remote.php/nonshib-webdav/',
-            'webdav_login': username,
-            'webdav_password': password
+            "webdav_hostname": "https://researchdrive.surfsara.nl",
+            "webdav_root": "/remote.php/nonshib-webdav/",
+            "webdav_login": username,
+            "webdav_password": password,
         }
 
         if self.algorithm_file_name and self.data_file_name:
             try:
-                download_file(options, filename=self.algorithm_file_name,
-                              filepath=self.temp_algorithm_file)
+                download_file(
+                    options,
+                    filename=self.algorithm_file_name,
+                    filepath=self.temp_algorithm_file,
+                )
 
-                download_file(options, filename=self.data_file_name,
-                              filepath=self.temp_data_file)
+                download_file(
+                    options, filename=self.data_file_name, filepath=self.temp_data_file
+                )
             except FileNotFoundError as e:
                 self.stop_running(e)
         else:
             print("Need algorithm and data")
 
-    def stop_running(self, error=''):
+    def stop_running(self, error=""):
         """
             Called if program stops running, deletes downloaded files and stops container
         """
@@ -178,23 +192,41 @@ class RunContainer:
             os.remove(self.temp_data_file)
 
 
-def containerStatus(client, container): return client.containers.get(
-    container.id).status
+def containerStatus(client, container):
+    return client.containers.get(container.id).status
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description='Arguments to connect to resource drive')
-    parser.add_argument('-algorithm_file', type=str,
-                        help='File with the algorithm', default='test_algorithm.py')
-    parser.add_argument('-data_file', type=str,
-                        help='File with data', default='test_data.txt')
-    parser.add_argument('-username', type=str,
-                        help='Username of Research Drive account', default='tijs@wearebit.com')
-    parser.add_argument('-password', type=str,
-                        help='Password of Research Drive account', default='prototypingfutures')
-    parser.add_argument('-download_dir', type=str,
-                        help='Directory where downloaded folders are store', default='files')
+        description="Arguments to connect to resource drive"
+    )
+    parser.add_argument(
+        "-algorithm_file",
+        type=str,
+        help="File with the algorithm",
+        default="test_algorithm.py",
+    )
+    parser.add_argument(
+        "-data_file", type=str, help="File with data", default="test_data.txt"
+    )
+    parser.add_argument(
+        "-username",
+        type=str,
+        help="Username of Research Drive account",
+        default="tijs@wearebit.com",
+    )
+    parser.add_argument(
+        "-password",
+        type=str,
+        help="Password of Research Drive account",
+        default="prototypingfutures",
+    )
+    parser.add_argument(
+        "-download_dir",
+        type=str,
+        help="Directory where downloaded folders are store",
+        default="files",
+    )
 
     args = parser.parse_args()
 

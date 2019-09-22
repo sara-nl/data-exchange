@@ -50,6 +50,13 @@ source venv/bin/activate
 
 # Install the requirements.
 pip install -r requirements.txt
+
+# Install docker
+apt-get install docker
+
+# Add docker
+sudo groupadd docker
+sudo usermod -aG docker $USER
 ```
 
 To run the backend, activate the virtualenv, run migrations and run the server:

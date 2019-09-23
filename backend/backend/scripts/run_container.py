@@ -7,7 +7,7 @@ import argparse
 import time
 import docker
 
-from rd_connector import download_file
+from .rd_connector import download_file
 
 
 class RunContainer:
@@ -32,14 +32,15 @@ class RunContainer:
         """
         try:
             self.start_container()
-            self.collect_ouput()
+            output_file = self.collect_ouput()
 
             self.remove_files()
             self.container.remove()
 
             print("=== Running Finished ===")
-        except:
-            self.stop_running()
+            return output_file
+        except Exception as error:
+            self.stop_running(error)
 
     def download_files(self, username, password):
         """
@@ -63,8 +64,8 @@ class RunContainer:
 
             print("Files are ready to use\n")
 
-        except:
-            self.stop_running()
+        except Exception as error:
+            self.stop_running(error)
 
     def start_container(self):
         """
@@ -119,6 +120,7 @@ class RunContainer:
             f.write(output)
 
         print(f"\nOutput in {self.temp_output_file}\n")
+        return self.temp_output_file
 
     def create_files(self):
         """
@@ -162,12 +164,12 @@ class RunContainer:
                 download_file(
                     options, filename=self.data_file_name, filepath=self.temp_data_file
                 )
-            except FileNotFoundError as e:
-                self.stop_running(e)
+            except FileNotFoundError as error:
+                self.stop_running(error)
         else:
             print("Need algorithm and data")
 
-    def stop_running(self, error=""):
+    def stop_running(self, error):
         """
             Called if program stops running, deletes downloaded files and stops container
         """
@@ -178,7 +180,7 @@ class RunContainer:
             self.container.remove()
 
         print(f"Error occured {error}\nFiles and container are removed")
-        sys.exit(0)
+        raise error
 
     def remove_files(self):
         """

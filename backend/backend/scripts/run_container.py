@@ -39,7 +39,7 @@ class RunContainer:
 
             print("=== Running Finished ===")
             return output_file
-        except Exception as error:
+        except (Exception, KeyboardInterrupt, EnvironmentError) as error:
             self.stop_running(error)
 
     def download_files(self, username, password):
@@ -64,7 +64,7 @@ class RunContainer:
 
             print("Files are ready to use\n")
 
-        except Exception as error:
+        except (Exception, KeyboardInterrupt, EnvironmentError) as error:
             self.stop_running(error)
 
     def start_container(self):

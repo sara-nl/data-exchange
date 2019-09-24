@@ -5,20 +5,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    replaces = [('surfsara', '0003_auto_20190924_1337'), ('surfsara', '0004_remove_user_username')]
-
-    dependencies = [
-        ('surfsara', '0002_auto_20190922_2223'),
+    replaces = [
+        ("surfsara", "0003_auto_20190924_1337"),
+        ("surfsara", "0004_remove_user_username"),
     ]
+
+    dependencies = [("surfsara", "0002_auto_20190922_2223")]
 
     operations = [
         migrations.AlterField(
-            model_name='user',
-            name='email',
+            model_name="user",
+            name="email",
             field=models.EmailField(max_length=254, unique=True),
         ),
-        migrations.RemoveField(
-            model_name='user',
-            name='username',
-        ),
+        migrations.RemoveField(model_name="user", name="username"),
     ]

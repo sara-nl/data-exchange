@@ -1,3 +1,4 @@
+import { AxiosResponse } from "axios";
 import Controller from "./controller";
 
 export class RunnerStartRequest {
@@ -8,12 +9,8 @@ export class RunnerStartRequest {
     public data_file: string = "";
 }
 
-export class RunnerStartResponse {
-    public output: string = "";
-}
-
 export default class Runner extends Controller {
-    public static async start(data: RunnerStartRequest): Promise<RunnerStartResponse> {
+    public static async start(data: RunnerStartRequest): Promise<AxiosResponse> {
         return this.client.post("/runner/start/", data);
     }
 }

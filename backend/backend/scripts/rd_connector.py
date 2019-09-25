@@ -59,9 +59,13 @@ class ResearchdriveClient:
         :param local_path: Download save location
         :return: True if successful, the error if not.
         """
+        # The WebDav endpoint only supports forward slash.
+        remote_path = remote_path.replace(os.sep, '/')
 
+        # Saving a filename is different from saving a folder.
         if not self.client.is_dir(remote_path):
-            local_path = os.path.join(local_path, remote_path)
+            filename = [name for name in remote_path.split("/")][-1]
+            local_path = os.path.join(local_path, filename)
 
         error = self.client.download_sync(remote_path, local_path)
         if not error:
@@ -120,7 +124,9 @@ def main():
     w = ResearchdriveClient()
     x = os.getcwd()
     y = os.path.join(os.getcwd(), "test")
-    print(w.download("test_data.txt", y))
+    z = os.path.join("Data Exchange Project", "Test.ipynb")
+    print(w.list("Data Exchange Project"))
+    print(w.download(z, y))
 
 
 if __name__ == "__main__":

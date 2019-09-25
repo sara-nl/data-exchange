@@ -80,6 +80,7 @@ class ResearchdriveClient:
         return error
 
     def get_shares(self):
+
         return 0
 
 

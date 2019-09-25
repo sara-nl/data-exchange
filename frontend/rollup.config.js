@@ -36,7 +36,7 @@ export default {
             }),
             resolve({
                 browser: true,
-                extensions: [ '.mjs', '.js', '.ts', '.json', '.node' ],
+                extensions: [ '.mjs', '.js', '.ts', '.svelte', '.json', '.node' ],
                 dedupe
             }),
             commonjs(),
@@ -84,7 +84,7 @@ export default {
                 preprocess: autoPreprocess(),
             }),
             resolve({
-                extensions: [ '.mjs', '.js', '.ts', '.json', '.node' ],
+                extensions: [ '.mjs', '.js', '.ts', '.svelte', '.json', '.node' ],
                 dedupe
             }),
             commonjs()

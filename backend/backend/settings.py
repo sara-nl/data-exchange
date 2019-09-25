@@ -131,3 +131,9 @@ STATIC_URL = "/static/"
 STATIC_ROOT = "/var/www/html/static"
 
 AUTH_USER_MODEL = "surfsara.User"
+
+EMAIL_USE_TLS = True
+EMAIL_HOST = "smtp.mailtrap.io"
+EMAIL_HOST_USER = "e61285e4fab172"
+EMAIL_HOST_PASSWORD = "22f2450add2988"
+EMAIL_PORT = 587

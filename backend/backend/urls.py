@@ -7,7 +7,7 @@ from surfsara.views import user, runner
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
-router.register("users", user.UserViewSet)
+router.register("users", user.UserViewSet, basename="users")
 router.register("runner/start", runner.StartViewSet, basename="runner")
 
 urlpatterns = [

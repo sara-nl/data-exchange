@@ -32,6 +32,21 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
+class ResearchdriveClient:
+
+    webdav_hostname = "https://researchdrive.surfsara.nl"
+    webdav_root = "/remote.php/nonshib-webdav/"
+    webdav_accountname = "tijs@wearebit.com"  #"f_data_exchange"
+    webdav_password =  "prototypingfutures"   #"KCVNI-VBXWR-NLGMO-POQNO"
+
+    def __init__(self):
+        options = {"webdav_hostname": ResearchdriveClient.webdav_hostname,
+                   "webdav_root": ResearchdriveClient.webdav_root,
+                   "webdav_login": ResearchdriveClient.webdav_accountname,
+                   "webdav_password": ResearchdriveClient.webdav_password}
+
+        self.client = wc.Client(options)
+
 
 def list_files(options):
     client = wc.Client(options)

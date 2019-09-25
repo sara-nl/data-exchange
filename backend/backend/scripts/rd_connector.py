@@ -1,5 +1,6 @@
 import argparse
 import requests
+from requests.exceptions import HTTPError
 import webdav3.client as wc
 import os
 import json
@@ -36,17 +37,16 @@ def parse_arguments():
 
 class ResearchdriveClient:
 
-    # RD THIRD "f_data_exchange" "KCVNI-VBXWR-NLGMO-POQNO"
-    options = {"webdav_hostname": "https://researchdrive.surfsara.nl",
-               "webdav_root": "/remote.php/nonshib-webdav/",
-               "webdav_login": "tijs@wearebit.com",
-               "webdav_password": "prototypingfutures"}
-
     share_api_hostname = "https://researchdrive.surfsara.nl/ocs/v1.php/" \
                          "apps/files_sharing/api/v1/shares"
 
     def __init__(self):
-        self.client = wc.Client(ResearchdriveClient.options)
+        # RD THIRD "f_data_exchange" "KCVNI-VBXWR-NLGMO-POQNO"
+        self.options = {"webdav_hostname": "https://researchdrive.surfsara.nl",
+                        "webdav_root": "/remote.php/nonshib-webdav/",
+                        "webdav_login": "tijs@wearebit.com",
+                        "webdav_password": "prototypingfutures"}
+        self.client = wc.Client(self.options)
         self.shares = {}
 
     def list(self, remote_path=""):
@@ -90,17 +90,23 @@ class ResearchdriveClient:
             ("format", "json"),
         )
 
-        response = requests.get(ResearchdriveClient.share_api_hostname,
-                                params=params,
-                                auth=(ResearchdriveClient.options["webdav_login"],
-                                      ResearchdriveClient.options["webdav_password"]))
+        try:
+            response = requests.get(ResearchdriveClient.share_api_hostname,
+                                    params=params,
+                                    auth=(self.options["webdav_login"],
+                                          self.options["webdav_password"]))
+            response.raise_for_status()
+        except HTTPError as http_error:
+            print(f'An HTTP error occured: {http_error}')
+        except Exception as error:
+            print(f'Error: {error}')
+        else:
+            shares = json.loads(response.text)
+            self.shares = shares['ocs']['data']
 
-        shares = json.loads(response.text)
-        self.shares = shares['ocs']['data']
-
-        if uid_owner:
-            self.filter_owner_uid(uid_owner)
-        return self.shares
+            if uid_owner:
+                self.filter_owner_uid(uid_owner)
+            return self.shares
 
     def filter_owner_uid(self, uid_owner):
         filtered = []
@@ -108,29 +114,6 @@ class ResearchdriveClient:
             if share["uid_owner"] == uid_owner:
                 filtered.append(share)
         self.shares = filtered
-
-
-def list_files(options):
-    client = wc.Client(options)
-    return client.list()
-
-
-def download_file(options, filename, filepath=""):
-    """
-        Downloads file from research drive and store is in temporary file
-    """
-
-    client = wc.Client(options)
-
-    download_location = os.path.join(os.getcwd(), filepath)
-
-    if client.check(filename):
-        client.download_sync(remote_path=filename, local_path=download_location)
-        print(f"File succesfully downloaded to: {download_location}")
-
-    else:
-        print("Could not locate the file")
-        raise FileNotFoundError
 
 
 def main():

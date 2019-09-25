@@ -32,20 +32,33 @@ def parse_arguments():
     args = parser.parse_args()
     return args
 
+
 class ResearchdriveClient:
 
-    webdav_hostname = "https://researchdrive.surfsara.nl"
-    webdav_root = "/remote.php/nonshib-webdav/"
-    webdav_accountname = "tijs@wearebit.com"  #"f_data_exchange"
-    webdav_password =  "prototypingfutures"   #"KCVNI-VBXWR-NLGMO-POQNO"
+    # RD THIRD "f_data_exchange" "KCVNI-VBXWR-NLGMO-POQNO"
+    options = {"webdav_hostname": "https://researchdrive.surfsara.nl",
+               "webdav_root": "/remote.php/nonshib-webdav/",
+               "webdav_login": "tijs@wearebit.com",
+               "webdav_password": "prototypingfutures"}
 
     def __init__(self):
-        options = {"webdav_hostname": ResearchdriveClient.webdav_hostname,
-                   "webdav_root": ResearchdriveClient.webdav_root,
-                   "webdav_login": ResearchdriveClient.webdav_accountname,
-                   "webdav_password": ResearchdriveClient.webdav_password}
+        self.client = wc.Client(ResearchdriveClient.options)
 
-        self.client = wc.Client(options)
+    def list(self, remote_path=""):
+        return self.client.list(remote_path)
+
+    def download(self, remote_path, local_path):
+
+        if not self.client.is_dir(remote_path):
+            local_path = os.path.join(local_path, remote_path)
+
+        error = self.client.download_sync(remote_path, local_path)
+        if not error:
+            return True
+        return error
+
+    def get_shares(self):
+        return 0
 
 
 def list_files(options):

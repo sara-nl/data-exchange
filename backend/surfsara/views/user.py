@@ -4,11 +4,11 @@ from rest_framework.decorators import api_view
 from surfsara.models import User
 
 
-"""
-Create/Read/Update/Delete view for the User model.
-This creates the API endpoints for /users/.
-"""
 class UserViewSet(viewsets.ModelViewSet):
+    """
+    Create/Read/Update/Delete view for the User model.
+    This creates the API endpoints for /users/.
+    """
     class Serializer(serializers.HyperlinkedModelSerializer):
         class Meta:
             model = User

@@ -14,31 +14,16 @@ from backend.scripts.run_container import RunContainer
 
 
 class StartParser(JSONParser):
+    """Parser to check if the JSON sent to the endpoint is valid."""
     schema = {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
         "required": ["algorithm_file", "data_file", "username", "password"],
         "properties": {
-            "algorithm_file": {
-                "$id": "#/properties/algorithm_file",
-                "type": "string",
-                "minLength": 1,
-            },
-            "data_file": {
-                "$id": "#/properties/data_file",
-                "type": "string",
-                "minLength": 1,
-            },
-            "username": {
-                "$id": "#/properties/username",
-                "type": "string",
-                "minLength": 1,
-            },
-            "password": {
-                "$id": "#/properties/password",
-                "type": "string",
-                "minLength": 1,
-            },
+            "algorithm_file": {"type": "string", "minLength": 1},
+            "data_file": {"type": "string", "minLength": 1},
+            "username": {"type": "string", "minLength": 1},
+            "password": {"type": "string", "minLength": 1},
         },
     }
 
@@ -52,6 +37,7 @@ class StartParser(JSONParser):
 
 
 class StartViewSet(viewsets.ViewSet):
+    """View for the /runner/start endpoint."""
     permission_classes = (AllowAny,)
     parser_classes = (StartParser,)
 

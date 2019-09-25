@@ -2,6 +2,7 @@ import argparse
 import requests
 import webdav3.client as wc
 import os
+import json
 
 import tempfile
 
@@ -41,8 +42,12 @@ class ResearchdriveClient:
                "webdav_login": "tijs@wearebit.com",
                "webdav_password": "prototypingfutures"}
 
+    share_api_hostname = "https://researchdrive.surfsara.nl/ocs/v1.php/" \
+                         "apps/files_sharing/api/v1/shares"
+
     def __init__(self):
         self.client = wc.Client(ResearchdriveClient.options)
+        self.shares = {}
 
     def list(self, remote_path=""):
         """
@@ -79,9 +84,30 @@ class ResearchdriveClient:
             return True
         return error
 
-    def get_shares(self):
+    def get_shares(self, uid_owner=None):
+        params = (
+            ("shared_with_me", "true"),
+            ("format", "json"),
+        )
 
-        return 0
+        response = requests.get(ResearchdriveClient.share_api_hostname,
+                                params=params,
+                                auth=(ResearchdriveClient.options["webdav_login"],
+                                      ResearchdriveClient.options["webdav_password"]))
+
+        shares = json.loads(response.text)
+        self.shares = shares['ocs']['data']
+
+        if uid_owner:
+            self.filter_owner_uid(uid_owner)
+        return self.shares
+
+    def filter_owner_uid(self, uid_owner):
+        filtered = []
+        for share in self.shares:
+            if share["uid_owner"] == uid_owner:
+                filtered.append(share)
+        self.shares = filtered
 
 
 def list_files(options):
@@ -136,7 +162,16 @@ def main():
     a = "test_data.txt"
     b = "Data Exchange Project"
     print(w.list("Data Exchange Project"))
-    print(w.download(b, y))
+    #print(w.download("DataBits", y))
+    w.get_shares()
+
+    for share in w.shares:
+        print(share["id"], share['uid_owner'], share['path'])
+    print("----")
+
+    w.get_shares("sander@wearebit.com")
+    for share in w.shares:
+        print(share["id"], share['uid_owner'], share['path'])
 
 
 if __name__ == "__main__":

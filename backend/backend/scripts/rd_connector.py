@@ -45,9 +45,20 @@ class ResearchdriveClient:
         self.client = wc.Client(ResearchdriveClient.options)
 
     def list(self, remote_path=""):
+        """
+        :param remote_path: Optional, if you only want to list a specific
+        folder.
+        :return: List of files
+        """
         return self.client.list(remote_path)
 
     def download(self, remote_path, local_path):
+        """
+        Download a file from the Researchdrive
+        :param remote_path: Path from file or folder located on researchdrive
+        :param local_path: Download save location
+        :return: True if successful, the error if not.
+        """
 
         if not self.client.is_dir(remote_path):
             local_path = os.path.join(local_path, remote_path)
@@ -85,26 +96,29 @@ def download_file(options, filename, filepath=""):
 
 
 def main():
-    args = parse_arguments()
+    # args = parse_arguments()
+    #
+    # options = {
+    #     "webdav_hostname": "https://researchdrive.surfsara.nl",
+    #     "webdav_root": "/remote.php/nonshib-webdav/",
+    # }
+    #
+    # if args.token:
+    #     options["token"] = args.token
+    # else:
+    #     options["webdav_login"] = args.username
+    #     options["webdav_password"] = args.password
+    #
+    # if args.list_files == True:
+    #     print(list_files(options))
+    #
+    # if args.download_file:
+    #     print(download_file(options, args.download_file))
+    #
+    # return 0
 
-    options = {
-        "webdav_hostname": "https://researchdrive.surfsara.nl",
-        "webdav_root": "/remote.php/nonshib-webdav/",
-    }
-
-    if args.token:
-        options["token"] = args.token
-    else:
-        options["webdav_login"] = args.username
-        options["webdav_password"] = args.password
-
-    if args.list_files == True:
-        print(list_files(options))
-
-    if args.download_file:
-        print(download_file(options, args.download_file))
-
-    return 0
+    w = ResearchdriveClient()
+    print(w.list())
 
 
 if __name__ == "__main__":

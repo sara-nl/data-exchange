@@ -92,15 +92,7 @@ class ResearchdriveClient:
 
 
 def main():
-    w = ResearchdriveClient()
-    x = os.getcwd()
-    y = os.path.join(os.getcwd(), "test")
-    z = os.path.join("Data Exchange Project", "Test.ipynb")
-    a = "test_data.txt"
-    b = "Data Exchange Project"
-    print(w.list("Data Exchange Project"))
-    print(w.download("DataBits", y, "BitsData"))
-
+    return
 
 
 if __name__ == "__main__":

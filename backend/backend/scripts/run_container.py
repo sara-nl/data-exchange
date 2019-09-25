@@ -1,13 +1,9 @@
 import os
 import sys
 import tempfile
-import subprocess
-import argparse
-
-import time
 import docker
 
-from .rd_connector import ResearchdriveClient
+from rd_connector import ResearchdriveClient
 
 
 class RunContainer:
@@ -48,8 +44,6 @@ class RunContainer:
     def download_files(self):
         """
             Downloads both the algorithm and data
-
-            TODO change to better download function
         """
 
         try:
@@ -184,47 +178,13 @@ class RunContainer:
             os.remove(self.temp_data_file)
 
 
-def containerStatus(client, container):
+def container_status(client, container):
     return client.containers.get(container.id).status
 
 
+def main():
+    return
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Arguments to connect to resource drive"
-    )
-    parser.add_argument(
-        "-algorithm_file",
-        type=str,
-        help="File with the algorithm",
-        default="test_algorithm.py",
-    )
-    parser.add_argument(
-        "-data_file", type=str, help="File with data", default="test_data.txt"
-    )
-    parser.add_argument(
-        "-username",
-        type=str,
-        help="Username of Research Drive account",
-        default="tijs@wearebit.com",
-    )
-    parser.add_argument(
-        "-password",
-        type=str,
-        help="Password of Research Drive account",
-        default="prototypingfutures",
-    )
-    parser.add_argument(
-        "-download_dir",
-        type=str,
-        help="Directory where downloaded folders are store",
-        default="files",
-    )
-
-    args = parser.parse_args()
-
-    run_env = RunContainer(args.algorithm_file, args.data_file, args.download_dir)
-
-    # run_env.download_files(args.username, args.password)
-    # run_env.run_algorithm()
-    run_env.download_and_run()
-    #un_env.create_files()
+    main()

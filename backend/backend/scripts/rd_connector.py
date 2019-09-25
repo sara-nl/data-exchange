@@ -118,7 +118,9 @@ def main():
     # return 0
 
     w = ResearchdriveClient()
-    print(w.list())
+    x = os.getcwd()
+    y = os.path.join(os.getcwd(), "test")
+    print(w.download("test_data.txt", y))
 
 
 if __name__ == "__main__":

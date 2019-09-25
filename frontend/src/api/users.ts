@@ -13,6 +13,10 @@ export class RegisterRequest {
 
 export class ActivateRequest {
     public token: string = "";
+
+    constructor(token: string) {
+        this.token = token;
+    }
 }
 
 export default class Users extends Controller {
@@ -20,7 +24,7 @@ export default class Users extends Controller {
         return this.client.post("/users/register/", data);
     }
 
-    public static async activate(data: ActivateRequest): Promise<AxiosResponse> {
-        return this.client.post("/users/activate/", data);
+    public static async activate(id: number, data: ActivateRequest): Promise<AxiosResponse> {
+        return this.client.post(`/users/${id}/activate/`, data);
     }
 }

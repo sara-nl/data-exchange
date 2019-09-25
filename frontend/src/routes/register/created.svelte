@@ -1,7 +1,7 @@
 <script>
     import { stores } from '@sapper/app';
     const { page } = stores();
-     const { email } = $page.query;
+    const { email } = $page.query;
 </script>
 
 <div class="container">

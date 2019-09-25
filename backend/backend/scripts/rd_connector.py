@@ -1,38 +1,8 @@
-import argparse
 import requests
 from requests.exceptions import HTTPError
 import webdav3.client as wc
 import os
 import json
-
-import tempfile
-
-
-def parse_arguments():
-    parser = argparse.ArgumentParser(
-        description="Arguments to connect to resource drive"
-    )
-    parser.add_argument(
-        "-username", type=str, help="Username of Research Drive account", default=False
-    )
-    parser.add_argument(
-        "-password", type=str, help="Password of Research Drive account", default=False
-    )
-    parser.add_argument(
-        "-download_file", type=str, help="Filename you want to download", default=False
-    )
-    parser.add_argument(
-        "-list_files", type=bool, help="Indexes the files in a list", default=False
-    )
-    parser.add_argument(
-        "-token",
-        type=str,
-        help="Token to login instead of username and password",
-        default=False,
-    )
-
-    args = parser.parse_args()
-    return args
 
 
 class ResearchdriveClient:
@@ -117,44 +87,24 @@ class ResearchdriveClient:
 
 
 def main():
-    # args = parse_arguments()
+    return 0
+    # w = ResearchdriveClient()
+    # x = os.getcwd()
+    # y = os.path.join(os.getcwd(), "test")
+    # z = os.path.join("Data Exchange Project", "Test.ipynb")
+    # a = "test_data.txt"
+    # b = "Data Exchange Project"
+    # print(w.list("Data Exchange Project"))
+    # #print(w.download("DataBits", y))
+    # w.get_shares()
     #
-    # options = {
-    #     "webdav_hostname": "https://researchdrive.surfsara.nl",
-    #     "webdav_root": "/remote.php/nonshib-webdav/",
-    # }
+    # for share in w.shares:
+    #     print(share["id"], share['uid_owner'], share['path'])
+    # print("----")
     #
-    # if args.token:
-    #     options["token"] = args.token
-    # else:
-    #     options["webdav_login"] = args.username
-    #     options["webdav_password"] = args.password
-    #
-    # if args.list_files == True:
-    #     print(list_files(options))
-    #
-    # if args.download_file:
-    #     print(download_file(options, args.download_file))
-    #
-    # return 0
-
-    w = ResearchdriveClient()
-    x = os.getcwd()
-    y = os.path.join(os.getcwd(), "test")
-    z = os.path.join("Data Exchange Project", "Test.ipynb")
-    a = "test_data.txt"
-    b = "Data Exchange Project"
-    print(w.list("Data Exchange Project"))
-    #print(w.download("DataBits", y))
-    w.get_shares()
-
-    for share in w.shares:
-        print(share["id"], share['uid_owner'], share['path'])
-    print("----")
-
-    w.get_shares("sander@wearebit.com")
-    for share in w.shares:
-        print(share["id"], share['uid_owner'], share['path'])
+    # w.get_shares("sander@wearebit.com")
+    # for share in w.shares:
+    #     print(share["id"], share['uid_owner'], share['path'])
 
 
 if __name__ == "__main__":

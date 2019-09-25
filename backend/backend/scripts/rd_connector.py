@@ -27,9 +27,10 @@ class ResearchdriveClient:
         """
         return self.client.list(remote_path)
 
-    def download(self, remote_path, local_path):
+    def download(self, remote_path, local_path, save_as=None):
         """
         Download a file from the Researchdrive
+        :param save_as:
         :param remote_path: Path from file or folder located on researchdrive
         :param local_path: Download save location
         :return: True if successful, the error if not.
@@ -37,12 +38,16 @@ class ResearchdriveClient:
         # The WebDav endpoint only supports forward slash.
         remote_path = remote_path.replace(os.sep, '/')
 
-        # We have to add file or folder name to the local path.
-        filename = [name for name in remote_path.split("/")][-1]
+        if save_as:
+            filename = save_as
+        else:
+            # If no is given a file or folder name has to be added to the local path.
+            filename = [name for name in remote_path.split("/")][-1]
+
         local_path = os.path.join(local_path, filename)
 
         # Folder has to be created if it doesn't exist, otherwise webdavclient
-        # shows strange bugs.
+        # randomly deletes folders.
         if self.client.is_dir(remote_path):
             try:
                 os.mkdir(local_path)
@@ -87,24 +92,15 @@ class ResearchdriveClient:
 
 
 def main():
-    return 0
-    # w = ResearchdriveClient()
-    # x = os.getcwd()
-    # y = os.path.join(os.getcwd(), "test")
-    # z = os.path.join("Data Exchange Project", "Test.ipynb")
-    # a = "test_data.txt"
-    # b = "Data Exchange Project"
-    # print(w.list("Data Exchange Project"))
-    # #print(w.download("DataBits", y))
-    # w.get_shares()
-    #
-    # for share in w.shares:
-    #     print(share["id"], share['uid_owner'], share['path'])
-    # print("----")
-    #
-    # w.get_shares("sander@wearebit.com")
-    # for share in w.shares:
-    #     print(share["id"], share['uid_owner'], share['path'])
+    w = ResearchdriveClient()
+    x = os.getcwd()
+    y = os.path.join(os.getcwd(), "test")
+    z = os.path.join("Data Exchange Project", "Test.ipynb")
+    a = "test_data.txt"
+    b = "Data Exchange Project"
+    print(w.list("Data Exchange Project"))
+    print(w.download("DataBits", y, "BitsData"))
+
 
 
 if __name__ == "__main__":

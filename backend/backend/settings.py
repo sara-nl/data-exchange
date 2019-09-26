@@ -25,7 +25,7 @@ SECRET_KEY = "7^j#=nisv%m3%m_kx=ro54dc71!r+(9juh%p=r9t-+76-*&d^i"
 
 DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
 
-ALLOWED_HOSTS = ["test-2.dataex-sara.surf-hosted.nl"]
+ALLOWED_HOSTS = ["test-2.dataex-sara.surf-hosted.nl", "localhost"]
 
 
 # Application definition
@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "rest_framework",
+    "rest_framework.authtoken",
+    "surfsara",
 ]
 
 MIDDLEWARE = [
@@ -101,7 +103,10 @@ REST_FRAMEWORK = {
     # or allow read-only access for unauthenticated users.
     "DEFAULT_PERMISSION_CLASSES": [
         "rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly"
-    ]
+    ],
+    "DEFAULT_AUTHENTICATION_CLASSES": [
+        "rest_framework.authentication.TokenAuthentication"
+    ],
 }
 
 
@@ -124,3 +129,5 @@ USE_TZ = True
 
 STATIC_URL = "/static/"
 STATIC_ROOT = "/var/www/html/static"
+
+AUTH_USER_MODEL = "surfsara.User"

@@ -11,6 +11,7 @@ from rest_framework.schemas import ManualSchema
 
 from surfsara.models import User
 from backend.scripts.run_container import RunContainer
+from backend.scripts.rd_connector import ResearchdriveClient
 
 
 class StartParser(JSONParser):
@@ -54,3 +55,18 @@ class StartViewSet(viewsets.ViewSet):
             output = f.read()
 
         return Response({"output": output})
+
+
+class ViewShares(viewsets.ViewSet):
+    permission_classes = (AllowAny,)
+
+    def create(self, request):
+        rd_client = ResearchdriveClient()
+        return Response({"output": rd_client.get_shares()})
+
+
+
+
+
+
+

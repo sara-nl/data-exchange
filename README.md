@@ -38,6 +38,13 @@ sudo apt update
 sudo apt install python3 python3-virtualenv
 ```
 
+### 🍏 Extra steps for OSX: 
+```
+brew install postgresql gsl openssl
+export LDFLAGS="-L/usr/local/opt/openssl/lib"
+export CPPFLAGS="-I/usr/local/opt/openssl/include"
+```
+
 Then, to install the dependencies, first create a virtualenv, activate it and install them with `pip`:
 
 ```bash

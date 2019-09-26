@@ -1,5 +1,4 @@
 import os
-import sys
 import tempfile
 import docker
 
@@ -32,14 +31,15 @@ class RunContainer:
         """
         try:
             self.start_container()
-            self.collect_ouput()
+            output_file = self.collect_ouput()
 
             self.remove_files()
             self.container.remove()
 
             print("=== Running Finished ===")
-        except (Exception, KeyboardInterrupt, EnvironmentError) as e:
-            self.stop_running()
+            return output_file
+        except (Exception, KeyboardInterrupt, EnvironmentError) as error:
+            self.stop_running(error)
 
     def download_files(self):
         """
@@ -61,8 +61,8 @@ class RunContainer:
 
             print("Files are ready to use\n")
 
-        except (Exception, KeyboardInterrupt, EnvironmentError) as e:
-            self.stop_running(error=e)
+        except (Exception, KeyboardInterrupt, EnvironmentError) as error:
+            self.stop_running(error)
 
     def start_container(self):
         """
@@ -117,6 +117,7 @@ class RunContainer:
             f.write(output)
 
         print(f"\nOutput in {self.temp_output_file}\n")
+        return self.temp_output_file
 
     def create_files(self):
         """
@@ -148,12 +149,12 @@ class RunContainer:
             try:
                 rd_client.download(self.remote_algorithm_path, self.download_dir, self.temp_algorithm_file)
                 rd_client.download(self.remote_data_path, self.download_dir, self.temp_data_file)
-            except FileNotFoundError as e:
-                self.stop_running(e)
+            except FileNotFoundError as error:
+                self.stop_running(error)
         else:
             print("Need algorithm and data")
 
-    def stop_running(self, error=""):
+    def stop_running(self, error):
         """
             Called if program stops running, deletes downloaded files and stops container
         """
@@ -164,7 +165,7 @@ class RunContainer:
             self.container.remove()
 
         print(f"Error occured {error}\nFiles and container are removed")
-        sys.exit(0)
+        raise error
 
     def remove_files(self):
         """

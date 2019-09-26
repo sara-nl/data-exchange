@@ -7,13 +7,15 @@
     let data = new LoginRequest("", "");
     let loading = false;
 
-    async function handleClick() {
+    async function submit(event: any) {
+        event.preventDefault();
+
         loading = true;
 
         try {
             const { data: login } = await Users.login(data);
             token.set(login.token);
-            goto(`/`);
+            goto("/");
         } catch (error) {
             const response = error.response;
             if (response) {
@@ -21,7 +23,7 @@
                 const detail = data.detail || data.non_field_errors[0];
                 alert(detail);
             } else {
-                alert(error.toString());
+                throw error;
             }
         }
 
@@ -32,7 +34,7 @@
 <div class="container">
     <div class="row">
         <div class="col-xs-12 col-md-4">
-            <form>
+            <form on:submit={submit}>
                 <div class="form-group">
                     <label for="email">
                         E-mail address:
@@ -58,13 +60,12 @@
                 </div>
 
                 <div class="form-group">
-                    <div
+                    <input
+                        type="submit"
                         class="form-control btn btn-primary"
-                        class:disabled={loading}
-                        on:click={handleClick}
+                        value={loading ? "Please wait..." : "Sign in"}
+                        disabled={loading}
                     >
-                        {loading ? "Please wait..." : "Sign in"}
-                    </div>
                 </div>
             </form>
         </div>

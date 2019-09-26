@@ -3,7 +3,7 @@ import Controller from "./api/controller.ts";
 import { token } from "./stores/token.ts";
 
 token.useLocalStorage();
-Controller.setup();
+Controller.setup(sapper);
 
 sapper.start({
     target: document.querySelector('#sapper')

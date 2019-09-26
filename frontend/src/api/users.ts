@@ -1,4 +1,4 @@
-import { AxiosResponse } from "axios";
+import axios, { AxiosResponse } from "axios";
 import Controller from "./controller";
 
 export class RegisterRequest {
@@ -35,7 +35,8 @@ export default class Users extends Controller {
     }
 
     public static async login(data: LoginRequest): Promise<AxiosResponse> {
-        return this.client.post("/users/login/", data);
+        // Doesn't use this.client as we don't want the interceptors.
+        return axios.post("/api/users/login/", data);
     }
 
     public static async activate(id: number, data: ActivateRequest): Promise<AxiosResponse> {

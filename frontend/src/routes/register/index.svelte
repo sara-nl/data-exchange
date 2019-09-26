@@ -5,7 +5,9 @@
     let data = new RegisterRequest("", "");
     let loading = false;
 
-    async function handleClick() {
+    async function submit(event: any) {
+        event.preventDefault();
+
         loading = true;
 
         try {
@@ -23,7 +25,7 @@
 <div class="container">
     <div class="row">
         <div class="col-xs-12 col-md-4">
-            <form>
+            <form on:submit={submit}>
                 <div class="form-group">
                     <label for="email">
                         E-mail address:
@@ -49,13 +51,12 @@
                 </div>
 
                 <div class="form-group">
-                    <div
+                    <input
+                        type="submit"
                         class="form-control btn btn-primary"
-                        class:disabled={loading}
-                        on:click={handleClick}
+                        value={loading ? "Please wait..." : "Register"}
+                        disabled={loading}
                     >
-                        {loading ? "Please wait..." : "Register"}
-                    </div>
                 </div>
             </form>
         </div>

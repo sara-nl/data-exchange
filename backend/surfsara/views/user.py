@@ -90,7 +90,7 @@ class UserViewSet(viewsets.ModelViewSet):
             token = account_activation_token.make_token(user)
             domain = request.get_host()
 
-            url = f"{domain}/register/activate?pk={user.pk}&token={token}"
+            url = f"http://{domain}/register/activate?pk={user.pk}&token={token}"
             options = {"user": user, "url": url}
 
             subject = "Activate your email address"

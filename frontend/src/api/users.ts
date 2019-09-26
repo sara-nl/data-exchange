@@ -19,9 +19,23 @@ export class ActivateRequest {
     }
 }
 
+export class LoginRequest {
+    public username: string = "";
+    public password: string = "";
+
+    constructor(username: string, password: string) {
+        this.username = username;
+        this.password = password;
+    }
+}
+
 export default class Users extends Controller {
     public static async register(data: RegisterRequest): Promise<AxiosResponse> {
         return this.client.post("/users/register/", data);
+    }
+
+    public static async login(data: LoginRequest): Promise<AxiosResponse> {
+        return this.client.post("/users/login/", data);
     }
 
     public static async activate(id: number, data: ActivateRequest): Promise<AxiosResponse> {

@@ -15,6 +15,7 @@ from django.urls import reverse
 from django.db import IntegrityError, transaction
 from surfsara.models import User
 from surfsara.tokens import account_activation_token
+from rest_framework.authtoken.views import obtain_auth_token
 
 
 class RegisterParser(JSONParser):
@@ -66,7 +67,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
             # Specify the fields that are sent to the user
             # (to avoid sending e.g. the password hash to a client).
-            fields = ["url", "username", "email", "is_staff", "webdav_username"]
+            fields = ["url", "email", "is_staff", "webdav_username"]
 
     queryset = User.objects.all()
     serializer_class = Serializer
@@ -127,4 +128,13 @@ class UserViewSet(viewsets.ModelViewSet):
         user.is_active = True
         user.save()
 
-        return Response({"valid": valid, "error": "Incorrect token."})
+        if not valid:
+            return Response({"valid": False, "error": "Incorrect token."})
+        else:
+            return Response({"valid": True})
+
+    @action(
+        detail=False, methods=["POST"], name="Log in", permission_classes=[AllowAny]
+    )
+    def login(self, request):
+        return obtain_auth_token(request._request)

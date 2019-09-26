@@ -25,21 +25,21 @@
     <div class="row">
         <div class="col-xs-12 col-md-8">
             {#if loading}
-            <h1>Loading...</h1>
+                <h1>Loading...</h1>
             {:else if error}
-            <h1>Something went wrong</h1>
-            <p>{error}</p>
+                <h1>Something went wrong</h1>
+                <p>{error}</p>
             {:else}
-            <h1>Account activated!</h1>
+                <h1>Account activated!</h1>
 
-            <p>
-                Your account has been activated successfully. You can now continue to the log-in
-                page to log into your new account.
-            </p>
+                <p>
+                    Your account has been activated successfully. You can now continue to the log-in
+                    page to log into your new account.
+                </p>
 
-            <p>
-                <a href="/login">Go to login page</a>
-            </p>
+                <p>
+                    <a href="/login">Go to login page</a>
+                </p>
             {/if}
         </div>
     </div>

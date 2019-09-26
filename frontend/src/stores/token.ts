@@ -22,8 +22,8 @@ const createWritableStore = (key: string, startValue: string | null) => {
             subscribe((current: string | null) => {
                 localStorage.setItem(key, JSON.stringify(current));
             });
-        }
+        },
     };
-}
+};
 
 export const token = createWritableStore("token", null);

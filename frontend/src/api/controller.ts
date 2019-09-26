@@ -1,12 +1,11 @@
-import axios, {AxiosInstance, AxiosRequestConfig, AxiosError, AxiosResponse} from "axios";
+import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from "axios";
 
-import { token } from "../stores/token";
 import { fromUrl } from "../stores/fromUrl";
+import { token } from "../stores/token";
 
 export default class Controller {
     public static client: AxiosInstance;
     public static sapper: any;
-    protected static token: string | null;
 
     public static setup(sapper: any) {
         this.sapper = sapper;
@@ -19,7 +18,7 @@ export default class Controller {
         this.client.interceptors.request.use(
             (config: AxiosRequestConfig) => {
                 if (this.token) {
-                    config.headers["Authorization"] = `Token ${this.token}`;
+                    config.headers.Authorization = `Token ${this.token}`;
                 }
 
                 return config;
@@ -27,7 +26,7 @@ export default class Controller {
             async (error: AxiosError) => {
                 throw error;
             },
-        )
+        );
 
         this.client.interceptors.response.use(
             (response: AxiosResponse) => response,
@@ -42,6 +41,8 @@ export default class Controller {
                     throw error;
                 }
             },
-        )
+        );
     }
+
+    protected static token: string | null;
 }

@@ -2,7 +2,7 @@ import os
 import tempfile
 import docker
 
-from .rd_connector import ResearchdriveClient
+from .ResearchdriveClient import ResearchdriveClient
 
 
 class RunContainer:

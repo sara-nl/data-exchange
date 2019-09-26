@@ -11,7 +11,7 @@ from rest_framework.schemas import ManualSchema
 
 from surfsara.models import User
 from backend.scripts.run_container import RunContainer
-from backend.scripts.rd_connector import ResearchdriveClient
+from backend.scripts.ResearchdriveClient import ResearchdriveClient
 
 
 class StartParser(JSONParser):

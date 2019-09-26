@@ -3,10 +3,20 @@
     import Users, {RegisterRequest} from "../../api/users";
 
     let data = new RegisterRequest("", "");
+    let passwordRepeat: any = null;
+
     let loading = false;
 
     async function submit(event: any) {
         event.preventDefault();
+
+        const passwordValid = data.password === passwordRepeat.value;
+        if (!passwordValid) {
+            passwordRepeat.setCustomValidity("Passwords don't match");
+            return;
+        } else {
+            passwordRepeat.setCustomValidity("");
+        }
 
         loading = true;
 
@@ -34,6 +44,7 @@
                             type="email"
                             id="email"
                             bind:value={data.email}
+                            required
                         >
                     </label>
                 </div>
@@ -46,6 +57,20 @@
                             id="password"
                             type="password"
                             bind:value={data.password}
+                            required
+                        >
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label for="password">
+                        Repeat password:
+                        <input
+                            class="form-control"
+                            id="password"
+                            type="password"
+                            bind:this={passwordRepeat}
+                            required
                         >
                     </label>
                 </div>

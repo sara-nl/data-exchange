@@ -11,11 +11,10 @@ class ResearchdriveClient:
                          "apps/files_sharing/api/v1/shares"
 
     def __init__(self):
-        # RD THIRD "f_data_exchange" "KCVNI-VBXWR-NLGMO-POQNO"
         self.options = {"webdav_hostname": "https://researchdrive.surfsara.nl",
                         "webdav_root": "/remote.php/nonshib-webdav/",
-                        "webdav_login": "tijs@wearebit.com",
-                        "webdav_password": "prototypingfutures"}
+                        "webdav_login": "f_data_exchange",
+                        "webdav_password": "KCVNI-VBXWR-NLGMO-POQNO"}
         self.client = wc.Client(self.options)
         self.shares = {}
 
@@ -60,6 +59,13 @@ class ResearchdriveClient:
         return error
 
     def get_shares(self, uid_owner=None):
+        """
+        Get all shared files and folder. If a uid_owner is given
+        it only returns shares this owner.
+        :param uid_owner: Usually an email address, represents a unique id.
+        :return: A list containing a dictionary with metadata for each
+        share.
+        """
         params = (
             ("shared_with_me", "true"),
             ("format", "json"),
@@ -80,10 +86,14 @@ class ResearchdriveClient:
             self.shares = shares['ocs']['data']
 
             if uid_owner:
-                self.filter_owner_uid(uid_owner)
+                self.filter_shares(uid_owner)
             return self.shares
 
-    def filter_owner_uid(self, uid_owner):
+    def filter_shares(self, uid_owner):
+        """
+        Filters and updates shares based on a unique id.
+        :param uid_owner: Usually an email address, represents a unique id.
+        """
         filtered = []
         for share in self.shares:
             if share["uid_owner"] == uid_owner:

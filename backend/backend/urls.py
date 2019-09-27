@@ -9,7 +9,9 @@ from surfsara.views import user, runner
 router = routers.DefaultRouter()
 router.register("users", user.UserViewSet)
 router.register("runner/start", runner.StartViewSet, basename="runner")
-router.register("runner/shares", runner.ViewShares, basename="shares") 
+router.register("runner/shares", runner.ViewShares, basename="shares")
+router.register("runner/shares_person", runner.ViewSharesPerson, basename="shares_person")
+
 
 urlpatterns = [
     path("api/", include(router.urls)),

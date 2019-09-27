@@ -23,7 +23,7 @@ class RunContainer:
             Combines downloaden and running of algorithm with data
         """
         self.download_files()
-        self.run_algorithm()
+        return self.run_algorithm()
 
     def run_algorithm(self):
         """

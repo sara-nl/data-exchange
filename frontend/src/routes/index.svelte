@@ -1,23 +1,42 @@
 <script lang="ts">
     import Runner from "../api/runner.ts";
+    import LoadRunner from "../api/loader.ts";
 
     let running = false;
-    let data = {
-        username: "",
-        password: "",
+    let algorithm_files = []
+    let dataset_files = []
+    let output = null
 
-        algorithm_file: "test_algorithm.py",
-        data_file: "test_data.txt",
+    let data = {
+        algorithm_file: "",
+        data_file: "",
     };
-    let output = null;
+
+    getUserFiles()
+
+    async function getUserFiles(){
+        try {
+            let { data: response } = await LoadRunner.start(data);
+            algorithm_files = response.output.algorithms;
+            dataset_files = response.output.datasets;
+
+        } catch (error) {
+            output = error.response ? error.response.data : error.toString();
+        }
+
+        return false
+    }
 
     async function handleClick() {
         output = null;
         running = true;
 
+        data.algorithm_file = document.getElementById("algorithm-file").value;
+        data.data_file = document.getElementById("data-file").value
+
         try {
             let { data: response } = await Runner.start(data);
-            console.log(response);
+            console.log(response.output);
             output = response.output;
         } catch (error) {
             output = error.response ? error.response.data : error.toString();
@@ -36,48 +55,34 @@
     <div class="row">
         <div class="col-xs-12 col-md-4">
             <form>
-                <div class="form-group">
-                    <label for="username">
-                        Username:
-                        <input
-                            class="form-control"
-                            id="username"
-                            bind:value={data.username}
-                        >
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">
-                        Password:
-                        <input
-                            class="form-control"
-                            id="password"
-                            type="password"
-                            bind:value={data.password}
-                        >
-                    </label>
-                </div>
 
                 <div class="form-group">
                     <label for="algorithm-file">
                         Algorithm file:
-                        <input
+                        <select
                             class="form-control"
-                            id="algorithm-file"
-                            bind:value={data.algorithm_file}
-                        >
+                            id="algorithm-file">
+
+                            {#each algorithm_files as file}
+                                <option value={file}>{file}</option>
+                            {/each}
+
+                        </select>
                     </label>
                 </div>
 
                 <div class="form-group">
                     <label for="data-file">
                         Data file:
-                        <input
+                        <select
                             class="form-control"
-                            id="data-file"
-                            bind:value={data.data_file}
-                        >
+                            id="data-file">
+
+                            {#each dataset_files as file}
+                                <option>{file}</option>
+                            {/each}
+
+                        </select>
                     </label>
                 </div>
 

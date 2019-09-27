@@ -1,4 +1,6 @@
 import jsonschema
+import json
+
 from django.urls import path, include
 from rest_framework import routers, serializers, viewsets
 from rest_framework.decorators import api_view
@@ -19,12 +21,10 @@ class StartParser(JSONParser):
     schema = {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
-        "required": ["algorithm_file", "data_file", "username", "password"],
+        "required": ["algorithm_file", "data_file"],
         "properties": {
             "algorithm_file": {"type": "string", "minLength": 1},
-            "data_file": {"type": "string", "minLength": 1},
-            "username": {"type": "string", "minLength": 1},
-            "password": {"type": "string", "minLength": 1},
+            "data_file": {"type": "string", "minLength": 1}
         },
     }
 
@@ -44,15 +44,17 @@ class StartViewSet(viewsets.ViewSet):
 
     def create(self, request):
         runner = RunContainer(
-            algorithm_file_name=request.data["algorithm_file"],
-            data_file_name=request.data["data_file"],
-            download_dir="/tmp/surfsara",
+            remote_algorithm_path=request.data["algorithm_file"],
+            remote_data_path=request.data["data_file"],
+            download_dir="./files",
         )
-        runner.download_files(request.data["username"], request.data["password"])
-        file = runner.run_algorithm()
 
-        with open(file, "r") as f:
-            output = f.read()
+        try:
+            file = runner.download_and_run()
+            with open(file, "r") as f:
+                output = f.read()
+        except Exception as error:
+                output = "Could not locate file.\nPlease refresh for up-to-date files."
 
         return Response({"output": output})
 
@@ -63,6 +65,30 @@ class ViewShares(viewsets.ViewSet):
     def create(self, request):
         rd_client = ResearchdriveClient()
         return Response({"output": rd_client.get_shares()})
+
+
+class ViewSharesPerson(viewsets.ViewSet):
+    permission_classes = (AllowAny,)
+
+    def create(self, request):
+        algorithms = []
+        datasets = []
+
+        rd_client = ResearchdriveClient()
+        shares = rd_client.get_shares()
+
+        for share in shares:
+            if share.get("file_target")[-2:] == "py":
+                if share.get("uid_owner") == "tijs@wearebit.com":
+                    algorithms.append(share.get("file_target").strip("/"))
+            elif share.get("file_target")[-3:] == "txt":
+                datasets.append(share.get("file_target").strip("/"))
+
+        return Response({"output": {
+                            "algorithms": algorithms,
+                            "datasets": datasets}
+                        })
+
 
 
 

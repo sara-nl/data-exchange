@@ -44,8 +44,8 @@ class StartViewSet(viewsets.ViewSet):
 
     def create(self, request):
         runner = RunContainer(
-            algorithm_file_name=request.data["algorithm_file"],
-            data_file_name=request.data["data_file"],
+            remote_algorithm_path=request.data["algorithm_file"],
+            remote_data_path=request.data["data_file"],
             download_dir="/tmp/surfsara",
         )
         runner.download_files(request.data["username"], request.data["password"])

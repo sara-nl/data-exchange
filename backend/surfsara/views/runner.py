@@ -18,6 +18,7 @@ from backend.scripts.ResearchdriveClient import ResearchdriveClient
 
 class StartParser(JSONParser):
     """Parser to check if the JSON sent to the endpoint is valid."""
+
     schema = {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -29,7 +30,8 @@ class StartParser(JSONParser):
     }
 
     def parse(self, stream, media_type=None, parser_context=None):
-        data = super(StartParser, self).parse(stream, media_type, parser_context)
+        data = super(StartParser, self).parse(
+            stream, media_type, parser_context)
         try:
             jsonschema.validate(data, self.schema)
         except ValueError as error:
@@ -39,8 +41,9 @@ class StartParser(JSONParser):
 
 class StartViewSet(viewsets.ViewSet):
     """View for the /runner/start endpoint."""
-    permission_classes = (AllowAny,)
-    parser_classes = (StartParser,)
+
+    permission_classes = [IsAuthenticated]
+    parser_classes = [StartParser]
 
     def create(self, request):
         runner = RunContainer(
@@ -54,7 +57,7 @@ class StartViewSet(viewsets.ViewSet):
             with open(file, "r") as f:
                 output = f.read()
         except Exception as error:
-                output = "Could not locate file.\nPlease refresh for up-to-date files."
+            output = "Could not locate file.\nPlease refresh for up-to-date files."
 
         return Response({"output": output})
 
@@ -73,26 +76,29 @@ class ViewSharesPerson(viewsets.ViewSet):
     def create(self, request):
         algorithms = []
         datasets = []
+        errors = []
 
         rd_client = ResearchdriveClient()
         shares = rd_client.get_shares()
 
         for share in shares:
-            if share.get("file_target")[-2:] == "py":
-                if share.get("uid_owner") == "tijs@wearebit.com":
-                    algorithms.append(share.get("file_target").strip("/"))
-            elif share.get("file_target")[-3:] == "txt":
-                datasets.append(share.get("file_target").strip("/"))
+            filename = share.get("file_target").strip("/")
+            if filename[-2:] == "py":
+                if share.get("uid_owner") == request.user:
+                    algorithms.append()
+            elif filename[-3:] == "txt":
+                datasets.append(filename)
+
+        if not algorithms:
+            errors.append("You have no available algorithms\n")
+
+        if not datasets:
+            errors.append("You have no available datasets\n")
+
+        print(errors)
 
         return Response({"output": {
-                            "algorithms": algorithms,
-                            "datasets": datasets}
-                        })
-
-
-
-
-
-
-
-
+            "algorithms": algorithms,
+            "datasets": datasets,
+            "errors": errors}
+        })

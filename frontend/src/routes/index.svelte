@@ -36,7 +36,7 @@
         data.data_file = document.getElementById("data-file").value
 
         if(data.algorithm_file == "" || data.data_file == "") {
-            output = "You need an algorithm and dataset to run"
+            output = "You need to select an algorithm and dataset to run"
             return false
         }
 
@@ -78,11 +78,16 @@
                             class="form-control"
                             id="algorithm-file"
                             >
-                            <option value="">Select algorithm</option>
 
-                            {#each algorithm_files as file}
-                                <option value={file}>{file}</option>
-                            {/each}
+                            {#if algorithm_files.length > 0}
+                                <option value="">Select algorithm</option>
+
+                                {#each algorithm_files as file}
+                                    <option value={file}>{file}</option>
+                                {/each}
+                            {:else}
+                                <option value="">No algorithms available</option>
+                            {/if}
 
                         </select>
                     </label>
@@ -95,12 +100,16 @@
                             class="form-control"
                             id="data-file"
                             >
-                            <option value="">Select dataset</option>
 
-                            {#each dataset_files as file}
-                                <option value={file}>{file}</option>
-                            {/each}
+                            {#if dataset_files.length > 0}
+                                <option value="">Select dataset</option>
 
+                                {#each dataset_files as file}
+                                    <option value={file}>{file}</option>
+                                {/each}
+                            {:else}
+                                <option value="">No datasets available</option>
+                            {/if}
                         </select>
                     </label>
                 </div>

@@ -15,8 +15,24 @@ class ResearchdriveClient:
                         "webdav_root": "/remote.php/nonshib-webdav/",
                         "webdav_login": "f_data_exchange",
                         "webdav_password": "KCVNI-VBXWR-NLGMO-POQNO"}
-        self.client = wc.Client(self.options)
+        self.client = None
         self.shares = {}
+        self.connect()
+
+    def connect(self):
+        """
+        Connect the using the options credentials.
+        """
+        self.client = wc.Client(self.options)
+
+    def set_options(self, options):
+        """
+        Set different options credentials and reconnect the client
+        :param options: Dictionary containing webdav_hostname,
+        webdav_root, webdav_login and webdav_password.
+        """
+        self.options = options
+        self.connect()
 
     def list(self, remote_path=""):
         """

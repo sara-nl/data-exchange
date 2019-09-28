@@ -118,7 +118,7 @@
             </form>
         </div>
 
-        <div class="col-xs-12 col-md-8" style="border-style:solid">
+        <div class="col-xs-12 col-md-8 border">
             <pre>
                 {output || "No output (yet)…"}
             </pre>

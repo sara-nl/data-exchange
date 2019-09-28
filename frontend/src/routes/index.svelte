@@ -8,7 +8,7 @@
     let dataset_files = []
     let errors = []
 
-    let output = null
+    let output;
 
     let data = {
         algorithm_file: "",
@@ -18,14 +18,15 @@
     getUserFiles()
 
     async function getUserFiles(){
-        output=null
         try {
-            let { data: response } = await LoadRunner.start(data);
+            let { data: response } = await LoadRunner.start();
             algorithm_files = response.output.algorithms;
             dataset_files = response.output.datasets;
             errors = response.output.errors;
 
-            output = errors
+            if(errors != []) {
+                output = errors
+            }
 
         } catch (error) {
             output = error.response ? error.response.data : error.toString();
@@ -37,6 +38,9 @@
     async function handleClick() {
         output = null;
         running = true;
+
+        data.algorithm_file = document.getElementById("algorithm-file").value
+        data.data_file = document.getElementById("data-file").value
 
         try {
             let { data: response } = await Runner.start(data);
@@ -50,9 +54,6 @@
         return false;
     }
 
-    function isValid() {
-        return data.algorithm_file !== "" && data.data_file !== "";
-    }
 </script>
 
 <svelte:head>
@@ -70,7 +71,7 @@
                         <select
                             class="form-control"
                             id="algorithm-file"
-                            required>
+                            >
 
                             {#each algorithm_files as file}
                                 <option value={file}>{file}</option>
@@ -86,11 +87,10 @@
                         <select
                             class="form-control"
                             id="data-file"
-                            bind:value={data.data_file}
-                            required>
+                            >
 
                             {#each dataset_files as file}
-                                <option>{file}</option>
+                                <option value={file}>{file}</option>
                             {/each}
 
                         </select>
@@ -101,7 +101,7 @@
                     <a
                         href="#0"
                         class="form-control btn btn-primary"
-                        disabled={running || !isValid()}
+                        disabled={running}
                         on:click={handleClick}
                     >
                         {running ? "Running..." : "Run!"}

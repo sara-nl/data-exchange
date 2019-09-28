@@ -46,6 +46,7 @@ class StartViewSet(viewsets.ViewSet):
     parser_classes = [StartParser]
 
     def create(self, request):
+        print(request.data["algorithm_file"])
         runner = RunContainer(
             remote_algorithm_path=request.data["algorithm_file"],
             remote_data_path=request.data["data_file"],

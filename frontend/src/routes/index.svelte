@@ -39,8 +39,12 @@
         output = null;
         running = true;
 
-        data.algorithm_file = document.getElementById("algorithm-file").value
-        data.data_file = document.getElementById("data-file").value
+        // TODO REWRITE with bindings
+        let algorithm_select = document.getElementById("algorithm-file")
+        data.algorithm_file = algorithm_select.options[algorithm_select.selectedIndex].value
+
+        let data_select = document.getElementById("data-file")
+        data.data_file = data_select.options[data_select.selectedIndex].value
 
         try {
             let { data: response } = await Runner.start(data);

@@ -47,18 +47,21 @@ class StartViewSet(viewsets.ViewSet):
 
     def create(self, request):
         print(request.data["algorithm_file"])
+        print(request.data["data_file"])
+
         runner = RunContainer(
             remote_algorithm_path=request.data["algorithm_file"],
             remote_data_path=request.data["data_file"],
             download_dir="./files",
         )
 
-        try:
-            file = runner.download_and_run()
-            with open(file, "r") as f:
-                output = f.read()
-        except Exception as error:
-            output = "Could not locate file.\nPlease refresh for up-to-date files."
+        # try:
+        runner.download_files()
+        file  = runner.run_algorithm()
+        with open(file, "r") as f:
+            output = f.read()
+        # except Exception as error:
+        #     output = "Could not locate file.\nPlease refresh for up-to-date files."
 
         return Response({"output": output})
 
@@ -79,14 +82,16 @@ class ViewSharesPerson(viewsets.ViewSet):
         datasets = []
         errors = []
 
+        print(request.user)
+
         rd_client = ResearchdriveClient()
         shares = rd_client.get_shares()
 
         for share in shares:
             filename = share.get("file_target").strip("/")
             if filename[-2:] == "py":
-                if share.get("uid_owner") == request.user:
-                    algorithms.append()
+                if share.get("uid_owner") == str(request.user):
+                    algorithms.append(filename)
             elif filename[-3:] == "txt":
                 datasets.append(filename)
 

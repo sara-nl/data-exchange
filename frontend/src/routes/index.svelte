@@ -1,6 +1,6 @@
 <script lang="ts">
     import Runner from "../api/runner";
-    import LoadRunner from "../api/loader";
+    import LoadFiles from "../api/loader";
 
     let running = false;
 
@@ -19,14 +19,9 @@
 
     async function getUserFiles(){
         try {
-            let { data: response } = await LoadRunner.start();
-            algorithm_files = response.output.algorithms;
-            dataset_files = response.output.datasets;
-            errors = response.output.errors;
-
-            if(errors != []) {
-                output = errors
-            }
+            let { data: response } = await LoadFiles.start();
+            algorithm_files = response.output.own_algorithms;
+            dataset_files = response.output.available_datasets;
 
         } catch (error) {
             output = error.response ? error.response.data : error.toString();
@@ -36,15 +31,17 @@
     }
 
     async function handleClick() {
+        // TODO REWRITE with bindings
+        data.algorithm_file = document.getElementById("algorithm-file").value
+        data.data_file = document.getElementById("data-file").value
+
+        if(data.algorithm_file == "" || data.data_file == "") {
+            output = "You need an algorithm and dataset to run"
+            return false
+        }
+
         output = null;
         running = true;
-
-        // TODO REWRITE with bindings
-        let algorithm_select = document.getElementById("algorithm-file")
-        data.algorithm_file = algorithm_select.options[algorithm_select.selectedIndex].value
-
-        let data_select = document.getElementById("data-file")
-        data.data_file = data_select.options[data_select.selectedIndex].value
 
         try {
             let { data: response } = await Runner.start(data);
@@ -64,6 +61,11 @@
     <title>DEX</title>
 </svelte:head>
 
+<h2 class="display-5">
+    Run your algorithm
+</h2>
+<br>
+
 <div class="container">
     <div class="row">
         <div class="col-xs-12 col-md-4">
@@ -71,11 +73,12 @@
 
                 <div class="form-group">
                     <label for="algorithm-file">
-                        Algorithm file:
+                        Algorithm:
                         <select
                             class="form-control"
                             id="algorithm-file"
                             >
+                            <option value="">Select algorithm</option>
 
                             {#each algorithm_files as file}
                                 <option value={file}>{file}</option>
@@ -87,11 +90,12 @@
 
                 <div class="form-group">
                     <label for="data-file">
-                        Data file:
+                        Datasets:
                         <select
                             class="form-control"
                             id="data-file"
                             >
+                            <option value="">Select dataset</option>
 
                             {#each dataset_files as file}
                                 <option value={file}>{file}</option>
@@ -114,7 +118,7 @@
             </form>
         </div>
 
-        <div class="col-xs-12 col-md-8">
+        <div class="col-xs-12 col-md-8" style="border-style:solid">
             <pre>
                 {output || "No output (yet)…"}
             </pre>

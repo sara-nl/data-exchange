@@ -1,5 +1,4 @@
 import jsonschema
-import json
 
 from django.urls import path, include
 from rest_framework import routers, serializers, viewsets
@@ -46,22 +45,20 @@ class StartViewSet(viewsets.ViewSet):
     parser_classes = [StartParser]
 
     def create(self, request):
-        print(request.data["algorithm_file"])
-        print(request.data["data_file"])
-
         runner = RunContainer(
             remote_algorithm_path=request.data["algorithm_file"],
             remote_data_path=request.data["data_file"],
             download_dir="./files",
         )
 
-        # try:
-        runner.download_files()
-        file  = runner.run_algorithm()
-        with open(file, "r") as f:
-            output = f.read()
-        # except Exception as error:
-        #     output = "Could not locate file.\nPlease refresh for up-to-date files."
+        try:
+            runner.download_files()
+            file  = runner.run_algorithm()
+            with open(file, "r") as f:
+                output = f.read()
+        except Exception as error:
+            print(error)
+            output = "Could not run with selected files.\nPlease refresh and try again."
 
         return Response({"output": output})
 
@@ -74,37 +71,4 @@ class ViewShares(viewsets.ViewSet):
         return Response({"output": rd_client.get_shares()})
 
 
-class ViewSharesPerson(viewsets.ViewSet):
-    permission_classes = (AllowAny,)
 
-    def create(self, request):
-        algorithms = []
-        datasets = []
-        errors = []
-
-        print(request.user)
-
-        rd_client = ResearchdriveClient()
-        shares = rd_client.get_shares()
-
-        for share in shares:
-            filename = share.get("file_target").strip("/")
-            if filename[-2:] == "py":
-                if share.get("uid_owner") == str(request.user):
-                    algorithms.append(filename)
-            elif filename[-3:] == "txt":
-                datasets.append(filename)
-
-        if not algorithms:
-            errors.append("You have no available algorithms\n")
-
-        if not datasets:
-            errors.append("You have no available datasets\n")
-
-        print(errors)
-
-        return Response({"output": {
-            "algorithms": algorithms,
-            "datasets": datasets,
-            "errors": errors}
-        })

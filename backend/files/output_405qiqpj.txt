@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/tmp/files/tmpqdglhqpj.py", line 3, in <module>
+    with open('tmp/files/demo_data.txt', 'r') as inp:
+FileNotFoundError: [Errno 2] No such file or directory: 'tmp/files/demo_data.txt'

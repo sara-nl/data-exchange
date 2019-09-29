@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/tmp/files/tmp7x45semp.py", line 3, in <module>
+    with open('demo_data.txt', 'r') as inp:
+FileNotFoundError: [Errno 2] No such file or directory: 'demo_data.txt'

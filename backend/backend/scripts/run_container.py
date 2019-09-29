@@ -1,30 +1,29 @@
 import os
-import sys
 import tempfile
-import subprocess
-import argparse
-
-import time
 import docker
 
-from .rd_connector import download_file
+from .ResearchdriveClient import ResearchdriveClient
 
 
 class RunContainer:
-    def __init__(self, algorithm_file_name, data_file_name, download_dir=""):
-        self.algorithm_file_name = algorithm_file_name
-        self.data_file_name = data_file_name
-
+    def __init__(self, remote_algorithm_path, remote_data_path, download_dir=""):
+        self.remote_algorithm_path = remote_algorithm_path
+        self.remote_data_path = remote_data_path
         self.download_dir = download_dir
-
         self.container = None
 
-    def download_and_run(self, username, password):
+        self.temp_algorithm_file = None
+        self.temp_data_file = None
+        self.temp_algorithm_name = None
+        self.temp_data_name = None
+        self.temp_output_file = None
+
+    def download_and_run(self):
         """
             Combines downloaden and running of algorithm with data
         """
-        self.download_files(username, password)
-        self.run_algorithm()
+        self.download_files()
+        return self.run_algorithm()
 
     def run_algorithm(self):
         """
@@ -42,18 +41,16 @@ class RunContainer:
         except (Exception, KeyboardInterrupt, EnvironmentError) as error:
             self.stop_running(error)
 
-    def download_files(self, username, password):
+    def download_files(self):
         """
             Downloads both the algorithm and data
-
-            TODO change to better download function
         """
 
         try:
             print("=== Downloading files ===")
 
             self.create_files()
-            self.download_from_rd(username, password)
+            self.download_from_rd()
 
             print("Changed file permissions to read-only")
             # change permissions of files
@@ -141,29 +138,17 @@ class RunContainer:
         self.temp_algorithm_name = self.temp_algorithm_file.split("/")[-1]
         self.temp_data_name = self.temp_data_file.split("/")[-1]
 
-    def download_from_rd(self, username, password):
+    def download_from_rd(self):
         """
             Downloads both the algorithm and data from researchdrive
         """
 
-        options = {
-            "webdav_hostname": "https://researchdrive.surfsara.nl",
-            "webdav_root": "/remote.php/nonshib-webdav/",
-            "webdav_login": username,
-            "webdav_password": password,
-        }
+        rd_client = ResearchdriveClient()
 
-        if self.algorithm_file_name and self.data_file_name:
+        if self.remote_algorithm_path and self.remote_data_path:
             try:
-                download_file(
-                    options,
-                    filename=self.algorithm_file_name,
-                    filepath=self.temp_algorithm_file,
-                )
-
-                download_file(
-                    options, filename=self.data_file_name, filepath=self.temp_data_file
-                )
+                rd_client.download(self.remote_algorithm_path, self.download_dir, self.temp_algorithm_file)
+                rd_client.download(self.remote_data_path, self.download_dir, self.temp_data_file)
             except FileNotFoundError as error:
                 self.stop_running(error)
         else:
@@ -194,46 +179,13 @@ class RunContainer:
             os.remove(self.temp_data_file)
 
 
-def containerStatus(client, container):
+def container_status(client, container):
     return client.containers.get(container.id).status
 
 
+def main():
+    return
+
+
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Arguments to connect to resource drive"
-    )
-    parser.add_argument(
-        "-algorithm_file",
-        type=str,
-        help="File with the algorithm",
-        default="test_algorithm.py",
-    )
-    parser.add_argument(
-        "-data_file", type=str, help="File with data", default="test_data.txt"
-    )
-    parser.add_argument(
-        "-username",
-        type=str,
-        help="Username of Research Drive account",
-        default="tijs@wearebit.com",
-    )
-    parser.add_argument(
-        "-password",
-        type=str,
-        help="Password of Research Drive account",
-        default="prototypingfutures",
-    )
-    parser.add_argument(
-        "-download_dir",
-        type=str,
-        help="Directory where downloaded folders are store",
-        default="files",
-    )
-
-    args = parser.parse_args()
-
-    run_env = RunContainer(args.algorithm_file, args.data_file, args.download_dir)
-
-    # run_env.download_files(args.username, args.password)
-    # run_env.run_algorithm()
-    run_env.download_and_run(args.username, args.password)
+    main()

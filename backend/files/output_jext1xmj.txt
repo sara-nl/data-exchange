@@ -1,0 +1,2 @@
+Algoritme klaar
+Total of all numbers: 23.0

@@ -1,23 +1,51 @@
 <script lang="ts">
     import Runner from "../api/runner";
+    import LoadFiles from "../api/loader";
 
     let running = false;
-    let data = {
-        username: "",
-        password: "",
 
-        algorithm_file: "test_algorithm.py",
-        data_file: "test_data.txt",
+    let algorithm_files = []
+    let dataset_files = []
+    let errors = []
+
+    let output;
+
+    let data = {
+        algorithm_file: "",
+        data_file: "",
     };
-    let output = null;
+
+    getUserFiles()
+
+    async function getUserFiles(){
+        try {
+            let { data: response } = await LoadFiles.start();
+            algorithm_files = response.output.own_algorithms;
+            dataset_files = response.output.available_datasets;
+
+        } catch (error) {
+            output = error.response ? error.response.data : error.toString();
+        }
+
+        return false
+    }
 
     async function handleClick() {
+        // TODO REWRITE with bindings
+        data.algorithm_file = document.getElementById("algorithm-file").value
+        data.data_file = document.getElementById("data-file").value
+
+        if(data.algorithm_file == "" || data.data_file == "") {
+            output = "You need to select an algorithm and dataset to run"
+            return false
+        }
+
         output = null;
         running = true;
 
         try {
             let { data: response } = await Runner.start(data);
-            console.log(response);
+            console.log(response.output);
             output = response.output;
         } catch (error) {
             output = error.response ? error.response.data : error.toString();
@@ -26,58 +54,63 @@
         running = false;
         return false;
     }
+
 </script>
 
 <svelte:head>
     <title>DEX</title>
 </svelte:head>
 
+<h2 class="display-5">
+    Run your algorithm
+</h2>
+<br>
+
 <div class="container">
     <div class="row">
         <div class="col-xs-12 col-md-4">
             <form>
-                <div class="form-group">
-                    <label for="username">
-                        Username:
-                        <input
-                            class="form-control"
-                            id="username"
-                            bind:value={data.username}
-                        >
-                    </label>
-                </div>
-
-                <div class="form-group">
-                    <label for="password">
-                        Password:
-                        <input
-                            class="form-control"
-                            id="password"
-                            type="password"
-                            bind:value={data.password}
-                        >
-                    </label>
-                </div>
 
                 <div class="form-group">
                     <label for="algorithm-file">
-                        Algorithm file:
-                        <input
+                        Algorithm:
+                        <select
                             class="form-control"
                             id="algorithm-file"
-                            bind:value={data.algorithm_file}
-                        >
+                            >
+
+                            {#if algorithm_files.length > 0}
+                                <option value="">Select algorithm</option>
+
+                                {#each algorithm_files as file}
+                                    <option value={file}>{file}</option>
+                                {/each}
+                            {:else}
+                                <option value="">No algorithms available</option>
+                            {/if}
+
+                        </select>
                     </label>
                 </div>
 
                 <div class="form-group">
                     <label for="data-file">
-                        Data file:
-                        <input
+                        Datasets:
+                        <select
                             class="form-control"
                             id="data-file"
-                            bind:value={data.data_file}
-                        >
+                            >
+
+                            {#if dataset_files.length > 0}
+                                <option value="">Select dataset</option>
+
+                                {#each dataset_files as file}
+                                    <option value={file}>{file}</option>
+                                {/each}
+                            {:else}
+                                <option value="">No datasets available</option>
+                            {/if}
+                        </select>
                     </label>
                 </div>
 
@@ -94,7 +127,7 @@
             </form>
         </div>
 
-        <div class="col-xs-12 col-md-8">
+        <div class="col-xs-12 col-md-8 border">
             <pre>
                 {output || "No output (yet)…"}
             </pre>

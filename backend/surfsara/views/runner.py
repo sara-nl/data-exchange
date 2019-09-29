@@ -15,6 +15,7 @@ from backend.scripts.run_container import RunContainer
 
 class StartParser(JSONParser):
     """Parser to check if the JSON sent to the endpoint is valid."""
+
     schema = {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "type": "object",
@@ -38,8 +39,9 @@ class StartParser(JSONParser):
 
 class StartViewSet(viewsets.ViewSet):
     """View for the /runner/start endpoint."""
-    permission_classes = (AllowAny,)
-    parser_classes = (StartParser,)
+
+    permission_classes = [IsAuthenticated]
+    parser_classes = [StartParser]
 
     def create(self, request):
         runner = RunContainer(

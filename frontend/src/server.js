@@ -17,6 +17,10 @@ polka()
           logLevel: 'debug',
           target: 'http://localhost:8000',
         }),
+        proxy('/admin', {
+          logLevel: 'debug',
+          target: 'http://localhost:8000',
+        }),
         compression({ threshold: 0 }),
         sirv('static', { dev }),
         sapper.middleware()

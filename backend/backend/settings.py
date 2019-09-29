@@ -131,3 +131,7 @@ STATIC_URL = "/static/"
 STATIC_ROOT = "/var/www/html/static"
 
 AUTH_USER_MODEL = "surfsara.User"
+
+EMAIL_USE_TLS = False
+EMAIL_HOST = "dataexchange.surfsara.nl"
+EMAIL_PORT = 1025

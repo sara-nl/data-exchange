@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Runner from "../api/runner.ts";
+    import Runner from "../api/runner";
 
     let running = false;
     let data = {

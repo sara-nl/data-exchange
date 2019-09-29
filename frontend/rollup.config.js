@@ -36,6 +36,7 @@ export default {
             }),
             resolve({
                 browser: true,
+                extensions: [ '.mjs', '.js', '.ts', '.svelte', '.json', '.node' ],
                 dedupe
             }),
             commonjs(),
@@ -47,7 +48,8 @@ export default {
                 presets: [
                     ['@babel/preset-env', {
                         targets: '> 0.25%, not dead'
-                    }]
+                    }],
+                    "@babel/preset-typescript",
                 ],
                 plugins: [
                     '@babel/plugin-syntax-dynamic-import',
@@ -82,6 +84,7 @@ export default {
                 preprocess: autoPreprocess(),
             }),
             resolve({
+                extensions: [ '.mjs', '.js', '.ts', '.svelte', '.json', '.node' ],
                 dedupe
             }),
             commonjs()
@@ -90,7 +93,12 @@ export default {
             require('module').builtinModules || Object.keys(process.binding('natives'))
         ),
 
-        onwarn,
+        onwarn(warning, next) {
+            if (warning.code === "THIS_IS_UNDEFINED") {
+                return;
+            }
+            next(warning);
+        },
     },
 
     serviceworker: {
@@ -107,5 +115,7 @@ export default {
         ],
 
         onwarn,
-    }
+    },
+
+
 };

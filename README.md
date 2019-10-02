@@ -38,7 +38,7 @@ sudo apt update
 sudo apt install python3 python3-virtualenv
 ```
 
-### 🍏 Extra steps for OSX: 
+### 🍏 Extra steps for OSX:
 ```
 brew install postgresql gsl openssl
 export LDFLAGS="-L/usr/local/opt/openssl/lib"
@@ -59,7 +59,7 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Install docker
-apt-get install docker
+apt-get install docker.io
 
 # Add docker
 sudo groupadd docker

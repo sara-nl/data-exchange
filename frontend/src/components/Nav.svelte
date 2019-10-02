@@ -13,11 +13,19 @@
             <NavItem name="Home" href="/" active={segment === undefined} />
             {#if $token}
                 <NavItem name="My shared files" href="/myfiles" />
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="/tasks" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Tasks
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="/request">Request data</a>
+                        <a class="dropdown-item" href="/review">Review requests</a>
+                    </div>
+                </li>
             {/if}
 
             <NavItem name="About" href="/about" active={segment === "about"} />
-            <NavItem name="API" href="/api" />
-            <NavItem name="Admin" href="/admin" />
         </ul>
 
         <ul class="nav ml-auto">

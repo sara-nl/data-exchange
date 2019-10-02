@@ -37,25 +37,41 @@
     <br>
 
     <div class="row">
-        <div class="col">
-            <h3>Algorithms:</h3>
-            {#if own_algorithms.length > 0}
-                {#each own_algorithms as file}
-                    <div>{file}</div>
-                {/each}
-            {:else}
-                <div>You have shared no algorithms</div>
-            {/if}
-            <br>
+        <div class="col-xs-12 col-md-4">
+            <form on:submit={submit}>
+                <div class="form-group">
+                    <label for="Algorithm">
+                        Which will you be using?
+                        <input
+                            class="form-control"
+                            type="text"
+                            id="algorithm"
+                            bind:value={data.username}
+                        >
+                    </label>
+                </div>
 
-            <h3>Datasets:</h3>
-            {#if own_datasets.length > 0}
-                {#each own_datasets as file}
-                    <div>{file}</div>
-                {/each}
-            {:else}
-                <div>You have shared no datasets</div>
-            {/if}
+                <div class="form-group">
+                    <label for="password">
+                        What data do you want request:
+                        <input
+                            class="form-control"
+                            id="password"
+                            type="textarea"
+                            bind:value={data.password}
+                        >
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <input
+                        type="submit"
+                        class="form-control btn btn-primary"
+                        value={loading ? "Please wait..." : "Sign in"}
+                        disabled={loading}
+                    >
+                </div>
+            </form>
         </div>
         <br>
         <div class="col border">

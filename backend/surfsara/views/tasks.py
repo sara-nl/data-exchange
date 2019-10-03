@@ -5,13 +5,19 @@ from rest_framework.response import Response
 from django.core.mail import EmailMultiAlternatives
 from django.db import transaction
 from django.template.loader import render_to_string
-from django.core import serializers
 
 from rest_framework.decorators import action
+from rest_framework import serializers
 
 from surfsara.models import User, Task
 from surfsara.services.start_runner import start_runner
 from surfsara.services.mail_services import send_mail
+
+
+class TaskSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Task
+        fields = "__all__"
 
 
 class Tasks(viewsets.ViewSet):
@@ -37,7 +43,8 @@ class Tasks(viewsets.ViewSet):
 
                 send_mail("data_request", data_owner_email, subject, options)
 
-        return Response({})
+        return Response({"owner":True})
+
 
     def list(self, request):
         user = str(request.user)
@@ -46,13 +53,27 @@ class Tasks(viewsets.ViewSet):
         own_requests = Task.objects.filter(author_email=user).values()
 
         for request in own_requests:
-            if not request["state"] == "approved":
+            if not request["state"] == "output_released":
                 request["output"] = ""
-
-        print(own_requests)
 
         return Response({"to_approve_requests": to_approve_requests.values(),
                          "own_requests": own_requests})
+
+    def retrieve(self, request, pk=None):
+        user = str(request.user)
+        owner = False
+
+        task = Task.objects.get(pk=pk)
+        if not task.state == "output_released" or task.approver_email != user:
+            task.output = ""
+
+        if task.approver_email == user:
+            owner = True
+
+        serializer = TaskSerializer(task)
+        return Response({"task":serializer.data,
+                         "owner": owner})
+
 
     @action(
         detail=True,
@@ -62,35 +83,72 @@ class Tasks(viewsets.ViewSet):
     )
     def review(self, request, pk=None):
         user = str(request.user)
-        updated_request = request.data["updated_request"]
+        # updated_request = request.data["updated_request"]
 
-        task_id = updated_request["id"]
-        dataset = updated_request["dataset"]
+        dataset = request.data["updated_request"]["dataset"]
+
+        if not Task.objects.filter(id=pk, approver_email=user):
+            return Response({"output": "Not your file"})
 
         if request.data["approved"]:
-            result = "approved"
-
             with transaction.atomic():
-                task = Task.objects.get(id=task_id)
+                print(dataset)
+                task = Task.objects.get(id=pk)
                 task.state = "running"
                 task.dataset = dataset
 
+                task.output = "super vette output"
+
                 task.save()
         else:
-            result = "rejected"
-
             with transaction.atomic():
-                task = Task.objects.get(id=task_id)
+                task = Task.objects.get(id=pk)
                 task.state = "request_rejected"
 
                 task.save()
 
         domain = request.get_host()
         url = f"http://{domain}/overview"
-        options = {"url": url, "result": result}
+        options = {"url": url}
 
         subject = "Your data request has been reviewed"
-
         send_mail("request_reviewed", user, subject, options)
 
-        return Response({"output":result})
+        #TODO countainer output
+
+        return Response({"state":task.state})
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="release",
+        permission_classes=[AllowAny],
+    )
+    def release(self, request, pk=None):
+        user = str(request.user)
+        state = ""
+
+        if not Task.objects.filter(id=pk, approver_email=user):
+            return Response({"output": "Not your file"})
+
+        if request.data["released"]:
+            state = "output_released"
+
+            with transaction.atomic():
+                task = Task.objects.get(id=pk)
+                task.state = "output_released"
+                task.save()
+
+            return Response({"state": state})
+
+        else:
+            state = "release_rejected"
+            with transaction.atomic():
+                task = Task.objects.get(id=pk)
+                task.state = state
+
+                task.save()
+
+
+        return Response({"state": state})
+

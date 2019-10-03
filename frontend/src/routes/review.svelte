@@ -119,11 +119,6 @@
                                         </button>
                                         {/if}
                                 </td>
-
-                            <!-- <td><button type="submit" class="btn btn-success">Approve</button></td>
-                            <td><button type="submit"   class="btn btn-danger">Disapprove</button></td> -->
-
-
                         </tr>
                     </tbody>
                 {/each}

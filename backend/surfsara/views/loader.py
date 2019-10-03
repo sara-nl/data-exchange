@@ -15,6 +15,7 @@ class GetUserFiles(viewsets.ViewSet):
         own_datasets = []
         available_datasets = []
 
+
         rd_client = ResearchdriveClient()
         shares = rd_client.get_shares()
 

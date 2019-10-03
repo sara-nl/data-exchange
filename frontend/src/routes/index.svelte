@@ -6,7 +6,6 @@
 
     let algorithm_files = []
     let dataset_files = []
-    let errors = []
 
     let output;
 

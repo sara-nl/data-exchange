@@ -10,7 +10,7 @@ import json
 class GetUserFiles(viewsets.ViewSet):
     permission_classes = (AllowAny,)
 
-    def create(self, request):
+    def list(self, request):
         own_algorithms = []
         own_datasets = []
         available_datasets = []

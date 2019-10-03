@@ -46,5 +46,12 @@ class User(AbstractUser):
     webdav_username = models.CharField(max_length=64, blank=True)
     webdav_password = models.CharField(max_length=256, blank=True)
 
+class Task(models.Model):
+    id = models.AutoField(primary_key=True)
+    state = models.CharField(max_length=255)
+    author_email = models.TextField()
+    approver_email = models.TextField()
+    output = models.TextField()
+    registered_on = models.DateTimeField(auto_now_add=True)
 
 admin.site.register(User)

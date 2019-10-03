@@ -1,11 +1,14 @@
 <script lang="ts">
     import LoadFiles from "../api/loader";
+    import Tasks from "../api/tasks";
 
-    let own_algorithms = []
-    let own_datasets = []
-    let data = {}
+    let algorithm_files = []
 
-    let own_datasets_amount = 0
+    let data = {
+        algorithm: "",
+        data_owner: "",
+        requested_data: ""
+    }
 
 
     getUserFiles()
@@ -13,14 +16,31 @@
     async function getUserFiles(){
         try {
             let { data: response } = await LoadFiles.start();
-            own_algorithms = response.output.own_algorithms;
-            own_datasets = response.output.own_datasets;
+            algorithm_files = response.output.own_algorithms;
+
         } catch (error) {
             console.log(error.toString())
         }
 
         return false
     }
+
+    async function yeet(event:any){
+        event.preventDefault();
+
+        try {
+            let { data: response } = await Tasks.start(data);
+            console.log(response.output);
+        } catch (error) {
+            console.error(error)
+        }
+
+        console.log(data.algorithm)
+        console.log(data.data_owner)
+        console.log(data.requested_data)
+    }
+
+
 </script>
 
 
@@ -38,28 +58,49 @@
 
     <div class="row">
         <div class="col-xs-12 col-md-4">
-            <form on:submit={submit}>
+            <form on:submit={yeet}>
                 <div class="form-group">
-                    <label for="Algorithm">
-                        Which will you be using?
+                    <label for="algorithm">
+                        Algorithm
+                        <select
+                            class="form-control"
+                            id="algorithm-file"
+                            bind:value={data.algorithm}
+                            >
+
+                            {#if algorithm_files.length > 0}
+                                <option value="">Select algorithm</option>
+
+                                {#each algorithm_files as file}
+                                    <option value={file}>{file}</option>
+                                {/each}
+                            {:else}
+                                <option value="">No algorithms available</option>
+                            {/if}
+
+                        </select>
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label for="data_owner">
+                        Data owner
                         <input
                             class="form-control"
                             type="text"
-                            id="algorithm"
-                            bind:value={data.username}
+                            id="data_owner"
+                            bind:value={data.data_owner}
                         >
                     </label>
                 </div>
 
                 <div class="form-group">
-                    <label for="password">
-                        What data do you want request:
-                        <input
+                    <label for="dataset">
+                        Description of dataset
+                        <textarea
+                            bind:value={data.requested_data}
                             class="form-control"
-                            id="password"
-                            type="textarea"
-                            bind:value={data.password}
-                        >
+                            id="requested_data"
+                        ></textarea>
                     </label>
                 </div>
 
@@ -67,8 +108,7 @@
                     <input
                         type="submit"
                         class="form-control btn btn-primary"
-                        value={loading ? "Please wait..." : "Sign in"}
-                        disabled={loading}
+                        value={"Request data"}
                     >
                 </div>
             </form>

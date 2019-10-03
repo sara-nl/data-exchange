@@ -6,3 +6,5 @@ Markdown ~= 3.1.1
 django-filter ~= 2.2.0
 psycopg2 ~= 2.8.3
 jsonschema ~= 3.0.2
+pika ~= 1.1.0
+dataclasses_json ~= 0.3.4

@@ -11,7 +11,8 @@ router.register("users", user.UserViewSet, basename="user")
 router.register("runner/start", runner.StartViewSet, basename="runner")
 router.register("runner/shares", runner.ViewShares, basename="shares")
 router.register("loader/user_files", loader.GetUserFiles, basename="user_files")
-router.register("tasks/request_data", tasks.Tasks, basename="request_data")
+router.register("tasks", tasks.Tasks, basename="tasks")
+
 
 
 urlpatterns = [

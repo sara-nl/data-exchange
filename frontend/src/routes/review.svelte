@@ -1,25 +1,54 @@
 <script lang="ts">
     import LoadFiles from "../api/loader";
+    import Tasks from "../api/tasks";
 
-    let own_algorithms = []
+    let to_approve_requests = []
     let own_datasets = []
-    let data = {}
+    let data = {
+        data_file: "",
+        updated_request: {},
+        approved: false
+    }
 
     let own_datasets_amount = 0
 
 
     getUserFiles()
+    getUserTasks()
 
     async function getUserFiles(){
         try {
             let { data: response } = await LoadFiles.start();
-            own_algorithms = response.output.own_algorithms;
             own_datasets = response.output.own_datasets;
         } catch (error) {
             console.log(error.toString())
         }
 
         return false
+    }
+
+    async function getUserTasks(){
+        try {
+            let { data: response } = await Tasks.get();
+            to_approve_requests = response.to_approve_requests
+        } catch (error) {
+            console.log(error.toString())
+        }
+
+        return false
+    }
+
+    async function approve(id: number, approved: boolean) {
+        data.updated_request = to_approve_requests[id]
+        data.approved = approved
+
+        try {
+            let { data: response } = await Tasks.review(data.updated_request.id, data);
+            to_approve_requests[id].state = response.output
+        } catch (error) {
+            console.log(error.toString())
+        }
+
     }
 </script>
 
@@ -29,8 +58,8 @@
 </svelte:head>
 
 <h2 class="display-5">
-    Your algorithms and datasets
-    <small class="text-muted">shared with DataExchange</small>
+    Requests
+    <small class="text-muted">to review</small>
 </h2>
 
 <div class="container">
@@ -38,34 +67,71 @@
 
     <div class="row">
         <div class="col">
-            <h3>Algorithms:</h3>
-            {#if own_algorithms.length > 0}
-                {#each own_algorithms as file}
-                    <div>{file}</div>
+            <table class="table">
+                <thead>
+                    <tr>
+                    <th scope="col">State</th>
+                    <th scope="col">Requester</th>
+                    <th scope="col">Requester algorithm</th>
+                    <th scope="col">Requested description</th>
+                    <th scope="col">Dataset</th>
+
+                    </tr>
+                </thead>
+            {#if to_approve_requests.length > 0}
+                {#each to_approve_requests as file, i}
+
+                    <tbody>
+                        <tr>
+                                <td>{file.state}</td>
+                                <td>{file.author_email}</td>
+                                <td>{file.algorithm}</td>
+                                <td>{file.dataset_desc}</td>
+                                <td>
+                                    <select
+                                        bind:value={file.dataset}
+                                        id="data-file"
+                                        >
+
+                                        {#if own_datasets.length > 0}
+                                            <option value="">Select dataset</option>
+
+                                            {#each own_datasets as file}
+                                                <option value={file}>{file}</option>
+                                            {/each}
+                                        {:else}
+                                            <option value="">No datasets available</option>
+                                        {/if}
+                                    </select>
+                                </td>
+                                <td>
+                                        {#if file.state === "data_requested"}
+                                        <button
+                                            class="btn btn-success"
+                                            on:click={() => approve(i, true)}>
+                                            Approve
+                                        </button>
+                                        <button
+                                            id="{i}"
+                                            class="btn btn-danger"
+                                            on:click={() => approve(i, false)}>
+                                            Reject
+                                        </button>
+                                        {/if}
+                                </td>
+
+                            <!-- <td><button type="submit" class="btn btn-success">Approve</button></td>
+                            <td><button type="submit"   class="btn btn-danger">Disapprove</button></td> -->
+
+
+                        </tr>
+                    </tbody>
                 {/each}
             {:else}
-                <div>You have shared no algorithms</div>
+                <div>You have no requests to review</div>
             {/if}
             <br>
 
-            <h3>Datasets:</h3>
-            {#if own_datasets.length > 0}
-                {#each own_datasets as file}
-                    <div>{file}</div>
-                {/each}
-            {:else}
-                <div>You have shared no datasets</div>
-            {/if}
-        </div>
-        <br>
-        <div class="col border">
-            <h4 class="dispay-1">How to share files:</h4>
-
-            <p><b>1.</b> Register and activate account with the <u>same email</u> as on ResearchDrive</p>
-            <p><b>2.</b> In <a href="https://researchdrive.surfsara.nl">ResearchDrive</a> click on the share icon next to the file</p>
-            <p><b>3.</b> Type in "Data Exchange" as users or groups to share with</p>
-            <p><b>4.</b> Select "Data Exchange" to share your file</p>
-            <p><b>5.</b> Refresh this page to see your file as being shared</p>
         </div>
     </div>
 

@@ -1,13 +1,14 @@
 <script lang="ts">
     import LoadFiles from "../api/loader";
     import Tasks from "../api/tasks";
+    import { goto } from "@sapper/app";
 
     let algorithm_files = []
 
     let data = {
         algorithm: "",
         data_owner: "",
-        requested_data: ""
+        dataset_desc: ""
     }
 
 
@@ -25,21 +26,20 @@
         return false
     }
 
-    async function yeet(event:any){
+    async function createRequest(event:any){
         event.preventDefault();
 
         try {
             let { data: response } = await Tasks.start(data);
-            console.log(response.output);
+            goto("/review");
         } catch (error) {
             console.error(error)
         }
 
         console.log(data.algorithm)
         console.log(data.data_owner)
-        console.log(data.requested_data)
+        console.log(data.dataset_desc)
     }
-
 
 </script>
 
@@ -49,16 +49,16 @@
 </svelte:head>
 
 <h2 class="display-5">
-    Your algorithms and datasets
-    <small class="text-muted">shared with DataExchange</small>
+    Request use of a dataset
+    <small class="text-muted">with one of your algorithms</small>
 </h2>
 
 <div class="container">
     <br>
 
     <div class="row">
-        <div class="col-xs-12 col-md-4">
-            <form on:submit={yeet}>
+        <div class="col">
+            <form on:submit={createRequest}>
                 <div class="form-group">
                     <label for="algorithm">
                         Algorithm
@@ -96,10 +96,10 @@
                 <div class="form-group">
                     <label for="dataset">
                         Description of dataset
-                        <textarea
-                            bind:value={data.requested_data}
+                        <textarea rows=5
+                            bind:value={data.dataset_desc}
                             class="form-control"
-                            id="requested_data"
+                            id="dataset_desc"
                         ></textarea>
                     </label>
                 </div>
@@ -115,13 +115,17 @@
         </div>
         <br>
         <div class="col border">
-            <h4 class="dispay-1">How to share files:</h4>
+            <h4 class="dispay-1">How a dataset request works:</h4>
 
-            <p><b>1.</b> Register and activate account with the <u>same email</u> as on ResearchDrive</p>
-            <p><b>2.</b> In <a href="https://researchdrive.surfsara.nl">ResearchDrive</a> click on the share icon next to the file</p>
-            <p><b>3.</b> Type in "Data Exchange" as users or groups to share with</p>
-            <p><b>4.</b> Select "Data Exchange" to share your file</p>
-            <p><b>5.</b> Refresh this page to see your file as being shared</p>
+            <p><b>1.</b> You select which algorithm you want to run, provide username of dataset owner and describe what dataset you want to use</p>
+            <p><b>2.</b> The dataset owner will review your request and either approve or deny</p>
+            <p><b>3.</b> If approved the algorithm will run and the output shown to the dataset owner</p>
+            <p><b>4.</b> When the dataset owner has approved the output, it will be released to you</p>
+
+            <p>You can follow the status of your request on the datarequest page.</p>
+
+
+
         </div>
     </div>
 

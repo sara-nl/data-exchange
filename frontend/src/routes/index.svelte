@@ -31,8 +31,6 @@
 
     async function handleClick() {
         // TODO REWRITE with bindings
-        data.algorithm_file = document.getElementById("algorithm-file").value
-        data.data_file = document.getElementById("data-file").value
 
         if(data.algorithm_file == "" || data.data_file == "") {
             output = "You need to select an algorithm and dataset to run"
@@ -74,6 +72,7 @@
                     <label for="algorithm-file">
                         Algorithm:
                         <select
+                            bind:value={data.algorithm_file}
                             class="form-control"
                             id="algorithm-file"
                             >
@@ -96,6 +95,8 @@
                     <label for="data-file">
                         Datasets:
                         <select
+                            bind:value={data.data_file}
+
                             class="form-control"
                             id="data-file"
                             >

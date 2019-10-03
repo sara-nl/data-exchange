@@ -53,6 +53,7 @@ class Task(models.Model):
     approver_email = models.TextField()
     algorithm = models.TextField()
     dataset = models.TextField()
+    dataset_desc = models.TextField()
     output = models.TextField()
     registered_on = models.DateTimeField(auto_now_add=True)
 

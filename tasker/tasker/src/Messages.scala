@@ -3,6 +3,8 @@
  */
 object Messages {
 
-  case class StartContainer(dataPath: String, codePath: String)
+  case class StartContainer(taskId: String, dataPath: String, codePath: String)
+
+  case class Done(taskId: String, state: String, output: String)
 
 }

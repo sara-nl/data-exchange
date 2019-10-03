@@ -2,3 +2,4 @@
 *.sqlite3
 __pycache__/
 **/downloads
+**/files

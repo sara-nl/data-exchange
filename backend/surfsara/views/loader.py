@@ -17,7 +17,6 @@ class GetUserFiles(viewsets.ViewSet):
 
         rd_client = ResearchdriveClient()
         shares = rd_client.get_shares()
-        print(json.dumps(shares))
 
         for share in shares:
             if share.get("item_type") == "folder":

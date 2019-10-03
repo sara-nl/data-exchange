@@ -67,6 +67,8 @@ class Tasks(viewsets.ViewSet):
         if not task.state == "output_released" or task.approver_email != user:
             task.output = ""
 
+        print(user)
+
         if task.approver_email == user:
             owner = True
 
@@ -83,16 +85,16 @@ class Tasks(viewsets.ViewSet):
     )
     def review(self, request, pk=None):
         user = str(request.user)
-        # updated_request = request.data["updated_request"]
+        print(request.data)
+        updated_request = request.data["updated_request"]
 
-        dataset = request.data["updated_request"]["dataset"]
+        dataset = updated_request["dataset"]
 
         if not Task.objects.filter(id=pk, approver_email=user):
             return Response({"output": "Not your file"})
 
         if request.data["approved"]:
             with transaction.atomic():
-                print(dataset)
                 task = Task.objects.get(id=pk)
                 task.state = "running"
                 task.dataset = dataset

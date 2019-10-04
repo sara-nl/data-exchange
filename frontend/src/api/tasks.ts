@@ -12,11 +12,6 @@ export class TasksReviewRequest {
     public approved: boolean = false;
 }
 
-export class TasksReleaseRequest {
-    public data: Object = {};
-    public released: boolean = false;
-}
-
 export class TaskRetrieveRequest {
     public task_id: number = 0;
 }
@@ -39,7 +34,7 @@ export default class Tasks extends Controller {
         return this.client.post(`/tasks/${id}/review/`, data)
     }
 
-    public static async release(id: number, data: TasksReviewRequest): Promise<AxiosResponse> {
+    public static async release(id: number, data: TaskRetrieveRequest): Promise<AxiosResponse> {
         return this.client.post(`/tasks/${id}/release/`, data)
     }
 }

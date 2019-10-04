@@ -2,11 +2,13 @@
     import LoadFiles from "../api/loader";
     import Tasks from "../api/tasks";
 
-    let task_id = 23
+    let task_id = number(window.location.href.split(/[q=]+/)[1])
 
+    var task;
+    let owner = false
 
     let to_approve_requests = []
-    let own_datasets = ["Pietje"]
+    let own_datasets = []
 
     let data = {
         data_file: "",
@@ -14,10 +16,6 @@
         approved: false,
         released: false
     }
-
-
-    let task;
-    let owner = false
 
     let state = "Loading..."
     let requester = "Loading..."
@@ -67,17 +65,16 @@
     async function review_request(approved: boolean) {
 
         data.approved = approved
-        console.log(dataset)
+
         task["dataset"] = dataset
         data.updated_request = task
 
         try {
-            let { data: response } = await Tasks.review(task["id"], data);
+            let { data: response } = await Tasks.review(task_id, data);
             state = response["state"]
         } catch (error) {
             console.log(error.toString())
         }
-
     }
 
     async function release_output(released: boolean) {
@@ -99,7 +96,7 @@
 </svelte:head>
 
 <h2 class="display-5">
-    Task {task_id}
+    Request {task_id}
     <small class="text-muted">{state}</small>
 </h2>
 
@@ -144,7 +141,6 @@
                             <option value="">No datasets available</option>
                         {/if}
                     </select>
-
             {:else}
                 {dataset}
             {/if}

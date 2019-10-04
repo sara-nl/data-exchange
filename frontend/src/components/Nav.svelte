@@ -15,9 +15,9 @@
             {#if $token}
                 <NavItem name="My shared files" href="/myfiles" />
 
-                <NavDropdown name="Tasks">
+                <NavDropdown name="Request">
+                    <NavItem dropdown name="Requests overview" href="/requests" />
                     <NavItem dropdown name="Request data" href="/request" />
-                    <NavItem dropdown name="Review requests" href="/review" />
                 </NavDropdown>
             {/if}
 

@@ -15,7 +15,6 @@ class GetUserFiles(viewsets.ViewSet):
         own_datasets = []
         available_datasets = []
 
-
         rd_client = ResearchdriveClient()
         shares = rd_client.get_shares()
 
@@ -34,8 +33,12 @@ class GetUserFiles(viewsets.ViewSet):
 
                 available_datasets.append(filename)
 
-        return Response({"output": {
-            "own_algorithms": own_algorithms,
-            "own_datasets": own_datasets,
-            "available_datasets": available_datasets}
-        })
+        return Response(
+            {
+                "output": {
+                    "own_algorithms": own_algorithms,
+                    "own_datasets": own_datasets,
+                    "available_datasets": available_datasets,
+                }
+            }
+        )

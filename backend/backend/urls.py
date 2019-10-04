@@ -14,7 +14,6 @@ router.register("loader/user_files", loader.GetUserFiles, basename="user_files")
 router.register("tasks", tasks.Tasks, basename="tasks")
 
 
-
 urlpatterns = [
     path("api/", include(router.urls)),
     path("admin/", admin.site.urls),

@@ -7,14 +7,18 @@ import json
 
 class ResearchdriveClient:
 
-    share_api_hostname = "https://researchdrive.surfsara.nl/ocs/v1.php/" \
-                         "apps/files_sharing/api/v1/shares"
+    share_api_hostname = (
+        "https://researchdrive.surfsara.nl/ocs/v1.php/"
+        "apps/files_sharing/api/v1/shares"
+    )
 
     def __init__(self):
-        self.options = {"webdav_hostname": "https://researchdrive.surfsara.nl",
-                        "webdav_root": "/remote.php/nonshib-webdav/",
-                        "webdav_login": "f_data_exchange",
-                        "webdav_password": "KCVNI-VBXWR-NLGMO-POQNO"}
+        self.options = {
+            "webdav_hostname": "https://researchdrive.surfsara.nl",
+            "webdav_root": "/remote.php/nonshib-webdav/",
+            "webdav_login": "f_data_exchange",
+            "webdav_password": "KCVNI-VBXWR-NLGMO-POQNO",
+        }
         self.client = None
         self.shares = {}
         self.connect()
@@ -51,7 +55,7 @@ class ResearchdriveClient:
         :return: True if successful, the error if not.
         """
         # The WebDav endpoint only supports forward slash.
-        remote_path = remote_path.replace(os.sep, '/')
+        remote_path = remote_path.replace(os.sep, "/")
 
         if save_as:
             filename = save_as
@@ -82,24 +86,22 @@ class ResearchdriveClient:
         :return: A list containing a dictionary with metadata for each
         share.
         """
-        params = (
-            ("shared_with_me", "true"),
-            ("format", "json"),
-        )
+        params = (("shared_with_me", "true"), ("format", "json"))
 
         try:
-            response = requests.get(ResearchdriveClient.share_api_hostname,
-                                    params=params,
-                                    auth=(self.options["webdav_login"],
-                                          self.options["webdav_password"]))
+            response = requests.get(
+                ResearchdriveClient.share_api_hostname,
+                params=params,
+                auth=(self.options["webdav_login"], self.options["webdav_password"]),
+            )
             response.raise_for_status()
         except HTTPError as http_error:
-            print(f'An HTTP error occured: {http_error}')
+            print(f"An HTTP error occured: {http_error}")
         except Exception as error:
-            print(f'Error: {error}')
+            print(f"Error: {error}")
         else:
             shares = json.loads(response.text)
-            self.shares = shares['ocs']['data']
+            self.shares = shares["ocs"]["data"]
 
             if uid_owner:
                 self.filter_shares(uid_owner)

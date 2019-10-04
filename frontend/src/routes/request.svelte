@@ -37,7 +37,7 @@
 
         try {
             let { data: response } = await Tasks.start(data);
-            goto("/review");
+            goto("/requests");
         } catch (error) {
             console.error(error)
         }
@@ -113,6 +113,7 @@
                 <div class="form-group">
                     <input
                         type="submit"
+                        disabled={!(data.algorithm && data.data_owner && data.dataset_desc)}
                         class="form-control btn btn-primary"
                         value={"Request data"}
                     >

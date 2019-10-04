@@ -70,7 +70,6 @@
     }
 
     async function review_request(approved: boolean) {
-
         data.approved = approved
 
         task["dataset"] = dataset
@@ -154,6 +153,7 @@
             </div>
             {#if owner && state === "data_requested"}
             <button
+                disabled = {!dataset}
                 class="btn btn-success"
                 on:click={() => review_request(true)}>
                 Approve

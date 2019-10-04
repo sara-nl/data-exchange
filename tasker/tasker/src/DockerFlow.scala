@@ -28,8 +28,8 @@ class DockerFlow(consumer: Stream[IO, AmqpEnvelope[String]],
   val flow: Stream[IO, Unit] =
     consumer.through(jsonDecodePipe).evalMap {
       case Right(startContainer) =>
-        val doneMsg = Messages.Done(startContainer.taskId, "SUCCESS", "123")
-        print("Replying with ", doneMsg.asJson.spaces2)
+        val doneMsg = Messages.Done(startContainer.taskId, "success", "123")
+        println("Replying with ", doneMsg.asJson.spaces2)
         publisher(AmqpMessage(doneMsg.asJson.spaces2, AmqpProperties()))
       case Left(ex) =>
         println("Error: ", ex.getMessage)

@@ -1,17 +1,12 @@
-from rest_framework import viewsets
+from django.db import transaction
+from django.db.models import Q
+from rest_framework import viewsets, serializers
+from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
-from django.core.mail import EmailMultiAlternatives
-from django.db import transaction
-from django.template.loader import render_to_string
-
-from rest_framework.decorators import action
-from rest_framework import serializers
-
 from surfsara.models import User, Task
-from surfsara.services.start_runner import start_runner
-from surfsara.services.mail_services import send_mail
+from surfsara.services import task_service, mail_service
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -24,133 +19,92 @@ class Tasks(viewsets.ViewSet):
     permission_classes = (AllowAny,)
 
     def create(self, request):
-        algorithm = request.data["algorithm"]
         data_owner_email = request.data["data_owner"]
-        dataset_desc = request.data["dataset_desc"]
+        if not User.objects.filter(email=data_owner_email):
+            return Response({error: "unknown email"}, status=400)
 
-        algorithm_provider_email = str(request.user)
+        task = Task(
+            state=Task.DATA_REQUESTED,
+            author_email=request.user.email,
+            approver_email=data_owner_email,
+            algorithm=request.data["algorithm"],
+            dataset_desc=request.data["dataset_desc"],
+        )
+        task.save()
 
-        if User.objects.filter(email=data_owner_email):
-            with transaction.atomic():
-                task = Task(state="data_requested", author_email=algorithm_provider_email, approver_email=data_owner_email, algorithm=algorithm, dataset_desc=dataset_desc, output="")
-                task.save()
+        mail_service.send_mail(
+            mail_files="data_request",
+            receiver=data_owner_email,
+            subject="You got a data request",
+            url=f"http://{request.get_host()}/review",
+        )
 
-                domain = request.get_host()
-                url = f"http://{domain}/review"
-                options = {"url": url}
-
-                subject = "You got a data request"
-
-                send_mail("data_request", data_owner_email, subject, options)
-
-        return Response({"owner":True})
-
+        return Response({"owner": True})
 
     def list(self, request):
-        user = str(request.user)
+        to_approve_requests = Task.objects.filter(
+            Q(approver_email=request.user.email),
+            Q(state=Task.DATA_REQUESTED) | Q(state=Task.SUCCESS),
+        )
 
-        to_approve_requests = Task.objects.filter(approver_email=user, state="data_requested")
-        own_requests = Task.objects.filter(author_email=user).values()
-
+        own_requests = Task.objects.filter(author_email=request.user.email)
         for request in own_requests:
-            if not request["state"] == "output_released":
-                request["output"] = ""
+            if request.state != Task.OUTPUT_RELEASED:
+                request.output = None
 
-        return Response({"to_approve_requests": to_approve_requests.values(),
-                         "own_requests": own_requests})
+        return Response(
+            {
+                "to_approve_requests": TaskSerializer(
+                    to_approve_requests, many=True
+                ).data,
+                "own_requests": TaskSerializer(own_requests, many=True).data,
+            }
+        )
 
     def retrieve(self, request, pk=None):
-        user = str(request.user)
-        owner = False
+        task = Task.objects.get(pk=pk)
+        is_owner = task.approver_email == request.user.email
+        if task.state != Task.OUTPUT_RELEASED and not is_owner:
+            task.output = None
+
+        return Response({"is_owner": is_owner, **TaskSerializer(task).data})
+
+    @action(detail=True, methods=["POST"], name="review", permission_classes=[AllowAny])
+    def review(self, request, pk=None):
+        if not Task.objects.filter(pk=pk, approver_email=request.user.email):
+            return Response({"output": "Not your file"})
 
         task = Task.objects.get(pk=pk)
-        if not task.state == "output_released" or task.approver_email != user:
-            task.output = ""
-
-        print(user)
-
-        if task.approver_email == user:
-            owner = True
-
-        serializer = TaskSerializer(task)
-        return Response({"task":serializer.data,
-                         "owner": owner})
-
-
-    @action(
-        detail=True,
-        methods=["POST"],
-        name="review",
-        permission_classes=[AllowAny],
-    )
-    def review(self, request, pk=None):
-        user = str(request.user)
-        print(request.data)
-        updated_request = request.data["updated_request"]
-
-        dataset = updated_request["dataset"]
-
-        if not Task.objects.filter(id=pk, approver_email=user):
-            return Response({"output": "Not your file"})
 
         if request.data["approved"]:
-            with transaction.atomic():
-                task = Task.objects.get(id=pk)
-                task.state = "running"
-                task.dataset = dataset
+            task.state = Task.RUNNING
+            task.dataset = request.data["updated_request"]["dataset"]
 
-                task.output = "super vette output"
-
-                task.save()
+            task_service.start(task)
+            task.save()
         else:
-            with transaction.atomic():
-                task = Task.objects.get(id=pk)
-                task.state = "request_rejected"
+            task.state = Task.REQUEST_REJECTED
 
-                task.save()
+        task.save()
 
-        domain = request.get_host()
-        url = f"http://{domain}/overview"
-        options = {"url": url}
-
+        url = f"http://{request.get_host()}/overview"
         subject = "Your data request has been reviewed"
-        send_mail("request_reviewed", user, subject, options)
+        mail_service.send_mail("request_reviewed", request.user.email, subject, url=url)
 
-        #TODO countainer output
-
-        return Response({"state":task.state})
+        return Response({"state": task.state})
 
     @action(
-        detail=True,
-        methods=["POST"],
-        name="release",
-        permission_classes=[AllowAny],
+        detail=True, methods=["POST"], name="release", permission_classes=[AllowAny]
     )
     def release(self, request, pk=None):
-        user = str(request.user)
-        state = ""
-
-        if not Task.objects.filter(id=pk, approver_email=user):
+        if not Task.objects.filter(pk=pk, approver_email=request.user.email):
             return Response({"output": "Not your file"})
 
+        task = Task.objects.get(pk=pk)
         if request.data["released"]:
-            state = "output_released"
-
-            with transaction.atomic():
-                task = Task.objects.get(id=pk)
-                task.state = "output_released"
-                task.save()
-
-            return Response({"state": state})
-
+            task.state = Task.OUTPUT_RELEASED
         else:
-            state = "release_rejected"
-            with transaction.atomic():
-                task = Task.objects.get(id=pk)
-                task.state = state
+            task.state = Task.RELEASE_REJECTED
+        task.save()
 
-                task.save()
-
-
-        return Response({"state": state})
-
+        return Response({"state": task.state})

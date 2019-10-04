@@ -2,7 +2,7 @@
     import { goto } from "@sapper/app";
 
     import Users, {LoginRequest} from "../api/users";
-    import { token } from "../stores/token";
+    import { token, email } from "../stores";
 
     let data = new LoginRequest("", "");
     let loading = false;
@@ -15,6 +15,7 @@
         try {
             const { data: login } = await Users.login(data);
             token.set(login.token);
+            email.set(data.username);
             goto("/");
         } catch (error) {
             const response = error.response;

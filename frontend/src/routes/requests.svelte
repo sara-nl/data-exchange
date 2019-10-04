@@ -5,10 +5,10 @@
     import { goto, stores } from "@sapper/app";
 
     let state_color = {
-        "request_rejected": "table-danger",
-        "output_rejected": "table-warning",
-        "output_released": "table-success",
-        "running": "table-info"
+        "request_rejected": "danger",
+        "output_rejected": "warning",
+        "output_released": "success",
+        "running": "info"
     }
 
     let to_approve_requests = []
@@ -73,7 +73,7 @@
                 {#if own_requests.length > 0}
                     {#each own_requests as file}
                         <tbody>
-                            <tr class={state_color[file.state]}>
+                            <tr class="table-{(state_color[file.state])}">
                                     <td>{file.state}</td>
                                     <td>{file.approver_email}</td>
                                     <td>{file.dataset_desc}</td>

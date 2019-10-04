@@ -3,6 +3,13 @@
     import Tasks from "../api/tasks";
     import { goto } from "@sapper/app";
 
+    let state_color = {
+        "request_rejected": "danger",
+        "output_rejected": "warning",
+        "output_released": "success",
+        "running": "info"
+    }
+
     let algorithm_files = []
 
     let data = {
@@ -10,7 +17,6 @@
         data_owner: "",
         dataset_desc: ""
     }
-
 
     getUserFiles()
 

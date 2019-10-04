@@ -2,7 +2,14 @@
     import LoadFiles from "../api/loader";
     import Tasks from "../api/tasks";
 
-    let task_id = number(window.location.href.split(/[q=]+/)[1])
+    let state_color = {
+        "request_rejected": "danger",
+        "output_rejected": "warning",
+        "output_released": "success",
+        "running": "info"
+    }
+
+    let task_id = Number(window.location.href.split(/[q=]+/)[1])
 
     var task;
     let owner = false
@@ -97,7 +104,7 @@
 
 <h2 class="display-5">
     Request {task_id}
-    <small class="text-muted">{state}</small>
+    <small class="text-{(state_color[state])}">{state}</small>
 </h2>
 
 <div class="container">

@@ -1,0 +1,167 @@
+<script lang="ts">
+    import { onMount } from "svelte";
+    import { stores } from "@sapper/app";
+
+    import LoadFiles from "../../api/loader";
+    import Tasks, { TasksReviewRequest } from "../../api/tasks";
+
+    const { page } = stores();
+    const { taskId } = $page.params;
+
+    let state_color = {
+        "request_rejected": "danger",
+        "output_rejected": "warning",
+        "output_released": "success",
+        "running": "info",
+    };
+
+    let ownDatasets: any = null;
+    let task: any = null;
+
+    let data = new TasksReviewRequest();
+
+    onMount(async () => {
+        await load();
+    });
+
+    async function load() {
+        const { data } = await Tasks.retrieve(taskId);
+        task = data;
+
+        if (task.state === "data_requested") {
+            const { data } = await LoadFiles.start();
+            ownDatasets = data.output.own_datasets;
+        }
+    }
+
+    async function review_request(approved: boolean) {
+        data.approved = approved
+        data.updated_request = task
+
+        try {
+            let { data: response } = await Tasks.review(taskId, data);
+            task.state = response.state;
+        } catch (error) {
+            console.log(error.toString());
+        }
+
+        // Reload task after reviewing.
+        await load();
+    }
+
+    async function release_output(released: boolean) {
+        data.released = released
+
+        try {
+            let { data: response } = await Tasks.release(taskId, data);
+            task.state = response.state;
+        } catch (error) {
+            console.log(error.toString())
+        }
+
+        // Reload task after reviewing.
+        await load();
+    }
+</script>
+
+
+<svelte:head>
+    <title>My Files</title>
+</svelte:head>
+
+
+{#if task === null}
+<h3>Loading...</h3>
+{:else}
+<h2 class="display-5">
+    Request {taskId}
+    <small class="text-{state_color[task.state]}">{task.state}</small>
+</h2>
+
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <div class="my-5">
+                <h4>State</h4>
+                {task.state}
+            </div>
+            <div class="my-5">
+                <h4>Requester</h4>
+                {task.author_email}
+                <h4>Data owner</h4>
+                {task.approver_email}
+            </div>
+            <div class="my-5">
+                <h4>Dataset description</h4>
+                {task.dataset_desc}
+            </div>
+            <div class="my-5">
+                <h4>Algorithm</h4>
+                {task.algorithm}
+
+                <h4>Dataset</h4>
+                {#if task.is_owner && task.state === "data_requested"}
+                    {#if ownDatasets === null}
+                        Loading…
+                    {:else if ownDatasets.length === 0}
+                        No datasets available.
+                    {:else}
+                        <select
+                            class="form-control"
+                            bind:value={task.dataset}
+                            id="data-file"
+                        >
+                            <option value="">Select dataset</option>
+
+                            {#each ownDatasets as file}
+                                <option value={file}>{file}</option>
+                            {/each}
+                        </select>
+                    {/if}
+                {:else}
+                    {task.dataset || "No dataset selected"}
+                {/if}
+            </div>
+
+            {#if task.state === "data_requested"}
+                {#if task.is_owner}
+                    <button
+                        disabled={!task.dataset}
+                        class="btn btn-success"
+                        on:click={() => review_request(true)}>
+                        Approve
+                    </button>
+                    <button
+                        class="btn btn-danger"
+                        on:click={() => review_request(false)}>
+                        Reject
+                    </button>
+                {:else}
+                    <h4>Waiting for the data provider to review the algorithm…</h4>
+                {/if}
+            {/if}
+
+            {#if task.state === "success"}
+                {#if task.is_owner}
+                    <button
+                        class="btn btn-success"
+                        on:click={() => release_output(true)}>
+                        Release Output
+                    </button>
+                    <button
+                        class="btn btn-danger"
+                        on:click={() => release_output(false)}>
+                        Reject
+                    </button>
+                {:else}
+                    <h4>Waiting for the data provider to review the output…</h4>
+                {/if}
+            {/if}
+        </div>
+        <div class="col-xs-12 col-md-6 border">
+            <pre>{task.output || "No output (yet)…"}</pre>
+        </div>
+    </div>
+
+</div>
+{/if}

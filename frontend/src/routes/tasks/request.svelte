@@ -1,7 +1,9 @@
 <script lang="ts">
-    import LoadFiles from "../api/loader";
-    import Tasks from "../api/tasks";
+    import { onMount } from "svelte";
     import { goto } from "@sapper/app";
+
+    import LoadFiles from "../../api/loader";
+    import Tasks, { TasksStartRequest } from "../../api/tasks";
 
     let state_color = {
         "request_rejected": "danger",
@@ -11,44 +13,24 @@
     }
 
     let algorithm_files = []
+    let data = new TasksStartRequest();
 
-    let data = {
-        algorithm: "",
-        data_owner: "",
-        dataset_desc: ""
-    }
-
-    getUserFiles()
+    onMount(async () => {
+        await getUserFiles();
+    });
 
     async function getUserFiles(){
-        try {
-            let { data: response } = await LoadFiles.start();
-            algorithm_files = response.output.own_algorithms;
-
-        } catch (error) {
-            console.log(error.toString())
-        }
-
-        return false
+        let { data } = await LoadFiles.start();
+        algorithm_files = data.output.own_algorithms;
     }
 
-    async function createRequest(event:any){
+    async function createRequest(event: any) {
         event.preventDefault();
 
-        try {
-            let { data: response } = await Tasks.start(data);
-            goto("/requests");
-        } catch (error) {
-            console.error(error)
-        }
-
-        console.log(data.algorithm)
-        console.log(data.data_owner)
-        console.log(data.dataset_desc)
+        await Tasks.start(data);
+        goto("/tasks");
     }
-
 </script>
-
 
 <svelte:head>
     <title>My Files</title>
@@ -72,7 +54,7 @@
                             class="form-control"
                             id="algorithm-file"
                             bind:value={data.algorithm}
-                            >
+                        >
 
                             {#if algorithm_files.length > 0}
                                 <option value="">Select algorithm</option>
@@ -83,7 +65,6 @@
                             {:else}
                                 <option value="">No algorithms available</option>
                             {/if}
-
                         </select>
                     </label>
                 </div>

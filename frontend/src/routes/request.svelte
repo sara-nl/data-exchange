@@ -130,9 +130,6 @@
             <p><b>4.</b> When the dataset owner has approved the output, it will be released to you</p>
 
             <p>You can follow the status of your request on the datarequest page.</p>
-
-
-
         </div>
     </div>
 

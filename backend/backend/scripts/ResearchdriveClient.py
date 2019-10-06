@@ -120,7 +120,7 @@ class ResearchdriveClient:
         :return: List containing information aboout all file versions
         structured in dicts.
         """
-        endpoint = ResearchdriveClient.version_api_startendpoint + file_id + \
+        endpoint = ResearchdriveClient.version_api_startendpoint + str(file_id) + \
             ResearchdriveClient.version_api_endendpoint
 
         current_version = self.get_current_file_version(remote_path)

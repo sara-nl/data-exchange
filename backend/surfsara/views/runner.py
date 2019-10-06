@@ -71,4 +71,19 @@ class ViewShares(viewsets.ViewSet):
         return Response({"output": rd_client.get_shares()})
 
 
+class ViewFileVersions(viewsets.ViewSet):
+    permission_classes = (AllowAny,)
+
+    def create(self, request):
+        rd_client = ResearchdriveClient()
+        shares = rd_client.get_shares()
+
+        # Get the first share:
+        remote_path = shares[0]['path']
+        file_id = shares[0]['file_source']
+
+        result = {"output": rd_client.get_file_versions(file_id, remote_path)}
+        return Response(result)
+
+
 

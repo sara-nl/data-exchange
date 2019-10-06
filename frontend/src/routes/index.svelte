@@ -2,8 +2,6 @@
     import Runner from "../api/runner";
     import LoadFiles from "../api/loader";
 
-    let running = false;
-
     let algorithm_files = []
     let dataset_files = []
 

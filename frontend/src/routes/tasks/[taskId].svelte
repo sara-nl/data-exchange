@@ -10,9 +10,9 @@
 
     let state_color = {
         "request_rejected": "danger",
-        "output_rejected": "warning",
+        "release_rejected": "warning",
         "output_released": "success",
-        "running": "info",
+        "runnisng": "info",
     };
 
     let ownDatasets: any = null;
@@ -39,14 +39,23 @@
         data.updated_request = task
 
         try {
+            if(approved) {
+                task.output = "Running the algorithm"
+                task.state = "running"
+            }
+
             let { data: response } = await Tasks.review(taskId, data);
             task.state = response.state;
+
+            if(response.output) {
+                task.output = response.output
+            }
         } catch (error) {
             console.log(error.toString());
         }
 
         // Reload task after reviewing.
-        await load();
+        // await load();
     }
 
     async function release_output(released: boolean) {

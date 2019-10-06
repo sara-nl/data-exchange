@@ -3,6 +3,8 @@ import pika
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
 
+from backend.scripts.run_container import RunContainer
+
 
 @dataclass
 @dataclass_json(letter_case=LetterCase.CAMEL)
@@ -31,3 +33,22 @@ def start(task: Task):
     )
 
     connection.close()
+
+
+def start_container(algorithm, dataset):
+    runner = RunContainer(
+        remote_algorithm_path=algorithm,
+        remote_data_path=dataset,
+        download_dir="./files",
+    )
+
+    try:
+        runner.download_files()
+        file = runner.run_algorithm()
+        with open(file, "r") as f:
+            output = f.read()
+    except Exception as error:
+        print(error)
+        output = "Could not run with selected files.\nPlease refresh and try again."
+
+    return output

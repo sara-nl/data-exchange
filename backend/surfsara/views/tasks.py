@@ -45,9 +45,9 @@ class Tasks(viewsets.ViewSet):
         to_approve_requests = Task.objects.filter(
             Q(approver_email=request.user.email),
             Q(state=Task.DATA_REQUESTED) | Q(state=Task.SUCCESS),
-        )
+        ).order_by('-registered_on')
 
-        own_requests = Task.objects.filter(author_email=request.user.email)
+        own_requests = Task.objects.filter(author_email=request.user.email).order_by('-registered_on')
         for request in own_requests:
             if request.state != Task.OUTPUT_RELEASED:
                 request.output = None
@@ -71,17 +71,26 @@ class Tasks(viewsets.ViewSet):
 
     @action(detail=True, methods=["POST"], name="review", permission_classes=[AllowAny])
     def review(self, request, pk=None):
-        if not Task.objects.filter(pk=pk, approver_email=request.user.email):
+        output = ""
+        task = Task.objects.get(pk=pk)
+
+        print(task.approver_email)
+
+        if task.approver_email != request.user.email:
             return Response({"output": "Not your file"})
 
-        task = Task.objects.get(pk=pk)
 
         if request.data["approved"]:
             task.state = Task.RUNNING
             task.dataset = request.data["updated_request"]["dataset"]
+            task.save()
 
             task_service.start(task)
-            task.save()
+            ## TODO this temporary to show that you can run the container
+            output = task_service.start_container(task.algorithm, task.dataset)
+
+            task.state = Task.SUCCESS
+            task.output = output
         else:
             task.state = Task.REQUEST_REJECTED
 
@@ -91,7 +100,8 @@ class Tasks(viewsets.ViewSet):
         subject = "Your data request has been reviewed"
         mail_service.send_mail("request_reviewed", request.user.email, subject, url=url)
 
-        return Response({"state": task.state})
+        return Response({"state": task.state,
+                         "output": output})
 
     @action(
         detail=True, methods=["POST"], name="release", permission_classes=[AllowAny]

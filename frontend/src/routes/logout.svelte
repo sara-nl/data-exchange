@@ -1,5 +1,7 @@
 <script>
-	import { token } from "../stores/token";
+	import { token, email } from "../stores";
+
+    email.set(null);
 	token.set(null);
 </script>
 

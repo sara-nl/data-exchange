@@ -1,7 +1,5 @@
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from "axios";
-
-import { fromUrl } from "../stores/fromUrl";
-import { token } from "../stores/token";
+import { fromUrl, token } from "../stores";
 
 export default class Controller {
     public static client: AxiosInstance;

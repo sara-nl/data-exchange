@@ -197,17 +197,6 @@ class ResearchdriveClient:
 
 
 def main():
-
-    # Testrun
-    z = ResearchdriveClient()
-    options = z.options
-    options['webdav_login'] = 'tijs@wearebit.com'
-    options['webdav_password'] = 'prototypingfutures'
-    z.set_options(options)
-    print(z.get_file_versions('106164754', "read_only(only for tijs).txt"))
-    print(z.get_shares()[0])
-
-
     return
 
 

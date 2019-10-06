@@ -1,17 +1,22 @@
 import requests
 from requests.exceptions import HTTPError
 import webdav3.client as wc
+import lxml.etree as etree
 import os
 import json
 
 
 class ResearchdriveClient:
 
-    share_api_hostname = "https://researchdrive.surfsara.nl/ocs/v1.php/" \
-                         "apps/files_sharing/api/v1/shares"
+    webdav_hostname = "https://researchdrive.surfsara.nl"
+
+    share_api_endpoint = webdav_hostname + "/ocs/v1.php/apps/files_sharing/api/v1/shares"
+    current_version_endpoint = webdav_hostname + "/remote.php/dav/files/"
+    version_api_startendpoint = webdav_hostname + "/remote.php/dav/meta/"
+    version_api_endendpoint = "/v"
 
     def __init__(self):
-        self.options = {"webdav_hostname": "https://researchdrive.surfsara.nl",
+        self.options = {"webdav_hostname": ResearchdriveClient.webdav_hostname,
                         "webdav_root": "/remote.php/nonshib-webdav/",
                         "webdav_login": "f_data_exchange",
                         "webdav_password": "KCVNI-VBXWR-NLGMO-POQNO"}
@@ -74,6 +79,7 @@ class ResearchdriveClient:
             return True
         return error
 
+    # Code below this point doens't make use of the webdav3.client package
     def get_shares(self, uid_owner=None):
         """
         Get all shared files and folder. If a uid_owner is given
@@ -86,28 +92,18 @@ class ResearchdriveClient:
             ("shared_with_me", "true"),
             ("format", "json"),
         )
+        content = self.__execute_request(ResearchdriveClient.share_api_endpoint,
+                                         "GET", params=params)
+        shares = json.loads(content)
+        self.shares = shares['ocs']['data']
 
-        try:
-            response = requests.get(ResearchdriveClient.share_api_hostname,
-                                    params=params,
-                                    auth=(self.options["webdav_login"],
-                                          self.options["webdav_password"]))
-            response.raise_for_status()
-        except HTTPError as http_error:
-            print(f'An HTTP error occured: {http_error}')
-        except Exception as error:
-            print(f'Error: {error}')
-        else:
-            shares = json.loads(response.text)
-            self.shares = shares['ocs']['data']
-
-            if uid_owner:
-                self.filter_shares(uid_owner)
-            return self.shares
+        if uid_owner:
+            self.filter_shares(uid_owner)
+        return self.shares
 
     def filter_shares(self, uid_owner):
         """
-        Filters and updates shares based on a unique id.
+        Filters and updates shares based on a unique id of the owner.
         :param uid_owner: Usually an email address, represents a unique id.
         """
         filtered = []
@@ -116,8 +112,70 @@ class ResearchdriveClient:
                 filtered.append(share)
         self.shares = filtered
 
+    def get_file_versions(self, file_id):
+        endpoint = ResearchdriveClient.version_api_startendpoint + file_id +\
+                   ResearchdriveClient.version_api_endendpoint
+
+        #current_version_content = self.get_current_file_version()
+
+        old_versions_content = self.__execute_request(endpoint, "PROPFIND",
+                                                         {"Accept": "*/*"})
+
+        return self.parse_version_xml(old_versions_content)
+
+    def get_current_file_version(self, remote_path):
+        endpoint = ResearchdriveClient.current_version_endpoint + \
+                   self.options['webdav_login'] + "/" + remote_path
+
+        content = self.__execute_request(endpoint, "PROPFIND",
+                                         {"Accept": "*/*", "Depth": "1"})
+
+        return self.parse_version_xml(content)
+
+    def __execute_request(self, endpoint, method=None, headers=None, params=None):
+        try:
+            response = requests.request(method=method, url=endpoint,
+                                        auth=(self.options['webdav_login'],
+                                              self.options['webdav_password']),
+                                        headers=headers,
+                                        params=params)
+            response.raise_for_status()
+        except HTTPError as http_error:
+            print(f'An HTTP error occured: {http_error}')
+            raise http_error
+        except Exception as error:
+            print(f'Error: {error}')
+            raise error
+        else:
+            return response.text
+
+    @staticmethod
+    def parse_version_xml(content):
+        tree = etree.fromstring(content)
+        tree_responses = tree.findall("{DAV:}response")
+
+        file_versions = []
+        for response in tree_responses:
+            version = {'href': response.findtext("{DAV:}href"),
+                       'last_modified': response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getlastmodified"),
+                       'etag': response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag")}
+            file_versions.append(version)
+        return file_versions
+
 
 def main():
+
+    # Testrun
+    z = ResearchdriveClient()
+    options = z.options
+    options['webdav_login'] = 'tijs@wearebit.com'
+    options['webdav_password'] = 'prototypingfutures'
+    z.set_options(options)
+    print(z.get_file_versions('106164754'))
+    print(z.get_current_file_version("read_only(only for tijs).txt"))
+    print(z.get_shares())
+
+
     return
 
 

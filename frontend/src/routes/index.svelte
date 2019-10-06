@@ -6,6 +6,7 @@
     let dataset_files = []
 
     let output;
+    let running = false
 
     let data = {
         algorithm_file: "",

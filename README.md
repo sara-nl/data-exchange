@@ -7,8 +7,6 @@ This is the repository for the SURFsara Amsterdam Data Exchange project.
 Currently, deployment is done manually. This will be replaced by Docker in the near future.
 
 ## Front-end
-
-
 First install `nodejs` and `npm`, and then use `npm` to install `yarn`:
 
 ```bash
@@ -30,7 +28,10 @@ yarn dev
 
 Then open up [localhost:3000](http://localhost:3000) in your browser.
 
+
 ## Back-end
+
+### Dependencies
 First, install `python3` (if not installed yet) and `virtualenv`:
 
 ```bash
@@ -38,7 +39,7 @@ sudo apt update
 sudo apt install python3 python3-virtualenv
 ```
 
-### 🍏 Extra steps for OSX: 
+**🍏 Extra steps for OSX:**
 ```
 brew install postgresql gsl openssl
 export LDFLAGS="-L/usr/local/opt/openssl/lib"
@@ -59,13 +60,14 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Install docker
-apt-get install docker
+apt-get install docker.io
 
 # Add docker
 sudo groupadd docker
 sudo usermod -aG docker $USER
 ```
 
+### Running
 To run the backend, activate the virtualenv, run migrations and run the server:
 
 ```bash
@@ -79,33 +81,12 @@ python manage.py migrate
 python manage.py runserver
 ```
 
-# Deploying
-## Frontend
-First install `nodejs` and `npm`, and then use `npm` to install `yarn`:
+Then, open another terminal (or use `screen`/`tmux`/similar) and run the task response listener:
 
 ```bash
-sudo apt update
-sudo apt install nodejs npm
-
-sudo npm install -g yarn
+python manage.py listen
 ```
 
-Then, to install dependencies and build a production-ready version of the application, `cd` to the `frontend` directory and run:
 
-```bash
-# Install dependencies
-yarn install
-
-# Create a production-ready version
-yarn build
-```
-
-After this is finished, run the frontend server. For now, this is done with `nohup`, but this will be replaced by Docker in the future:
-
-```bash
-nohup node __happer__/build &
-```
-
-Logs will be output to `nohup.out`.
-
-## Backend
+## Tasker
+For instructions on how to run the tasker, see `tasker/README.md`.

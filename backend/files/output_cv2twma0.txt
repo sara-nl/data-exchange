@@ -1,4 +1,0 @@
-Traceback (most recent call last):
-  File "/tmp/files/tmp40n_lhra.py", line 3, in <module>
-    with open('rienkdata.txt', 'r') as inp:
-FileNotFoundError: [Errno 2] No such file or directory: 'rienkdata.txt'

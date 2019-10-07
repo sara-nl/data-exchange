@@ -10,14 +10,13 @@ import json
 class GetUserFiles(viewsets.ViewSet):
     permission_classes = (AllowAny,)
 
-    def create(self, request):
+    def list(self, request):
         own_algorithms = []
         own_datasets = []
         available_datasets = []
 
         rd_client = ResearchdriveClient()
         shares = rd_client.get_shares()
-        print(json.dumps(shares))
 
         for share in shares:
             if share.get("item_type") == "folder":
@@ -34,8 +33,12 @@ class GetUserFiles(viewsets.ViewSet):
 
                 available_datasets.append(filename)
 
-        return Response({"output": {
-            "own_algorithms": own_algorithms,
-            "own_datasets": own_datasets,
-            "available_datasets": available_datasets}
-        })
+        return Response(
+            {
+                "output": {
+                    "own_algorithms": own_algorithms,
+                    "own_datasets": own_datasets,
+                    "available_datasets": available_datasets,
+                }
+            }
+        )

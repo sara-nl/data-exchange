@@ -1,8 +1,10 @@
-Welcome to the Amsterdam Data Exchange!
+Dear user,
+You have a request for the use of one of your shared datasets.
 
-Click the following link to confirm and activate your new account:
+Click the following link to review this request:
 {{ url }}
 
 If the above link is not clickable, try copying and pasting it into the address bar of your web browser.
+
 
 DataExchange

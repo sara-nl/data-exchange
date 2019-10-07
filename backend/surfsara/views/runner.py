@@ -29,13 +29,12 @@ class StartParser(JSONParser):
         "required": ["algorithm_file", "data_file"],
         "properties": {
             "algorithm_file": {"type": "string", "minLength": 1},
-            "data_file": {"type": "string", "minLength": 1}
+            "data_file": {"type": "string", "minLength": 1},
         },
     }
 
     def parse(self, stream, media_type=None, parser_context=None):
-        data = super(StartParser, self).parse(
-            stream, media_type, parser_context)
+        data = super(StartParser, self).parse(stream, media_type, parser_context)
         try:
             jsonschema.validate(data, self.schema)
         except ValueError as error:
@@ -63,22 +62,19 @@ class StartViewSet(viewsets.ViewSet):
     def create(self, request):
 
         Task(state="REGISTERED").save()
-        task_id = Task.objects.latest('id')
+        task_id = Task.objects.latest("id")
 
-        properties = pika.BasicProperties(
-            content_type='text/plain', delivery_mode=1)
+        properties = pika.BasicProperties(content_type="text/plain", delivery_mode=1)
 
         command = StartContainer(
-            task_id,
-            request.data["data_file"],
-            request.data["algorithm_file"]
+            task_id, request.data["data_file"], request.data["algorithm_file"]
         )
 
         self.channel.basic_publish(
-            exchange='tasker_todo',
-            routing_key='tasker_todo',
+            exchange="tasker_todo",
+            routing_key="tasker_todo",
             body=command.to_json(),
-            properties=properties
+            properties=properties,
         )
 
         # runner = RunContainer(
@@ -105,3 +101,18 @@ class ViewShares(viewsets.ViewSet):
     def create(self, request):
         rd_client = ResearchdriveClient()
         return Response({"output": rd_client.get_shares()})
+
+
+class ViewFileVersions(viewsets.ViewSet):
+    permission_classes = (AllowAny,)
+
+    def create(self, request):
+        rd_client = ResearchdriveClient()
+        shares = rd_client.get_shares()
+
+        # Get the first share:
+        remote_path = shares[10]["path"]
+        file_id = shares[10]["file_source"]
+
+        result = {"file_versions": rd_client.get_file_versions(file_id, remote_path)}
+        return Response(result)

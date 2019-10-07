@@ -1,8 +1,11 @@
 <script>
-    import { token } from "../stores/token";
+    import { token, email } from "../stores";
     import NavItem from "./NavItem";
+    import NavDropdown from "./NavDropdown";
 
     export let segment;
+
+    $: logout = $email ? `Log out (${$email})` : "Log out";
 </script>
 
 <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -13,16 +16,19 @@
             <NavItem name="Home" href="/" active={segment === undefined} />
             {#if $token}
                 <NavItem name="My shared files" href="/myfiles" />
+
+                <NavDropdown name="Tasks">
+                    <NavItem dropdown name="Overview" href="/tasks" />
+                    <NavItem dropdown name="Request new" href="/tasks/request" />
+                </NavDropdown>
             {/if}
 
             <NavItem name="About" href="/about" active={segment === "about"} />
-            <NavItem name="API" href="/api" />
-            <NavItem name="Admin" href="/admin" />
         </ul>
 
         <ul class="nav ml-auto">
             {#if $token}
-                <NavItem name="Log out" href="/logout" />
+                <NavItem name={logout} href="/logout" />
             {:else}
                 <NavItem name="Sign in" href="/login" />
                 <NavItem name="Register" href="/register" />

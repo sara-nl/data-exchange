@@ -16,8 +16,8 @@ Example:
 ```json
   {
     "taskId": "123", 
-    "dataPath": "demo1_code/good-code.py",
-    "codePath": "demo1_data/data.json"
+    "codePath": "demo1_code/good-code.py",
+    "dataPath": "demo1_data/data.json"
   }
 ```
 

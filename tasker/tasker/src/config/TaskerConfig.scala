@@ -16,6 +16,8 @@ object TaskerConfig {
   }
 
   object docker {
+    val containerCodePath = "/tmp/code"
+    val containerDataPath = "/tmp/data"
     val defaultImage = "python"
     val clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
       .withDockerHost("unix:///var/run/docker.sock")
@@ -52,6 +54,6 @@ object TaskerConfig {
     requeueOnNack = false,
     internalQueueSize = Some(500),
     automaticRecovery = true
-  )
+  ).copy(connectionTimeout = 5000)
 
 }

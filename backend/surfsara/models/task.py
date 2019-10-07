@@ -6,6 +6,7 @@ class Task(models.Model):
     DATA_REQUESTED = "data_requested"
     RUNNING = "running"
     SUCCESS = "success"
+    ERROR = "error"
     OUTPUT_RELEASED = "output_released"
     REQUEST_REJECTED = "request_rejected"
     RELEASE_REJECTED = "release_rejected"
@@ -18,6 +19,7 @@ class Task(models.Model):
             (DATA_REQUESTED, "Data Requested"),
             (RUNNING, "Running"),
             (SUCCESS, "Success"),
+            (ERROR, "Error"),
             (OUTPUT_RELEASED, "Output Released"),
             (REQUEST_REJECTED, "Request Rejected"),
             (RELEASE_REJECTED, "Release Rejected"),

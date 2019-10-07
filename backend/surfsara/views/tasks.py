@@ -87,11 +87,6 @@ class Tasks(viewsets.ViewSet):
             task.save()
 
             task_service.start(task)
-            ## TODO this temporary to show that you can run the container
-            output = task_service.start_container(task.algorithm, task.dataset)
-
-            task.state = Task.SUCCESS
-            task.output = output
         else:
             task.state = Task.REQUEST_REJECTED
 

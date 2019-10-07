@@ -7,8 +7,10 @@
         "request_rejected": "danger",
         "release_rejected": "warning",
         "output_released": "success",
-        "running": "info"
-    }
+        "running": "info",
+        "success": "info",
+        "error": "danger",
+    };
 
     let to_approve_requests: [any] | null = null
     let own_requests: [any] | null = null

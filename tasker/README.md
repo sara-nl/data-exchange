@@ -41,7 +41,7 @@ Example:
 
 * Package: `mill tasker.assembly`;
 * Copy the `out/tasker/assembly/dest/out.jar` wherever need;
-*  
+* Run it with `java -Djava.io.tmpdir=/tmp -jar ../out.jar`
 * Install JRE 11
 * Install Docker
 * Install and start RabbitMQ docker container

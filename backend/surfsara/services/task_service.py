@@ -9,7 +9,7 @@ from backend.scripts.run_container import RunContainer
 @dataclass
 @dataclass_json(letter_case=LetterCase.CAMEL)
 class StartContainer:
-    task_id: int
+    task_id: str
     data_path: str
     code_path: str
 
@@ -22,7 +22,7 @@ def start(task: Task):
 
     properties = pika.BasicProperties(content_type="application/json", delivery_mode=1)
     command = StartContainer(
-        task_id=task.id, data_path=task.dataset, code_path=task.algorithm
+        task_id=str(task.id), data_path=task.dataset, code_path=task.algorithm
     )
 
     channel.basic_publish(
@@ -35,20 +35,20 @@ def start(task: Task):
     connection.close()
 
 
-def start_container(algorithm, dataset):
-    runner = RunContainer(
-        remote_algorithm_path=algorithm,
-        remote_data_path=dataset,
-        download_dir="./files",
-    )
+# def start_container(algorithm, dataset):
+#     runner = RunContainer(
+#         remote_algorithm_path=algorithm,
+#         remote_data_path=dataset,
+#         download_dir="./files",
+#     )
 
-    try:
-        runner.download_files()
-        file = runner.run_algorithm()
-        with open(file, "r") as f:
-            output = f.read()
-    except Exception as error:
-        print(error)
-        output = "Could not run with selected files.\nPlease refresh and try again."
+#     try:
+#         runner.download_files()
+#         file = runner.run_algorithm()
+#         with open(file, "r") as f:
+#             output = f.read()
+#     except Exception as error:
+#         print(error)
+#         output = "Could not run with selected files.\nPlease refresh and try again."
 
-    return output
+#     return output

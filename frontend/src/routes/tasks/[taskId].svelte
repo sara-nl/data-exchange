@@ -12,7 +12,9 @@
         "request_rejected": "danger",
         "release_rejected": "warning",
         "output_released": "success",
-        "runnisng": "info",
+        "running": "info",
+        "success": "info",
+        "error": "danger",
     };
 
     let ownDatasets: any = null;
@@ -150,7 +152,7 @@
                 {/if}
             {/if}
 
-            {#if task.state === "success"}
+            {#if task.state === "success" || task.state === "error"}
                 {#if task.is_owner}
                     <button
                         class="btn btn-success"

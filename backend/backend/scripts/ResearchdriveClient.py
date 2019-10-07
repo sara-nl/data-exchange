@@ -10,16 +10,20 @@ class ResearchdriveClient:
 
     webdav_hostname = "https://researchdrive.surfsara.nl"
 
-    share_api_endpoint = webdav_hostname + "/ocs/v1.php/apps/files_sharing/api/v1/shares"
+    share_api_endpoint = (
+        webdav_hostname + "/ocs/v1.php/apps/files_sharing/api/v1/shares"
+    )
     current_version_endpoint = webdav_hostname + "/remote.php/dav/files/"
     version_api_startendpoint = webdav_hostname + "/remote.php/dav/meta/"
     version_api_endendpoint = "/v"
 
     def __init__(self):
-        self.options = {"webdav_hostname": ResearchdriveClient.webdav_hostname,
-                        "webdav_root": "/remote.php/nonshib-webdav/",
-                        "webdav_login": "f_data_exchange",
-                        "webdav_password": "KCVNI-VBXWR-NLGMO-POQNO"}
+        self.options = {
+            "webdav_hostname": ResearchdriveClient.webdav_hostname,
+            "webdav_root": "/remote.php/nonshib-webdav/",
+            "webdav_login": "f_data_exchange",
+            "webdav_password": "KCVNI-VBXWR-NLGMO-POQNO",
+        }
 
         self.client = None
         self.shares = {}
@@ -92,8 +96,9 @@ class ResearchdriveClient:
 
         params = (("shared_with_me", "true"), ("format", "json"))
 
-        content = self.__execute_request(ResearchdriveClient.share_api_endpoint,
-                                         "GET", params=params)
+        content = self.__execute_request(
+            ResearchdriveClient.share_api_endpoint, "GET", params=params
+        )
         shares = json.loads(content)
         self.shares = shares["ocs"]["data"]
 
@@ -120,13 +125,17 @@ class ResearchdriveClient:
         :return: List containing information aboout all file versions
         structured in dicts.
         """
-        endpoint = ResearchdriveClient.version_api_startendpoint + str(file_id) + \
-            ResearchdriveClient.version_api_endendpoint
+        endpoint = (
+            ResearchdriveClient.version_api_startendpoint
+            + str(file_id)
+            + ResearchdriveClient.version_api_endendpoint
+        )
 
         current_version = self.get_current_file_version(remote_path)
 
-        old_versions_content = self.__execute_request(endpoint, "PROPFIND",
-                                                      {"Accept": "*/*"})
+        old_versions_content = self.__execute_request(
+            endpoint, "PROPFIND", {"Accept": "*/*"}
+        )
 
         combined = current_version + self.parse_version_xml(old_versions_content)
 
@@ -138,11 +147,16 @@ class ResearchdriveClient:
         :param remote_path: Path on the server.
         :return: Returns a list containing a dict with the information.
         """
-        endpoint = ResearchdriveClient.current_version_endpoint + \
-                   self.options["webdav_login"] + "/" + remote_path
+        endpoint = (
+            ResearchdriveClient.current_version_endpoint
+            + self.options["webdav_login"]
+            + "/"
+            + remote_path
+        )
 
-        content = self.__execute_request(endpoint, "PROPFIND",
-                                         {"Accept": "*/*", "Depth": "1"})
+        content = self.__execute_request(
+            endpoint, "PROPFIND", {"Accept": "*/*", "Depth": "1"}
+        )
 
         return self.parse_version_xml(content)
 
@@ -156,11 +170,13 @@ class ResearchdriveClient:
         :return: Returns the text response if successful.
         """
         try:
-            response = requests.request(method=method, url=endpoint,
-                                        auth=(self.options["webdav_login"],
-                                              self.options["webdav_password"]),
-                                        headers=headers,
-                                        params=params)
+            response = requests.request(
+                method=method,
+                url=endpoint,
+                auth=(self.options["webdav_login"], self.options["webdav_password"]),
+                headers=headers,
+                params=params,
+            )
             response.raise_for_status()
         except HTTPError as http_error:
             print(f"An HTTP error occured: {http_error}")
@@ -189,9 +205,13 @@ class ResearchdriveClient:
 
         file_versions = []
         for response in tree_responses:
-            version = {"href": response.findtext("{DAV:}href"),
-                       "last_modified": response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getlastmodified"),
-                       "etag": response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag")}
+            version = {
+                "href": response.findtext("{DAV:}href"),
+                "last_modified": response.findtext(
+                    "{DAV:}propstat/{DAV:}prop/{DAV:}getlastmodified"
+                ),
+                "etag": response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag"),
+            }
             file_versions.append(version)
         return file_versions
 

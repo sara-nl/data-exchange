@@ -45,9 +45,11 @@ class Tasks(viewsets.ViewSet):
         to_approve_requests = Task.objects.filter(
             Q(approver_email=request.user.email),
             Q(state=Task.DATA_REQUESTED) | Q(state=Task.SUCCESS),
-        ).order_by('-registered_on')
+        ).order_by("-registered_on")
 
-        own_requests = Task.objects.filter(author_email=request.user.email).order_by('-registered_on')
+        own_requests = Task.objects.filter(author_email=request.user.email).order_by(
+            "-registered_on"
+        )
         for request in own_requests:
             if request.state != Task.OUTPUT_RELEASED:
                 request.output = None
@@ -79,7 +81,6 @@ class Tasks(viewsets.ViewSet):
         if task.approver_email != request.user.email:
             return Response({"output": "Not your file"})
 
-
         if request.data["approved"]:
             task.state = Task.RUNNING
             task.dataset = request.data["updated_request"]["dataset"]
@@ -100,8 +101,7 @@ class Tasks(viewsets.ViewSet):
         subject = "Your data request has been reviewed"
         mail_service.send_mail("request_reviewed", request.user.email, subject, url=url)
 
-        return Response({"state": task.state,
-                         "output": output})
+        return Response({"state": task.state, "output": output})
 
     @action(
         detail=True, methods=["POST"], name="release", permission_classes=[AllowAny]

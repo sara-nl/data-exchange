@@ -111,9 +111,8 @@ class ViewFileVersions(viewsets.ViewSet):
         shares = rd_client.get_shares()
 
         # Get the first share:
-        remote_path = shares[10]['path']
-        file_id = shares[10]['file_source']
+        remote_path = shares[10]["path"]
+        file_id = shares[10]["file_source"]
 
         result = {"file_versions": rd_client.get_file_versions(file_id, remote_path)}
         return Response(result)
-

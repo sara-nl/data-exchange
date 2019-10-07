@@ -47,13 +47,13 @@ class SecureContainerFlow(consumer: Stream[IO, AmqpEnvelope[String]],
           _ <- downloadIO
           containerId <- SecureContainer.createContainer(codeHome, dataHome, msg.codePath, msg.dataPath)
           _ <- SecureContainer.startContainer(containerId)
-          lastStatusOption <- SecureContainer.statusStream(containerId).reduce(joinLines).compile.last
-//          outputOption <- SecureContainer.outputStream(containerId).reduce(joinLines).compile.last
+          statusOption <- SecureContainer.statusStream(containerId).reduce(joinLines).compile.last
+          outputOption <- SecureContainer.outputStream(containerId).reduce(joinLines).compile.last
           _ <- IO {
-            println("Last status option" + lastStatusOption)
-//            println("Output option" + outputOption)
+            println("Last status option" + statusOption)
+            println("Output option" + outputOption)
           }
-        } yield lastStatusOption.zip(Some(msg.taskId)).toRight(s"Could not get status and logs of container ${containerId}")
+        } yield outputOption.zip(Some(msg.taskId)).toRight(s"Could not get status and logs of container ${containerId}")
     }
   }
 

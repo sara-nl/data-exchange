@@ -33,9 +33,11 @@ object TestApp extends IOApp {
           _ <- downloadIO
           containerId <- SecureContainer.createContainer(codeHome, dataHome, remoteCodePath, remoteDataPath)
           _ <- SecureContainer.startContainer(containerId)
-          lastStatusOption <- SecureContainer.statusesAndLogs(containerId).compile.last
+          lastStatusOption <- SecureContainer.statusStream(containerId).compile.last
+          lastOutOption <- SecureContainer.outputStream(containerId).compile.last
           _ <- IO {
             println("Last status option" + lastStatusOption)
+            println("Last out option" + lastOutOption)
           }
         } yield ()
 

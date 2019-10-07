@@ -57,6 +57,12 @@ object SecureContainer {
 
 
   def createContainer(codePath: Path, dataPath: Path, codeRelativePath: String, dataRelativePath: String): IO[String] = IO {
+    val dockerCodePath = s"${docker.containerCodePath}/${codeRelativePath}"
+    val dockerDataPath = s"${docker.containerDataPath}/${dataRelativePath}"
+
+    println(s"Code path on host (docker): $codePath ($dockerCodePath)")
+    println(s"Code path on host (docker): $dataPath ($dockerDataPath)")
+
     val createContainerCommand = client.createContainerCmd("python")
       .withNetworkDisabled(true)
       .withHostConfig(
@@ -65,7 +71,7 @@ object SecureContainer {
           new Bind(dataPath.toString, new Volume(docker.containerDataPath), AccessMode.ro)
         ).asJava)
       )
-      .withCmd("python3", s"${docker.containerCodePath}/${codeRelativePath}", dataRelativePath)
+      .withCmd("python3", dockerCodePath, dataRelativePath)
       .withAttachStdin(true)
       .withAttachStderr(true)
 

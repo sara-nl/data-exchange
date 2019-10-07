@@ -54,6 +54,6 @@ object TaskerConfig {
     requeueOnNack = false,
     internalQueueSize = Some(500),
     automaticRecovery = true
-  ).copy(connectionTimeout = 1000)
+  ).copy(connectionTimeout = 5000)
 
 }

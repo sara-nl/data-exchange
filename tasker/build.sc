@@ -4,6 +4,10 @@ object tasker extends ScalaModule {
 
   def scalaVersion = "2.13.1"
 
+  override def mainClass = Some("Tasker")
+
+  override def forkArgs = Seq("-Djava.io.tmpdir=/tmp")
+
   override def ivyDeps = Agg(
     ivy"org.typelevel::cats-effect:2.0.0",
     ivy"dev.profunktor::fs2-rabbit:2.0.0",

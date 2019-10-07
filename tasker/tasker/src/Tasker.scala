@@ -29,7 +29,7 @@ object Tasker extends IOApp {
         _ <- client.bindQueue(queues.done.config.queueName, queues.done.exchangeConfig.exchangeName, queues.done.routingKey)
         consumer <- client.createAutoAckConsumer[String](queues.todo.config.queueName)
         publisher <- client.createPublisher[AmqpMessage[String]](queues.done.exchangeConfig.exchangeName, queues.done.routingKey)
-        _ <- new DockerFlow(consumer, publisher).flow.compile.drain
+        _ <- new SecureContainerFlow(consumer, publisher).flow.compile.drain
       } yield ()
     }
   }

@@ -5,8 +5,6 @@
     let own_datasets = []
     let data = {}
 
-    let own_datasets_amount = 0
-
 
     getUserFiles()
 

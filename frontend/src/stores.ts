@@ -1,7 +1,6 @@
-// store.js
 import { writable } from "svelte/store";
 
-const createWritableStore = (key: string, startValue: string | null) => {
+function createWritableStore(key: string, startValue: any) {
     const { subscribe, set } = writable(startValue);
 
     return {
@@ -26,4 +25,7 @@ const createWritableStore = (key: string, startValue: string | null) => {
     };
 };
 
+
+export const fromUrl = writable(null);
 export const token = createWritableStore("token", null);
+export const email = createWritableStore("email", null);

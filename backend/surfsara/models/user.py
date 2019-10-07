@@ -1,3 +1,4 @@
+from typing import List
 from django.db import models
 from django.contrib import admin
 from django.contrib.auth.models import AbstractUser, BaseUserManager
@@ -37,7 +38,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS: List[str] = []
     objects = UserManager()
 
     username = None
@@ -45,6 +46,3 @@ class User(AbstractUser):
 
     webdav_username = models.CharField(max_length=64, blank=True)
     webdav_password = models.CharField(max_length=256, blank=True)
-
-
-admin.site.register(User)

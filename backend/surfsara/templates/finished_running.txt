@@ -1,0 +1,12 @@
+Dear user,
+
+A task you approved has finished running. Now, please check if the output makes
+sense and, if so, release the output to the user!
+
+Click the following link to review the output:
+INSERT_URL_HERE
+
+If the above link is not clickable, try copying and pasting it into the
+address bar of your web browser.
+
+DataExchange

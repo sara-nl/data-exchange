@@ -147,8 +147,14 @@ class RunContainer:
 
         if self.remote_algorithm_path and self.remote_data_path:
             try:
-                rd_client.download(self.remote_algorithm_path, self.download_dir, self.temp_algorithm_file)
-                rd_client.download(self.remote_data_path, self.download_dir, self.temp_data_file)
+                rd_client.download(
+                    self.remote_algorithm_path,
+                    self.download_dir,
+                    self.temp_algorithm_file,
+                )
+                rd_client.download(
+                    self.remote_data_path, self.download_dir, self.temp_data_file
+                )
             except FileNotFoundError as error:
                 self.stop_running(error)
         else:

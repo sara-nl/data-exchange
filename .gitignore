@@ -1,3 +1,14 @@
+.DS_Store
 nohup.out
 uwsgi.log
 *.env
+venv/
+.mypy_cache/
+__pycache__/
+
+tasker/project
+tasker/target
+
+*.sqlite3
+downloads
+files

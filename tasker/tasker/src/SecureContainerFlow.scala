@@ -49,10 +49,6 @@ class SecureContainerFlow(consumer: Stream[IO, AmqpEnvelope[String]],
           _ <- SecureContainer.startContainer(containerId)
           statusOption <- SecureContainer.statusStream(containerId).reduce(joinLines).compile.last
           outputOption <- SecureContainer.outputStream(containerId).reduce(joinLines).compile.last
-          _ <- IO {
-            println("Last status option" + statusOption)
-            println("Output option" + outputOption)
-          }
         } yield outputOption.zip(Some(msg.taskId)).toRight(s"Could not get status and logs of container ${containerId}")
     }
   }

@@ -49,6 +49,8 @@ object SecureContainer {
       _ <- Stream.eval {
         import scala.concurrent.duration._
         implicit val timer = IO.timer(ExecutionContext.global)
+
+        // TODO: get rid of sleep
         timer.sleep(1 second) >> q.enqueue1(None)
       }
       line <- q.dequeue

@@ -9,13 +9,7 @@ import Codecs._
 import config.TaskerConfig
 import config.TaskerConfig.queues
 
-
 object Tasker extends IOApp {
-
-//  import io.circe.parser._
-//  import io.circe.Json
-//  implicit def jsonDecoder[F[_]](implicit F: MonadError[F, Throwable]): EnvelopeDecoder[F, Json] =
-//    EnvelopeDecoder[F, String].flatMapF(s => F.fromEither(parse(s)))
 
   def program(client: Fs2Rabbit[IO]): IO[Unit] = {
     val connChannel: Resource[IO, AMQPChannel] = client.createConnectionChannel

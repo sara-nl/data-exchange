@@ -16,7 +16,9 @@ object tasker extends ScalaModule {
     ivy"org.slf4j:slf4j-simple:2.0.0-alpha1",
     ivy"com.github.docker-java:docker-java:3.1.5",
     ivy"javax.activation:activation:1.1.1",
-    ivy"com.github.lookfirst:sardine:5.9"
+    ivy"com.github.lookfirst:sardine:5.9",
+    ivy"io.chrisdavenport::log4cats-core:1.0.0",
+    ivy"io.chrisdavenport::log4cats-slf4j:1.0.0"
   )
 
 }

@@ -16,12 +16,12 @@ object SecureContainer {
 
   private val client = DockerClientBuilder.getInstance().build()
 
-  def statusStream(containerId: String): fs2.Stream[IO, String] = {
+  def statusStream(containerId: String): fs2.Stream[IO, (String, Int)] = {
     fs2.Stream.eval(IO {
       client.inspectContainerCmd(containerId).exec().getState
     }).flatMap {
-      case state if state.getRunning => fs2.Stream(state.getStatus) ++ statusStream(containerId)
-      case state => fs2.Stream(state.getStatus)
+      case state if state.getRunning => fs2.Stream((state.getStatus, state.getExitCode.toInt)) ++ statusStream(containerId)
+      case state => fs2.Stream((state.getStatus, state.getExitCode.toInt))
     }
   }
 
@@ -34,7 +34,7 @@ object SecureContainer {
       .withTailAll()
       .withStdErr(true)
       .withStdOut(true)
-      .withTimestamps(true)
+      .withTimestamps(false)
 
     for {
       q <- fs2.Stream.eval(Queue.noneTerminated[IO,String])

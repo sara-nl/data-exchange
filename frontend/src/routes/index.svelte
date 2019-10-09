@@ -2,8 +2,8 @@
     import Runner from "../api/runner";
     import LoadFiles from "../api/loader";
 
-    let algorithm_files = []
-    let dataset_files = []
+    let own_algorithms = []
+    let own_datasets = []
 
     let output;
     let running = false
@@ -18,8 +18,8 @@
     async function getUserFiles(){
         try {
             let { data: response } = await LoadFiles.start();
-            algorithm_files = response.output.own_algorithms;
-            dataset_files = response.output.available_datasets;
+            own_algorithms = response.output.own_algorithms;
+            own_datasets = response.output.own_datasets;
 
         } catch (error) {
             output = error.response ? error.response.data : error.toString();
@@ -28,28 +28,6 @@
         return false
     }
 
-    async function handleClick() {
-        // TODO REWRITE with bindings
-
-        if(data.algorithm_file == "" || data.data_file == "") {
-            output = "You need to select an algorithm and dataset to run"
-            return false
-        }
-
-        output = null;
-        running = true;
-
-        try {
-            let { data: response } = await Runner.start(data);
-            console.log(response.output);
-            output = response.output;
-        } catch (error) {
-            output = error.response ? error.response.data : error.toString();
-        }
-
-        running = false;
-        return false;
-    }
 
 </script>
 
@@ -57,79 +35,54 @@
     <title>DEX</title>
 </svelte:head>
 
-<h2 class="display-5">
-    Run your algorithm
+<h2 class="display-4 ym-5">
+    DataExchange
+</h2>
+<h2>
+<small class="text-muted">a SURFsara x Bit concept</small>
 </h2>
 <br>
 
 <div class="container">
     <div class="row">
-        <div class="col-xs-12 col-md-4">
-            <form>
+        <div class="col ym-5">
+            <h3>Where to start?</h3>
+            {#if !own_algorithms && !own_datasets}
+                <div class="my-3">
+                <p>You haven't shared any files with the DataExchange<br>Click here to learn how to share files:</p>
+                <a class="btn btn-primary" href="/myfiles">Share files</a>
 
-                <div class="form-group">
-                    <label for="algorithm-file">
-                        Algorithm:
-                        <select
-                            bind:value={data.algorithm_file}
-                            class="form-control"
-                            id="algorithm-file"
-                            >
-
-                            {#if algorithm_files.length > 0}
-                                <option value="">Select algorithm</option>
-
-                                {#each algorithm_files as file}
-                                    <option value={file}>{file}</option>
-                                {/each}
-                            {:else}
-                                <option value="">No algorithms available</option>
-                            {/if}
-
-                        </select>
-                    </label>
                 </div>
+            {/if}
 
-                <div class="form-group">
-                    <label for="data-file">
-                        Datasets:
-                        <select
-                            bind:value={data.data_file}
 
-                            class="form-control"
-                            id="data-file"
-                            >
-
-                            {#if dataset_files.length > 0}
-                                <option value="">Select dataset</option>
-
-                                {#each dataset_files as file}
-                                    <option value={file}>{file}</option>
-                                {/each}
-                            {:else}
-                                <option value="">No datasets available</option>
-                            {/if}
-                        </select>
-                    </label>
+            {#if own_datasets}
+                <div class="my-3">
+                <p>You have shared datasets with the DataExchange<br>Click here to see requests for your data:</p>
+                <a class="btn btn-primary" href="/tasks">See requests</a>
                 </div>
+            {/if}
 
-                <div class="form-group">
-                    <a
-                        href="#0"
-                        class="form-control btn btn-primary"
-                        disabled={running}
-                        on:click={handleClick}
-                    >
-                        {running ? "Running..." : "Run!"}
-                    </a>
+            {#if own_algorithms}
+                <div class="my-3">
+
+                <p>You have shared algorithms with the DataExchange<br>Click here to make a request:</p>
+                <a class="btn btn-primary" href="/tasks/request">Make a request</a>
                 </div>
-            </form>
-        </div>
+            {/if}
 
-        <div class="col-xs-12 col-md-8 border">
-            <pre>
-                {output || "No output (yet)…"}
-            </pre>
+            <br>
+            <h3 class="ym-3">How does the DataExchange work?</h3>
+
+            <p>The DataExchange offers a controlled and safe third-party enviroment where dataset and algorithm providers can safely cooperate.
+            On DataExchange algorithm providers can make a request to use certain data without ever being physically in control of it.
+            </p>
+
+            <h5>Full data sovereignty</h5>
+            <p>If dataset provider decides the accept the request both algorithm and dataset are loaded and placed in a secure container without any access to the outside.
+            Here they can safely interact without the algorithm provider or anyone else every having hold of the dataset.
+            The dataset provider can monitor this process and review the output before it is released thus remaining in control of his data. </p>
+
         </div>
     </div>
 </div>

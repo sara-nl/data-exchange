@@ -89,7 +89,7 @@ object SecureContainer {
           ).asJava
         )
       )
-      .withCmd("python3", dockerCodePath, dataRelativePath)
+      .withCmd("python3", dockerCodePath, dockerDataPath)
       .withAttachStdin(true)
       .withAttachStderr(true)
 

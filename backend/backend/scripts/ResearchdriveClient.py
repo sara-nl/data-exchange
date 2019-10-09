@@ -84,7 +84,7 @@ class ResearchdriveClient:
             return True
         return error
 
-    # Code below this point doens't make use of the webdav3.client package
+    # Code below this point doesn't make use of the webdav3.client package
     def get_shares(self, uid_owner=None):
         """
         Get all shared files and folder. If a uid_owner is given
@@ -116,6 +116,27 @@ class ResearchdriveClient:
             if share["uid_owner"] == uid_owner:
                 filtered.append(share)
         self.shares = filtered
+
+    def get_file_id(self, remote_path):
+
+        remote_path = remote_path.replace(os.sep, "/")
+
+        # The loaded file contains the payload.
+        with open("propfind_fileid_etag.xml") as xml_file:
+            xml_content = xml_file.read()
+            print(xml_content)
+
+        # Execute request
+        url = (ResearchdriveClient.current_version_endpoint
+               + self.options['webdav_login']
+               + "/"
+               + remote_path
+               )
+        content = self.__execute_request(url, "PROPFIND", {"Content-Type": "text/xml"},
+                                         data=xml_content)
+
+        # Parse result
+        return self.parse_fileid_etag_xml(content)
 
     def get_file_versions(self, file_id, remote_path):
         """
@@ -160,7 +181,7 @@ class ResearchdriveClient:
 
         return self.parse_version_xml(content)
 
-    def __execute_request(self, endpoint, method, headers=None, params=None):
+    def __execute_request(self, endpoint, method, headers=None, params=None, data=None):
         """
         Executing request using the given variables.
         :param endpoint: Endpoint to which to request to.
@@ -176,6 +197,7 @@ class ResearchdriveClient:
                 auth=(self.options["webdav_login"], self.options["webdav_password"]),
                 headers=headers,
                 params=params,
+                data=data,
             )
             response.raise_for_status()
         except HTTPError as http_error:
@@ -187,11 +209,9 @@ class ResearchdriveClient:
         else:
             return response.text
 
-    def get_file_id(self, remote_path):
-        return
-
     def get_remote_path(self, file_id):
         return
+
 
     @staticmethod
     def parse_version_xml(content):
@@ -210,13 +230,30 @@ class ResearchdriveClient:
                 "last_modified": response.findtext(
                     "{DAV:}propstat/{DAV:}prop/{DAV:}getlastmodified"
                 ),
-                "etag": response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag"),
+                "etag": response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag").strip('\"'),
             }
             file_versions.append(version)
         return file_versions
 
+    @staticmethod
+    def parse_fileid_etag_xml(content):
+        tree = etree.fromstring(content)
+
+        # A list containing one response
+        tree_response = tree.findall("{DAV:}response")[0]
+        return {"etag": tree_response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag").strip('\"'),
+                "file_id": tree_response.findtext("{DAV:}propstat/{DAV:}prop/{http://owncloud.org/ns}fileid")}
+
 
 def main():
+    z = ResearchdriveClient()
+    options = z.options
+    options['webdav_login'] = "tijs@wearebit.com"
+    options['webdav_password'] = "prototypingfutures"
+    z.options = options
+    #print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
+    print(z.get_file_id("read_only(only for tijs).txt"))
+
     return
 
 

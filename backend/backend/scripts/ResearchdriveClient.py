@@ -117,7 +117,7 @@ class ResearchdriveClient:
                 filtered.append(share)
         self.shares = filtered
 
-    def get_file_id(self, remote_path):
+    def get_fileid_etag(self, remote_path):
 
         remote_path = remote_path.replace(os.sep, "/")
 
@@ -252,7 +252,7 @@ def main():
     options['webdav_password'] = "prototypingfutures"
     z.options = options
     #print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
-    print(z.get_file_id("read_only(only for tijs).txt"))
+    print(z.get_fileid_etag("read_only(only for tijs).txt"))
 
     return
 

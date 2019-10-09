@@ -1,7 +1,10 @@
 package config
 
 import com.github.dockerjava.core.DefaultDockerClientConfig
-import dev.profunktor.fs2rabbit.config.declaration.{DeclarationExchangeConfig, DeclarationQueueConfig}
+import dev.profunktor.fs2rabbit.config.declaration.{
+  DeclarationExchangeConfig,
+  DeclarationQueueConfig
+}
 import dev.profunktor.fs2rabbit.model.{ExchangeName, ExchangeType, QueueName, RoutingKey}
 
 object TaskerConfig {
@@ -12,14 +15,15 @@ object TaskerConfig {
   object webdav {
     val username = "f_data_exchange"
     val password = "KCVNI-VBXWR-NLGMO-POQNO"
-    val url = "https://researchdrive.surfsara.nl/remote.php/nonshib-webdav/"
+    val url      = "https://researchdrive.surfsara.nl/remote.php/nonshib-webdav/"
   }
 
   object docker {
     val containerCodePath = "/tmp/code"
     val containerDataPath = "/tmp/data"
-    val defaultImage = "python"
-    val clientConfig = DefaultDockerClientConfig.createDefaultConfigBuilder()
+    val defaultImage      = "python"
+    val clientConfig = DefaultDockerClientConfig
+      .createDefaultConfigBuilder()
       .withDockerHost("unix:///var/run/docker.sock")
       .build();
   }
@@ -27,14 +31,16 @@ object TaskerConfig {
   object queues {
     object todo {
       private val name = "tasker_todo"
-      val config = DeclarationQueueConfig.default(QueueName(name))
-      val exchangeConfig = DeclarationExchangeConfig.default(ExchangeName(name), ExchangeType.Direct)
+      val config       = DeclarationQueueConfig.default(QueueName(name))
+      val exchangeConfig =
+        DeclarationExchangeConfig.default(ExchangeName(name), ExchangeType.Direct)
       val routingKey = RoutingKey(name)
     }
     object done {
       private val name = "tasker_done"
-      val config = DeclarationQueueConfig.default(QueueName(name))
-      val exchangeConfig = DeclarationExchangeConfig.default(ExchangeName(name), ExchangeType.Direct)
+      val config       = DeclarationQueueConfig.default(QueueName(name))
+      val exchangeConfig =
+        DeclarationExchangeConfig.default(ExchangeName(name), ExchangeType.Direct)
       val routingKey = RoutingKey(name)
     }
   }

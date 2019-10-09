@@ -2,7 +2,14 @@ import cats.MonadError
 import cats.effect.{ExitCode, IO, IOApp, Resource, Sync}
 import dev.profunktor.fs2rabbit.interpreter.Fs2Rabbit
 import dev.profunktor.fs2rabbit.model.AckResult.Ack
-import dev.profunktor.fs2rabbit.model.{AMQPChannel, AckResult, AmqpEnvelope, AmqpMessage, ExchangeName, ExchangeType}
+import dev.profunktor.fs2rabbit.model.{
+  AMQPChannel,
+  AckResult,
+  AmqpEnvelope,
+  AmqpMessage,
+  ExchangeName,
+  ExchangeType
+}
 import fs2.Pipe
 import cats.implicits._
 import Codecs._
@@ -17,12 +24,23 @@ object Tasker extends IOApp {
       for {
         _ <- client.declareQueue(queues.todo.config)
         _ <- client.declareExchange(queues.todo.exchangeConfig)
-        _ <- client.bindQueue(queues.todo.config.queueName, queues.todo.exchangeConfig.exchangeName, queues.todo.routingKey)
+        _ <- client.bindQueue(
+          queues.todo.config.queueName,
+          queues.todo.exchangeConfig.exchangeName,
+          queues.todo.routingKey
+        )
         _ <- client.declareQueue(queues.done.config)
         _ <- client.declareExchange(queues.done.exchangeConfig)
-        _ <- client.bindQueue(queues.done.config.queueName, queues.done.exchangeConfig.exchangeName, queues.done.routingKey)
+        _ <- client.bindQueue(
+          queues.done.config.queueName,
+          queues.done.exchangeConfig.exchangeName,
+          queues.done.routingKey
+        )
         consumer <- client.createAutoAckConsumer[String](queues.todo.config.queueName)
-        publisher <- client.createPublisher[AmqpMessage[String]](queues.done.exchangeConfig.exchangeName, queues.done.routingKey)
+        publisher <- client.createPublisher[AmqpMessage[String]](
+          queues.done.exchangeConfig.exchangeName,
+          queues.done.routingKey
+        )
         _ <- new SecureContainerFlow(consumer, publisher).flow.compile.drain
       } yield ()
     }

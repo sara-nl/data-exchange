@@ -7,6 +7,8 @@ import cats.implicits._
 object Codecs {
 
   implicit val stringMessageEncoder =
-    Kleisli[IO, AmqpMessage[String], AmqpMessage[Array[Byte]]](s => s.copy(payload = s.payload.getBytes(UTF_8)).pure[IO])
+    Kleisli[IO, AmqpMessage[String], AmqpMessage[Array[Byte]]](
+      s => s.copy(payload = s.payload.getBytes(UTF_8)).pure[IO]
+    )
 
 }

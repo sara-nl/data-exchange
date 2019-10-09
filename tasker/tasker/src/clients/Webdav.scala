@@ -19,11 +19,12 @@ object Webdav {
     sardine.get(s"${TaskerConfig.webdav.url}/${path}")
   }
 
-  def codeAndDataResources(remoteCodePath: String, remoteDataPath: String) = for {
-    dir <- tempDirResource
-    codeIS <- Resource.fromAutoCloseable(Webdav.downloadFile(remoteCodePath))
-    dataIS <- Resource.fromAutoCloseable(Webdav.downloadFile(remoteDataPath))
-  } yield (dir, codeIS, dataIS)
+  def codeAndDataResources(remoteCodePath: String, remoteDataPath: String) =
+    for {
+      dir    <- tempDirResource
+      codeIS <- Resource.fromAutoCloseable(Webdav.downloadFile(remoteCodePath))
+      dataIS <- Resource.fromAutoCloseable(Webdav.downloadFile(remoteDataPath))
+    } yield (dir, codeIS, dataIS)
 
   def copyStreamToLocalFile(is: InputStream, localPath: Path): IO[Unit] = IO {
     localPath.toFile.getParentFile.mkdirs()

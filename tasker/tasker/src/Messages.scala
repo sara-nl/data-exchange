@@ -1,6 +1,6 @@
 /**
- * Messages used in the DataExchange messaging protocol
- */
+  * Messages used in the DataExchange messaging protocol
+  */
 object Messages {
 
   case class StartContainer(taskId: String, dataPath: String, codePath: String)

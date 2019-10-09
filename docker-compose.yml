@@ -1,0 +1,22 @@
+version: "3"
+services:
+    tasker:
+        build:
+            context: "tasker/"
+        environment:
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_USERNAME: ${RABBITMQ_USERNAME?RABBITMQ_USERNAME not set}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD?RABBITMQ_PASSWORD not set}
+        depends_on:
+            - rabbitmq
+        command: "/app/entrypoint.sh"
+
+    backend_listen:
+        build:
+            context: "backend/"
+
+    rabbitmq:
+        image: rabbitmq:3-management-alpine
+        ports:
+            - 8080:15672
+            - 5672

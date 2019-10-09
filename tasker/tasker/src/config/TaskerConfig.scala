@@ -49,12 +49,12 @@ object TaskerConfig {
     virtualHost = "/",
     nodes = NonEmptyList.one(
       Fs2RabbitNodeConfig(
-        host = "127.0.0.1",
-        port = 5672
-      )
+        host = sys.env.get("RABBITMQ_HOST").getOrElse("127.0.0.1"),
+        port = 5672,
+      ),
     ),
-    username = Some("guest"),
-    password = Some("guest"),
+    username = sys.env.get("RABBITMQ_USERNAME"),
+    password = sys.env.get("RABBITMQ_PASSWORD"),
     ssl = false,
     connectionTimeout = 3,
     requeueOnNack = false,

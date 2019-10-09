@@ -21,7 +21,7 @@ class Tasks(viewsets.ViewSet):
     def create(self, request):
         data_owner_email = request.data["data_owner"]
         if not User.objects.filter(email=data_owner_email):
-            return Response({error: "unknown email"}, status=400)
+            return Response({"error": "unknown email"}, status=400)
 
         task = Task(
             state=Task.DATA_REQUESTED,
@@ -69,7 +69,7 @@ class Tasks(viewsets.ViewSet):
         if task.state != Task.OUTPUT_RELEASED and not is_owner:
             task.output = None
 
-        return Response({"is_owner": is_owner, **TaskSerializer(task).data})
+        return Response({"is_owner": is_owner, "algorithm_content": "test", **TaskSerializer(task).data})
 
     @action(detail=True, methods=["POST"], name="review", permission_classes=[AllowAny])
     def review(self, request, pk=None):

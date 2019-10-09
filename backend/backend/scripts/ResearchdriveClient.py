@@ -105,21 +105,27 @@ class ResearchdriveClient:
         # Get old version list
         old_versions = self.get_file_versions(remote_path)
 
+        print(old_versions)
+
         # Compare etags
         version = self.__find_etag(etag, old_versions)
+        print("::::", version)
 
         if version:
-            download = 1
+            download_url = (ResearchdriveClient.webdav_hostname
+                            + version["href"]
+                            )
 
+            content = self.__execute_request(download_url, "GET")
+
+            try:
+                with open(local_path, "wb") as local_file:
+                    local_file.write(content)
+                return True
+            except Exception as error:
+                raise error
         else:
-            raise KeyError("The given etag is not valid.")
-
-
-        # Download if found to local path
-        # Download errors
-
-
-        return True
+            raise KeyError("The cannot be found in previous versions.")
 
     def get_shares(self, uid_owner=None):
         """
@@ -273,8 +279,9 @@ def main():
     #print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
     #print(z.get_fileid_etag("read_only(only for tijs).txt"))
     #z.get_fileid_etag("Test deelmap")
-    #print(z.get_file_versions("read_only(only for tijs).txt"))
-    z.download_old_version("read_only(only for tijs).txt", "", "5d9e352ed104a")
+    print(z.get_file_versions("read_only(only for tijs).txt"))
+    print("#############")
+    z.download_old_version("read_only(only for tijs).txt", "test/helder_text_bestand.txt", "5d9e3b79e13ff")
 
     return
 

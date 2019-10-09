@@ -52,7 +52,7 @@ class ResearchdriveClient:
         """
         return self.client.list(remote_path)
 
-    def download(self, remote_path, local_path, save_as=None):
+    def download(self, remote_path, local_path, save_as=None, etag=None):
         """
         Download a file from the Researchdrive
         :param save_as:
@@ -79,12 +79,48 @@ class ResearchdriveClient:
             except FileExistsError:
                 pass
 
-        error = self.client.download_sync(remote_path, local_path)
-        if not error:
-            return True
-        return error
+        # Validate etag
+        if self.__is_recent_etag(remote_path, etag):
+            error = self.client.download_sync(remote_path, local_path)
+            if not error:
+                return True
+            return error
+        else:
+            self.download_old_version(remote_path, local_path, etag)
+
+
+
+        return False
+
+    @staticmethod
+    def __find_etag(etag, versions):
+        for version in versions:
+            if str(version['etag']) == str(etag):
+                return version
+        return False
 
     # Code below this point doesn't make use of the webdav3.client package
+    def download_old_version(self, remote_path, local_path, etag):
+
+        # Get old version list
+        old_versions = self.get_file_versions(remote_path)
+
+        # Compare etags
+        version = self.__find_etag(etag, old_versions)
+
+        if version:
+            download = 1
+
+        else:
+            raise KeyError("The given etag is not valid.")
+
+
+        # Download if found to local path
+        # Download errors
+
+
+        return True
+
     def get_shares(self, uid_owner=None):
         """
         Get all shared files and folder. If a uid_owner is given
@@ -117,6 +153,14 @@ class ResearchdriveClient:
                 filtered.append(share)
         self.shares = filtered
 
+    def __is_recent_etag(self, remote_path, etag):
+        """
+        Checks if the etag is from the most recent file.
+        """
+        if str(self.get_fileid_etag(remote_path)['etag']) == str(etag):
+            return True
+        return False
+
     def get_fileid_etag(self, remote_path):
 
         remote_path = remote_path.replace(os.sep, "/")
@@ -124,7 +168,6 @@ class ResearchdriveClient:
         # The loaded file contains the payload.
         with open("propfind_fileid_etag.xml") as xml_file:
             xml_content = xml_file.read()
-            print(xml_content)
 
         # Execute request
         url = (ResearchdriveClient.current_version_endpoint
@@ -135,51 +178,28 @@ class ResearchdriveClient:
         content = self.__execute_request(url, "PROPFIND", {"Content-Type": "text/xml"},
                                          data=xml_content)
 
-        # Parse result
         return self.parse_fileid_etag_xml(content)
 
-    def get_file_versions(self, file_id, remote_path):
+    def get_file_versions(self, remote_path):
         """
         Gets  href, last_modified and etag of all file versions.
-        :param file_id: Id of the file.
-        :param remote_path: Path on the server.
+        :param remote_path: Path on the server
         :return: List containing information aboout all file versions
         structured in dicts.
         """
+        file_id = self.get_fileid_etag(remote_path)["file_id"]
+
         endpoint = (
             ResearchdriveClient.version_api_startendpoint
             + str(file_id)
             + ResearchdriveClient.version_api_endendpoint
         )
 
-        current_version = self.get_current_file_version(remote_path)
-
         old_versions_content = self.__execute_request(
             endpoint, "PROPFIND", {"Accept": "*/*"}
         )
 
-        combined = current_version + self.parse_version_xml(old_versions_content)
-
-        return combined
-
-    def get_current_file_version(self, remote_path):
-        """
-        Gets href, last_modified and etag, of the most recent file version.
-        :param remote_path: Path on the server.
-        :return: Returns a list containing a dict with the information.
-        """
-        endpoint = (
-            ResearchdriveClient.current_version_endpoint
-            + self.options["webdav_login"]
-            + "/"
-            + remote_path
-        )
-
-        content = self.__execute_request(
-            endpoint, "PROPFIND", {"Accept": "*/*", "Depth": "1"}
-        )
-
-        return self.parse_version_xml(content)
+        return self.parse_version_xml(old_versions_content)
 
     def __execute_request(self, endpoint, method, headers=None, params=None, data=None):
         """
@@ -212,7 +232,6 @@ class ResearchdriveClient:
     def get_remote_path(self, file_id):
         return
 
-
     @staticmethod
     def parse_version_xml(content):
         """
@@ -230,7 +249,7 @@ class ResearchdriveClient:
                 "last_modified": response.findtext(
                     "{DAV:}propstat/{DAV:}prop/{DAV:}getlastmodified"
                 ),
-                "etag": response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag").strip('\"'),
+                "etag": str(response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag")).strip('\"'),
             }
             file_versions.append(version)
         return file_versions
@@ -252,7 +271,10 @@ def main():
     options['webdav_password'] = "prototypingfutures"
     z.options = options
     #print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
-    print(z.get_fileid_etag("read_only(only for tijs).txt"))
+    #print(z.get_fileid_etag("read_only(only for tijs).txt"))
+    #z.get_fileid_etag("Test deelmap")
+    #print(z.get_file_versions("read_only(only for tijs).txt"))
+    z.download_old_version("read_only(only for tijs).txt", "", "5d9e352ed104a")
 
     return
 

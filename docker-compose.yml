@@ -9,11 +9,21 @@ services:
             RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD?RABBITMQ_PASSWORD not set}
         depends_on:
             - rabbitmq
-        command: "/app/entrypoint.sh"
+        command: "entrypoint.sh"
 
     backend_listen:
         build:
             context: "backend/"
+        environment:
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_USERNAME: ${RABBITMQ_USERNAME?RABBITMQ_USERNAME not set}
+            RABBITMQ_PASSWORD: ${RABBITMQ_PASSWORD?RABBITMQ_PASSWORD not set}
+        command: "python manage.py listen"
+
+    backend:
+        build:
+            context: "backend/"
+        command: "entrypoint.sh"
 
     rabbitmq:
         image: rabbitmq:3-management-alpine

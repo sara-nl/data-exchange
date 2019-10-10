@@ -1,12 +1,15 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { stores } from "@sapper/app";
+    import hljs from "highlight.js";
 
     import LoadFiles from "../../api/loader";
     import Tasks, { TasksReviewRequest } from "../../api/tasks";
 
     const { page } = stores();
     const { taskId } = $page.params;
+
+    hljs.initHighlightingOnLoad();
 
     let state_color = {
         "request_rejected": "danger",
@@ -17,6 +20,7 @@
         "error": "danger",
     };
 
+    let visible: true;
     let ownDatasets: any = null;
     let task: any = null;
 
@@ -109,6 +113,12 @@
             <div class="my-5">
                 <h4>Algorithm</h4>
                 {task.algorithm}
+                <br>
+                <button class="btn btn-primary" on:click={() => visible =!visible}>
+                {#if visible} Show output
+                {:else} Show algorithm
+                {/if}
+                </button>
 
                 <h4>Dataset</h4>
                 {#if task.is_owner && task.state === "data_requested"}
@@ -169,9 +179,15 @@
                 {/if}
             {/if}
         </div>
-        <div class="col-xs-12 col-md-6 border">
-            <pre>{task.output || "No output (yet)…"}</pre>
-        </div>
+        {#if visible}
+            <div class="col-xs-12 col-md-6 border">
+                <pre><code class="python">{task.algorithm_content || "No algorithm (yet)…"}</code></pre>
+            </div>
+        {:else}
+            <div class="col-xs-12 col-md-6 border">
+                <pre>{task.output || "No output (yet)…"}</pre>
+            </div>
+        {/if}
     </div>
 
 </div>

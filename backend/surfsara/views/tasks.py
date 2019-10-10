@@ -90,16 +90,7 @@ class Tasks(viewsets.ViewSet):
         if task.state != Task.OUTPUT_RELEASED and not is_owner:
             task.output = None
 
-        # download_container = RunContainer(task.algorithm, None)
-        # download_container.create_files()
-        # download_container.download_from_rd(data=False)
-        # algorithm_content = None
-        #
-        # if download_container.temp_algorithm_file:
-        #     with open(download_container.temp_algorithm_file, "r") as algorithm_file:
-        #         algorithm_content = algorithm_file.read()
-
-        return Response({"is_owner": is_owner, "algorithm_content": "tetst", **TaskSerializer(task).data})
+        return Response({"is_owner": is_owner, **TaskSerializer(task).data})
 
     @action(detail=True, methods=["POST"], name="review", permission_classes=[AllowAny])
     def review(self, request, pk=None):

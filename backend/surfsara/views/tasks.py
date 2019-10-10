@@ -4,10 +4,12 @@ from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+import os
+import threading
 
 from surfsara.models import User, Task
 from surfsara.services import task_service, mail_service
-
+from backend.scripts.run_container import RunContainer
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -17,6 +19,23 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class Tasks(viewsets.ViewSet):
     permission_classes = (AllowAny,)
+
+    # This process has to move to the taskmanager, so it doesn't slow down the site!
+    @staticmethod
+    def process_algorithm(task, algorithm):
+        download_container = RunContainer(algorithm, "", download_dir=os.getcwd())
+        download_container.create_files()
+        download_container.download_from_rd(data=False)
+        algorithm_content = None
+
+        if download_container.temp_algorithm_file:
+            with open(download_container.temp_algorithm_file, "r") as algorithm_file:
+                algorithm_content = algorithm_file.read()
+
+        download_container.remove_files()
+        task.algorithm_content = algorithm_content
+        task.save()
+    # This process has to move to the taskmanager, so it doesn't slow down the site!
 
     def create(self, request):
         data_owner_email = request.data["data_owner"]
@@ -31,6 +50,8 @@ class Tasks(viewsets.ViewSet):
             dataset_desc=request.data["dataset_desc"],
         )
         task.save()
+
+        self.process_algorithm(task, request.data['algorithm'])
 
         mail_service.send_mail(
             mail_files="data_request",
@@ -69,7 +90,16 @@ class Tasks(viewsets.ViewSet):
         if task.state != Task.OUTPUT_RELEASED and not is_owner:
             task.output = None
 
-        return Response({"is_owner": is_owner, "algorithm_content": "test", **TaskSerializer(task).data})
+        # download_container = RunContainer(task.algorithm, None)
+        # download_container.create_files()
+        # download_container.download_from_rd(data=False)
+        # algorithm_content = None
+        #
+        # if download_container.temp_algorithm_file:
+        #     with open(download_container.temp_algorithm_file, "r") as algorithm_file:
+        #         algorithm_content = algorithm_file.read()
+
+        return Response({"is_owner": is_owner, "algorithm_content": "tetst", **TaskSerializer(task).data})
 
     @action(detail=True, methods=["POST"], name="review", permission_classes=[AllowAny])
     def review(self, request, pk=None):

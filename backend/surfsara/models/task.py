@@ -28,6 +28,7 @@ class Task(models.Model):
     author_email = models.TextField()
     approver_email = models.TextField()
     algorithm = models.TextField()
+    algorithm_content = models.TextField(default="No algorithm")
     dataset = models.TextField()
     dataset_desc = models.TextField()
     output = models.TextField(null=True)

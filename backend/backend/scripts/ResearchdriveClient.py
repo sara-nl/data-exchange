@@ -58,6 +58,7 @@ class ResearchdriveClient:
         :param save_as:
         :param remote_path: Path from file or folder located on researchdrive
         :param local_path: Download save location
+        :param etag: of file
         :return: True if successful, the error if not.
         """
         # The WebDav endpoint only supports forward slash.
@@ -80,7 +81,8 @@ class ResearchdriveClient:
                 pass
 
         # Validate etag
-        if self.__is_recent_etag(remote_path, etag):
+        #if self.__is_recent_etag(remote_path, etag):
+        if not etag:
             error = self.client.download_sync(remote_path, local_path)
             if not error:
                 return True
@@ -171,9 +173,10 @@ class ResearchdriveClient:
 
         remote_path = remote_path.replace(os.sep, "/")
 
-        # The loaded file contains the payload.
-        with open("propfind_fileid_etag.xml") as xml_file:
-            xml_content = xml_file.read()
+        # The payload.
+        xml_content = ('<?xml version="1.0"?><a:propfind xmlns:a="DAV:"'
+                       + ' xmlns:oc="http://owncloud.org/ns"><a:prop>'
+                       + '<oc:fileid/><a:getetag/></a:prop></a:propfind>')
 
         # Execute request
         url = (ResearchdriveClient.current_version_endpoint
@@ -278,10 +281,10 @@ def main():
     z.options = options
     #print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
     #print(z.get_fileid_etag("read_only(only for tijs).txt"))
-    #z.get_fileid_etag("Test deelmap")
-    print(z.get_file_versions("read_only(only for tijs).txt"))
-    print("#############")
-    z.download_old_version("read_only(only for tijs).txt", "test/helder_text_bestand.txt", "5d9e3b79e13ff")
+    print(z.get_fileid_etag("read_only(only for tijs).txt"))
+    #print(z.get_file_versions("read_only(only for tijs).txt"))
+    #print("#############")
+    #z.download_old_version("read_only(only for tijs).txt", "test/helder_text_bestand.txt", "5d9e3b79e13ff")
 
     return
 

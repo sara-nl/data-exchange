@@ -123,9 +123,6 @@ class RunContainer:
         """
             Creates temporary data and algorithm files with unique names
         """
-        print(" been there")
-        print(self.download_dir)
-
         if not os.path.exists(self.download_dir):
             os.mkdir(self.download_dir)
 

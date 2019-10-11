@@ -5,11 +5,12 @@ from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 import os
-import threading
+import string
 
 from surfsara.models import User, Task
 from surfsara.services import task_service, mail_service
 from backend.scripts.run_container import RunContainer
+
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -20,22 +21,55 @@ class TaskSerializer(serializers.ModelSerializer):
 class Tasks(viewsets.ViewSet):
     permission_classes = (AllowAny,)
 
-    # This process has to move to the taskmanager, so it doesn't slow down the site!
-    @staticmethod
-    def process_algorithm(task, algorithm):
+    # This processes have to move to the taskmanager, so it doesn't slow down the site!
+    def process_algorithm(self, task, algorithm):
         download_container = RunContainer(algorithm, "", download_dir=os.getcwd())
         download_container.create_files()
         download_container.download_from_rd(data=False)
         algorithm_content = None
+        algorithm_info = None
 
         if download_container.temp_algorithm_file:
             with open(download_container.temp_algorithm_file, "r") as algorithm_file:
-                algorithm_content = algorithm_file.read()
+                lines = algorithm_file.readlines()
+                algorithm_content = " ".join(line for line in lines)
+                print("exectuer")
+                algorithm_info = self.calculate_algorithm_info(lines)
 
         download_container.remove_files()
         task.algorithm_content = algorithm_content
+        task.algorithm_info = algorithm_info
         task.save()
-    # This process has to move to the taskmanager, so it doesn't slow down the site!
+
+    @staticmethod
+    def calculate_algorithm_info(lines):
+        imports = []
+        characters = 0
+        newline = 0
+        words = 0
+
+        for line in lines:
+            print(line)
+
+            # Retrieve import packages.
+            if "from" in line:
+                imports.append(line.split("from ")[1].split(" ")[0])
+            elif "import" in line:
+                imports.append(line.split("import ")[1].split(" ")[0].strip("\n"))
+
+            # Number of newlines.
+            if "\n" in line:
+                newline += 1
+            characters += len([char for char in line])
+
+            # Calculate words with removed punctuation and newline.
+            stripped_newline = "".join([char for char in line
+                                        if char not in string.punctuation]).strip("\n")
+            words += len([word for word in stripped_newline.split(" ") if len(word) > 1])
+        return (f'{characters} chars, {newline} line breaks, {words} words. '
+                + f'Packages: {",".join(imports)}'
+                )
+    # This processes have to move to the taskmanager, so it doesn't slow down the site!
 
     def create(self, request):
         data_owner_email = request.data["data_owner"]

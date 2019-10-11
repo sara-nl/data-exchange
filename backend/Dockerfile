@@ -2,11 +2,9 @@ FROM python:3-alpine
 WORKDIR /app
 COPY requirements.txt .
 
+RUN apk add curl libxslt postgresql-client
 
-# Install psycopg2 using apk to avoid having to build it.
-RUN apk add py-psycopg2
-
-RUN apk add --virtual=build-deps -U libxml2-dev libxslt-dev gcc musl-dev && \
+RUN apk add --virtual=build-deps -U postgresql-dev libxml2-dev libxslt-dev gcc musl-dev && \
     pip install -r requirements.txt && \
     apk del build-deps
 

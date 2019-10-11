@@ -32,3 +32,4 @@ class Task(models.Model):
     dataset_desc = models.TextField()
     output = models.TextField(null=True)
     registered_on = models.DateTimeField(auto_now_add=True)
+    review_output = models.BooleanField(default=True)

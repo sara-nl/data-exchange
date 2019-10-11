@@ -22,7 +22,8 @@ class Tasks(viewsets.ViewSet):
     permission_classes = (AllowAny,)
 
     # This processes have to move to the taskmanager, so it doesn't slow down the site!
-    def process_algorithm(self, task, algorithm):
+    @staticmethod
+    def process_algorithm(task, algorithm):
         download_container = RunContainer(algorithm, "", download_dir=os.getcwd())
         download_container.create_files()
         download_container.download_from_rd(data=False)
@@ -34,7 +35,7 @@ class Tasks(viewsets.ViewSet):
                 lines = algorithm_file.readlines()
                 algorithm_content = " ".join(line for line in lines)
                 print("exectuer")
-                algorithm_info = self.calculate_algorithm_info(lines)
+                algorithm_info = Tasks.calculate_algorithm_info(lines)
 
         download_container.remove_files()
         task.algorithm_content = algorithm_content

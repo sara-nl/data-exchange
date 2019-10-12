@@ -1,15 +1,13 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { stores } from "@sapper/app";
-    import hljs from "highlight.js";
+    import * as hljs from "highlight.js";
 
     import LoadFiles from "../../api/loader";
     import Tasks, { TasksReviewRequest } from "../../api/tasks";
 
     const { page } = stores();
     const { taskId } = $page.params;
-
-    hljs.initHighlightingOnLoad();
 
     let state_color = {
         "request_rejected": "danger",
@@ -20,7 +18,7 @@
         "error": "danger",
     };
 
-    let visible: true;
+    let visible: boolean = true;
     let ownDatasets: any = null;
     let task: any = null;
 
@@ -28,6 +26,7 @@
 
     onMount(async () => {
         await load();
+        hljs.initHighlighting();
     });
 
     async function load() {
@@ -81,6 +80,7 @@
 
 
 <svelte:head>
+    <link rel="stylesheet" href="atom-one-light.css">
     <title>My Files</title>
 </svelte:head>
 
@@ -180,17 +180,14 @@
                 {/if}
             {/if}
         </div>
-        {#if visible}
-            <div class="col-12 col-md-8 border" style="padding-top: 20px;">
+            <div hidden={!visible} class="col-12 col-md-8 border" style="padding-top: 20px;">
                 <pre><code class="python">{task.algorithm_content || "No algorithm (yet)…"}</code></pre>
                 <hr>
                 <h5>{task.algorithm_info}</h5>
             </div>
-        {:else}
-            <div class="col-12 col-md-8 border" style="padding-top: 20px;">
+            <div hidden={visible} class="col-12 col-md-8 border" style="padding-top: 20px;">
                 <pre>{task.output || "No output (yet)…"}</pre>
             </div>
-        {/if}
     </div>
 </div>
 {/if}

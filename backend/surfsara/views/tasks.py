@@ -34,7 +34,6 @@ class Tasks(viewsets.ViewSet):
             with open(download_container.temp_algorithm_file, "r") as algorithm_file:
                 lines = algorithm_file.readlines()
                 algorithm_content = " ".join(line for line in lines)
-                print("exectuer")
                 algorithm_info = Tasks.calculate_algorithm_info(lines)
 
         download_container.remove_files()
@@ -50,7 +49,6 @@ class Tasks(viewsets.ViewSet):
         words = 0
 
         for line in lines:
-            print(line)
 
             # Retrieve import packages.
             if "from" in line:

@@ -89,33 +89,43 @@ class ResearchdriveClient:
             return error
         else:
             self.download_old_version(remote_path, local_path, etag)
-
-
-
         return False
 
+    # Code below this point doesn't make use of the webdav3.client package
     @staticmethod
     def __compare_tag(tag, versions, tagname):
+        """
+        Compares tag value in a list of dicts.
+        :param tag: Value you want to compare
+        :param versions: A list with dictionaries.
+        :param tagname: Key you want to check.
+        :return: True if tag is in, false if not.
+        """
         for version in versions:
             if str(version[tagname]) == str(tag):
                 return version
         return False
 
-    # Code below this point doesn't make use of the webdav3.client package
     def download_old_version(self, remote_path, local_path, old_id, etag=None):
+        """
+        Download older versions of the file based of an old_id or etag.
+        :param remote_path: Path on the server of the original file
+        :param local_path: Location where to save the file
+        :param old_id: id thats behind a version link ../1232190/v/99999
+        (99999, in this case).
+        :param etag: Compare etags
+        :return: Download the old version file to the local_path. True
+        if successful
+        """
 
         # Get old version list
         old_versions = self.get_file_versions(remote_path)
-
-        print(old_versions)
 
         # Compare etags - Currently impossible because etag chances.
         if etag:
             version = self.__compare_tag(etag, old_versions, 'etag')
         else:
             version = self.__compare_tag(old_id, old_versions, 'old_id')
-
-        print("::::", version)
 
         if version:
             download_url = (ResearchdriveClient.webdav_hostname
@@ -174,6 +184,11 @@ class ResearchdriveClient:
         return False
 
     def get_fileid_etag(self, remote_path):
+        """
+        Retrieves file_id and etag from a remote_path.
+        :param remote_path: Path on the server.
+        :return: Dictionary with fileid and etag.
+        """
 
         remote_path = remote_path.replace(os.sep, "/")
 
@@ -270,6 +285,11 @@ class ResearchdriveClient:
 
     @staticmethod
     def parse_fileid_etag_xml(content):
+        """
+        Parses a fileid and etag response into a dictionary
+        :param content: xml response.
+        :return: Dictionary with etag and file_id
+        """
         tree = etree.fromstring(content)
 
         # A list containing one response
@@ -279,18 +299,6 @@ class ResearchdriveClient:
 
 
 def main():
-    z = ResearchdriveClient()
-    options = z.options
-    options['webdav_login'] = "tijs@wearebit.com"
-    options['webdav_password'] = "prototypingfutures"
-    z.options = options
-    #print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
-    #print(z.get_fileid_etag("read_only(only for tijs).txt"))
-    print(z.get_fileid_etag("Sander_deelt_met_tijs.txt"))
-    #print(z.get_file_versions("read_only(only for tijs).txt"))
-    #print("#############")
-    z.download_old_version("Sander_deelt_met_tijs.txt", "helder_text_bestand.txt", "1570455492")
-
     return
 
 

@@ -95,22 +95,26 @@ class ResearchdriveClient:
         return False
 
     @staticmethod
-    def __find_etag(etag, versions):
+    def __compare_tag(tag, versions, tagname):
         for version in versions:
-            if str(version['etag']) == str(etag):
+            if str(version[tagname]) == str(tag):
                 return version
         return False
 
     # Code below this point doesn't make use of the webdav3.client package
-    def download_old_version(self, remote_path, local_path, etag):
+    def download_old_version(self, remote_path, local_path, old_id, etag=None):
 
         # Get old version list
         old_versions = self.get_file_versions(remote_path)
 
         print(old_versions)
 
-        # Compare etags
-        version = self.__find_etag(etag, old_versions)
+        # Compare etags - Currently impossible because etag chances.
+        if etag:
+            version = self.__compare_tag(etag, old_versions, 'etag')
+        else:
+            version = self.__compare_tag(old_id, old_versions, 'old_id')
+
         print("::::", version)
 
         if version:
@@ -121,13 +125,13 @@ class ResearchdriveClient:
             content = self.__execute_request(download_url, "GET")
 
             try:
-                with open(local_path, "wb") as local_file:
+                with open(local_path, "w") as local_file:
                     local_file.write(content)
                 return True
             except Exception as error:
                 raise error
         else:
-            raise KeyError("The cannot be found in previous versions.")
+            raise KeyError("The Etag cannot be found in previous versions.")
 
     def get_shares(self, uid_owner=None):
         """
@@ -259,6 +263,7 @@ class ResearchdriveClient:
                     "{DAV:}propstat/{DAV:}prop/{DAV:}getlastmodified"
                 ),
                 "etag": str(response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag")).strip('\"'),
+                "old_id": response.findtext("{DAV:}href").split("/")[-1]
             }
             file_versions.append(version)
         return file_versions
@@ -281,10 +286,10 @@ def main():
     z.options = options
     #print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
     #print(z.get_fileid_etag("read_only(only for tijs).txt"))
-    print(z.get_fileid_etag("read_only(only for tijs).txt"))
+    print(z.get_fileid_etag("Sander_deelt_met_tijs.txt"))
     #print(z.get_file_versions("read_only(only for tijs).txt"))
     #print("#############")
-    #z.download_old_version("read_only(only for tijs).txt", "test/helder_text_bestand.txt", "5d9e3b79e13ff")
+    z.download_old_version("Sander_deelt_met_tijs.txt", "helder_text_bestand.txt", "1570455492")
 
     return
 

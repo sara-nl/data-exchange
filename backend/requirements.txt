@@ -8,3 +8,4 @@ jsonschema ~= 3.0.2
 pika ~= 1.1.0
 dataclasses_json ~= 0.3.4
 psycopg2 ~= 2.8.3
+requests ~= 2.22.0

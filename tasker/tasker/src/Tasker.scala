@@ -10,7 +10,6 @@ import dev.profunktor.fs2rabbit.model.{
   ExchangeName,
   ExchangeType
 }
-import fs2.Pipe
 import cats.implicits._
 import Codecs._
 import config.TaskerConfig
@@ -36,7 +35,9 @@ object Tasker extends IOApp {
           queues.done.exchangeConfig.exchangeName,
           queues.done.routingKey
         )
-        consumer <- client.createAutoAckConsumer[String](queues.todo.config.queueName)
+        consumer <- client.createAutoAckConsumer[String](
+          queues.todo.config.queueName
+        )
         publisher <- client.createPublisher[AmqpMessage[String]](
           queues.done.exchangeConfig.exchangeName,
           queues.done.routingKey

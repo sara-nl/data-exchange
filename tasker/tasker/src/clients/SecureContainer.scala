@@ -1,20 +1,25 @@
 package clients
-import java.nio.file.Path
+import java.nio.file.{Path, Paths}
 
 import cats.effect.{IO, _}
-import cats.implicits._
 import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
+import config.TaskerConfig
 import config.TaskerConfig.docker
+import io.chrisdavenport.log4cats.Logger
 
-import scala.concurrent.ExecutionContext
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
 object SecureContainer {
 
   private val client = DockerClientBuilder.getInstance().build()
+
+  def lastStatusIO(containerId: String): IO[Option[(String, Int)]] = SecureContainer
+    .statusStream(containerId)
+    .compile
+    .last
 
   def statusStream(containerId: String): fs2.Stream[IO, (String, Int)] = {
     fs2.Stream
@@ -23,92 +28,92 @@ object SecureContainer {
       })
       .flatMap {
         case state if state.getRunning =>
-          fs2.Stream((state.getStatus, state.getExitCode.toInt)) ++ statusStream(containerId)
+          fs2.Stream((state.getStatus, state.getExitCode.toInt)) ++ statusStream(
+            containerId
+          )
         case state => fs2.Stream((state.getStatus, state.getExitCode.toInt))
       }
   }
 
-  def outputStream(
-      containerId: String
-  )(implicit F: ConcurrentEffect[IO], cs: ContextShift[IO]): fs2.Stream[IO, String] = {
-    import fs2._
+  def outputStream(containerId: String)(
+    implicit F: ConcurrentEffect[IO],
+    cs: ContextShift[IO]
+  ): IO[String] = {
     import fs2.concurrent._
 
     def allLogsCommand(containerId: String) =
       client
         .logContainerCmd(containerId)
-        .withFollowStream(true)
+        .withFollowStream(false)
         .withTailAll()
         .withStdErr(true)
         .withStdOut(true)
         .withTimestamps(false)
 
     for {
-      q <- fs2.Stream.eval(Queue.noneTerminated[IO, String])
-      _ <- Stream.eval {
-        IO.delay {
-          allLogsCommand(containerId).exec(new LogContainerResultCallback {
-            override def onNext(item: Frame): Unit = {
-              val line = new String(item.getPayload)
-              F.runAsync(q.enqueue1(Some(line)))(_ => IO.unit).unsafeRunSync
-            }
-          })
-        }
+      q <- Queue.noneTerminated[IO, String]
+      _ <- IO.delay {
+        allLogsCommand(containerId).exec(new LogContainerResultCallback {
+          override def onNext(item: Frame): Unit = {
+            val line = new String(item.getPayload)
+            F.runAsync(q.enqueue1(Some(line)))(_ => IO.unit).unsafeRunSync
+          }
+        }).awaitCompletion()
       }
-      _ <- Stream.eval {
-        import scala.concurrent.duration._
-        implicit val timer = IO.timer(ExecutionContext.global)
-
-        // TODO: get rid of sleep
-        timer.sleep(1 second) >> q.enqueue1(None)
-      }
-      line <- q.dequeue
-    } yield line
+      _ <- q.enqueue1(None)
+      lastOption <- q.dequeue.reduce[String]((l1: String, l2: String) => s"$l1\n$l2").compile.last
+    } yield lastOption.getOrElse("")
   }
 
-  def createContainer(
-      codePath: Path,
-      dataPath: Path,
-      codeRelativePath: String,
-      dataRelativePath: String
-  ): IO[String] = IO {
-    val dockerCodePath = s"${docker.containerCodePath}/${codeRelativePath}"
-    val dockerDataPath = s"${docker.containerDataPath}/${dataRelativePath}"
+  def createContainer[F[_]: Sync: Logger](codeRoot: Path,
+                                            dataRoot: Path,
+                                            codeRelativePath: String,
+                                            dataRelativePath: String): F[String] = Sync[F].delay {
 
-    println(s"Code path on host (docker): $codePath ($dockerCodePath)")
-    println(s"Code path on host (docker): $dataPath ($dockerDataPath)")
 
-    val createContainerCommand = client
-      .createContainerCmd("python")
-      .withNetworkDisabled(true)
-      .withHostConfig(
-        new HostConfig().withBinds(
-          List(
-            new Bind(codePath.toString, new Volume(docker.containerCodePath), AccessMode.ro),
-            new Bind(dataPath.toString, new Volume(docker.containerDataPath), AccessMode.ro)
-          ).asJava
+      val logger = Logger[F]
+      val hostCodePath = Paths.get(codeRoot.toString, codeRelativePath)
+
+      val dockerScriptPath =
+        if (hostCodePath.toFile.isDirectory)
+          Paths.get(docker.containerCodePath, codeRelativePath, TaskerConfig.docker.indexFile)
+        else
+          Paths.get(docker.containerCodePath, codeRelativePath)
+
+      val dockerDataPath = Paths.get(docker.containerDataPath, dataRelativePath)
+
+      logger.info(s"Code path on host (docker): $hostCodePath ($dockerScriptPath)")
+      logger.info(s"Data path on host (docker): $dataRoot ($dockerDataPath)")
+
+      val createContainerCommand = client
+        .createContainerCmd("python")
+        .withNetworkDisabled(true)
+        .withHostConfig(
+          new HostConfig().withBinds(
+            List(
+              new Bind(
+                codeRoot.toString,
+                new Volume(docker.containerCodePath),
+                AccessMode.ro
+              ),
+              new Bind(
+                dataRoot.toString,
+                new Volume(docker.containerDataPath),
+                AccessMode.ro
+              )
+            ).asJava
+          )
         )
-      )
-      .withCmd("python3", dockerCodePath, dockerDataPath)
-      .withAttachStdin(true)
-      .withAttachStderr(true)
+        .withCmd("python3", dockerScriptPath.toString, dockerDataPath.toString)
+        .withAttachStdin(true)
+        .withAttachStderr(true)
 
-    createContainerCommand.exec().getId
+      createContainerCommand.exec().getId
+    }
+
+  def startContainer(containerId: String): IO[String] = IO {
+    client.startContainerCmd(containerId).exec()
+    containerId
   }
 
-  def startContainer(containerId: String): IO[String] =
-    IO {
-      client.startContainerCmd(containerId).exec()
-      println(s"Started container ${containerId}")
-      containerId
-    } >> IO.pure(containerId)
-
-  def statusesAndLogs(contId: String)(implicit F: ConcurrentEffect[IO], sc: ContextShift[IO]) = {
-    val statusStream = SecureContainer
-      .statusStream(contId)
-      .map(v => s"Container status: $v")
-    val logsStream                            = SecureContainer.outputStream(contId)
-    val joinLines: (String, String) => String = { case (l1: String, l2: String) => s"$l1\n$l2" }
-    statusStream.mergeHaltBoth(logsStream).reduce(joinLines)
-  }
 }

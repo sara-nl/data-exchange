@@ -57,8 +57,7 @@ to install Scala 2.13.1 when prompted, and not the default 2.12!), then open Tas
 the little play icon at the top left in the left gutter.
 
 ### 💄 Format code before committing! 
-Either [configure IntelliJ to do it on save](https://scalameta.org/scalafmt/docs/installation.html#format-on-save), or run `mill tasker.reformat` in the root of the project.
-
+Either [configure IntelliJ to do it on save](https://scalameta.org/scalafmt/docs/installation.html#format-on-save), or run `mill tasker.reformat` in the root of the project.   
 
 ### Used libraries
 

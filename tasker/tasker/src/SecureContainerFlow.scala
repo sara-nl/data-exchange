@@ -1,7 +1,7 @@
 import java.nio.file.Paths
 
 import cats.effect._
-import clients.SecureContainer.startContainer
+import clients.SecureContainer.{removeContainer, startContainer}
 import clients.webdav.{Webdav, WebdavPath}
 import clients.SecureContainer
 import dev.profunktor.fs2rabbit.json.Fs2JsonEncoder
@@ -57,12 +57,14 @@ class SecureContainerFlow(consumer: Stream[IO, AmqpEnvelope[String]],
               val containerResultIO = for {
                 _ <- filesDownloadedIO
                 containerId <- createContainerIO
-                _ <- logger.info(s"Created container ${containerId}")
+                _ <- logger.info(s"Created container $containerId")
                 _ <- startContainer(containerId)
                 stateAndCode <- SecureContainer.lastStatusIO(containerId)
                 _ <- logger.info(s"Container $containerId execution stopped with ${stateAndCode.toString}")
                 output <- SecureContainer.outputStream(containerId)
                 _ <- logger.info(s"Container output: $output")
+                _ <- removeContainer(containerId)
+                _ <- logger.info(s"Removed container: $containerId")
               } yield (stateAndCode, output)
 
               containerResultIO.flatMap {

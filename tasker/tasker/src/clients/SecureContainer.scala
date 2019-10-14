@@ -116,4 +116,9 @@ object SecureContainer {
     containerId
   }
 
+  def removeContainer(containerId: String): IO[String] = IO {
+    client.removeContainerCmd(containerId).exec()
+    containerId
+  }
+
 }

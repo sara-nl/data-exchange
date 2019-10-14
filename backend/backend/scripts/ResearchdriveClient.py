@@ -17,6 +17,7 @@ class ResearchdriveClient:
     version_api_startendpoint = webdav_hostname + "/remote.php/dav/meta/"
     version_api_endendpoint = "/v"
 
+
     def __init__(self):
         self.options = {
             "webdav_hostname": ResearchdriveClient.webdav_hostname,
@@ -161,6 +162,21 @@ class ResearchdriveClient:
         if uid_owner:
             self.filter_shares(uid_owner)
         return self.shares
+
+    def remove_share(self, remote_path):
+        shares = self.get_shares()
+
+        share = self.__compare_tag(remote_path, shares, "file_target")
+        if share:
+            share_id = share['id']
+            endpoint = f'{ResearchdriveClient.share_api_endpoint}/pending/{share_id}'
+            response = self.__execute_request(endpoint, "DELETE")
+
+            if self.parse_revoke_share_xml(response) == "100":
+                return True
+            return False
+        return True
+
 
     def filter_shares(self, uid_owner):
         """
@@ -307,8 +323,27 @@ class ResearchdriveClient:
             ),
         }
 
+    @staticmethod
+    def parse_revoke_share_xml(content):
+        tree = etree.fromstring(content)
+        return tree.findtext(".//statuscode")
+
 
 def main():
+    z = ResearchdriveClient()
+    options = z.options
+    options['webdav_login'] = "tijs@wearebit.com"
+    options['webdav_password'] = "prototypingfutures"
+    z.options = options
+
+    z.remove_share("/1e_laag")
+    # print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
+    # print(z.get_fileid_etag("read_only(only for tijs).txt"))
+    # print(z.get_file_versions("read_only(only for tijs).txt"))
+    # print("#############")
+    # z.download_old_version("read_only(only for tijs).txt", "test/helder_text_bestand.txt", "5d9e3b79e13ff")
+
+    #z.download_old_version("Sander_deelt_met_tijs.txt", "helder_text_bestand.txt", "1570455492")
     return
 
 

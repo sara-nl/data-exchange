@@ -61,12 +61,17 @@ class Tasks(viewsets.ViewSet):
             characters += len([char for char in line])
 
             # Calculate words with removed punctuation and newline.
-            stripped_newline = "".join([char for char in line
-                                        if char not in string.punctuation]).strip("\n")
-            words += len([word for word in stripped_newline.split(" ") if len(word) > 1])
-        return (f'{characters} chars, {newline} line breaks, {words} words. '
-                + f'Packages: {",".join(imports)}'
-                )
+            stripped_newline = "".join(
+                [char for char in line if char not in string.punctuation]
+            ).strip("\n")
+            words += len(
+                [word for word in stripped_newline.split(" ") if len(word) > 1]
+            )
+        return (
+            f"{characters} chars, {newline} line breaks, {words} words. "
+            + f'Packages: {",".join(imports)}'
+        )
+
     # This processes have to move to the taskmanager, so it doesn't slow down the site!
 
     def create(self, request):
@@ -83,7 +88,7 @@ class Tasks(viewsets.ViewSet):
         )
         task.save()
 
-        self.process_algorithm(task, request.data['algorithm'])
+        self.process_algorithm(task, request.data["algorithm"])
 
         mail_service.send_mail(
             mail_files="data_request",

@@ -81,7 +81,7 @@ class ResearchdriveClient:
                 pass
 
         # Validate etag
-        #if self.__is_recent_etag(remote_path, etag):
+        # if self.__is_recent_etag(remote_path, etag):
         if not etag:
             error = self.client.download_sync(remote_path, local_path)
             if not error:
@@ -123,14 +123,12 @@ class ResearchdriveClient:
 
         # Compare etags - Currently impossible because etag chances.
         if etag:
-            version = self.__compare_tag(etag, old_versions, 'etag')
+            version = self.__compare_tag(etag, old_versions, "etag")
         else:
-            version = self.__compare_tag(old_id, old_versions, 'old_id')
+            version = self.__compare_tag(old_id, old_versions, "old_id")
 
         if version:
-            download_url = (ResearchdriveClient.webdav_hostname
-                            + version["href"]
-                            )
+            download_url = ResearchdriveClient.webdav_hostname + version["href"]
 
             content = self.__execute_request(download_url, "GET")
 
@@ -179,7 +177,7 @@ class ResearchdriveClient:
         """
         Checks if the etag is from the most recent file.
         """
-        if str(self.get_fileid_etag(remote_path)['etag']) == str(etag):
+        if str(self.get_fileid_etag(remote_path)["etag"]) == str(etag):
             return True
         return False
 
@@ -193,18 +191,22 @@ class ResearchdriveClient:
         remote_path = remote_path.replace(os.sep, "/")
 
         # The payload.
-        xml_content = ('<?xml version="1.0"?><a:propfind xmlns:a="DAV:"'
-                       + ' xmlns:oc="http://owncloud.org/ns"><a:prop>'
-                       + '<oc:fileid/><a:getetag/></a:prop></a:propfind>')
+        xml_content = (
+            '<?xml version="1.0"?><a:propfind xmlns:a="DAV:"'
+            + ' xmlns:oc="http://owncloud.org/ns"><a:prop>'
+            + "<oc:fileid/><a:getetag/></a:prop></a:propfind>"
+        )
 
         # Execute request
-        url = (ResearchdriveClient.current_version_endpoint
-               + self.options['webdav_login']
-               + "/"
-               + remote_path
-               )
-        content = self.__execute_request(url, "PROPFIND", {"Content-Type": "text/xml"},
-                                         data=xml_content)
+        url = (
+            ResearchdriveClient.current_version_endpoint
+            + self.options["webdav_login"]
+            + "/"
+            + remote_path
+        )
+        content = self.__execute_request(
+            url, "PROPFIND", {"Content-Type": "text/xml"}, data=xml_content
+        )
 
         return self.parse_fileid_etag_xml(content)
 
@@ -277,8 +279,10 @@ class ResearchdriveClient:
                 "last_modified": response.findtext(
                     "{DAV:}propstat/{DAV:}prop/{DAV:}getlastmodified"
                 ),
-                "etag": str(response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag")).strip('\"'),
-                "old_id": response.findtext("{DAV:}href").split("/")[-1]
+                "etag": str(
+                    response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag")
+                ).strip('"'),
+                "old_id": response.findtext("{DAV:}href").split("/")[-1],
             }
             file_versions.append(version)
         return file_versions
@@ -294,8 +298,14 @@ class ResearchdriveClient:
 
         # A list containing one response
         tree_response = tree.findall("{DAV:}response")[0]
-        return {"etag": tree_response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag").strip('\"'),
-                "file_id": tree_response.findtext("{DAV:}propstat/{DAV:}prop/{http://owncloud.org/ns}fileid")}
+        return {
+            "etag": tree_response.findtext(
+                "{DAV:}propstat/{DAV:}prop/{DAV:}getetag"
+            ).strip('"'),
+            "file_id": tree_response.findtext(
+                "{DAV:}propstat/{DAV:}prop/{http://owncloud.org/ns}fileid"
+            ),
+        }
 
 
 def main():

@@ -20,7 +20,7 @@ class RunContainer:
 
     def download_and_run(self):
         """
-            Combines downloaden and running of algorithm with data
+            Combines downloading and running of algorithm with data
         """
         self.download_files()
         return self.run_algorithm()
@@ -123,7 +123,6 @@ class RunContainer:
         """
             Creates temporary data and algorithm files with unique names
         """
-
         if not os.path.exists(self.download_dir):
             os.mkdir(self.download_dir)
 
@@ -138,27 +137,32 @@ class RunContainer:
         self.temp_algorithm_name = self.temp_algorithm_file.split("/")[-1]
         self.temp_data_name = self.temp_data_file.split("/")[-1]
 
-    def download_from_rd(self):
+    def download_from_rd(self, algorithm=True, data=True):
         """
             Downloads both the algorithm and data from researchdrive
         """
 
         rd_client = ResearchdriveClient()
 
-        if self.remote_algorithm_path and self.remote_data_path:
+        if self.remote_algorithm_path and algorithm:
             try:
-                rd_client.download(
-                    self.remote_algorithm_path,
-                    self.download_dir,
-                    self.temp_algorithm_file,
-                )
-                rd_client.download(
-                    self.remote_data_path, self.download_dir, self.temp_data_file
-                )
+                if algorithm:
+                    rd_client.download(
+                        self.remote_algorithm_path,
+                        self.download_dir,
+                        self.temp_algorithm_file,
+                    )
             except FileNotFoundError as error:
                 self.stop_running(error)
-        else:
-            print("Need algorithm and data")
+
+        if self.remote_data_path and data:
+            try:
+                if data:
+                    rd_client.download(
+                        self.remote_data_path, self.download_dir, self.temp_data_file
+                    )
+            except FileNotFoundError as error:
+                self.stop_running(error)
 
     def stop_running(self, error):
         """

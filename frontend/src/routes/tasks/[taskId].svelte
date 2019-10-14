@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from "svelte";
     import { stores } from "@sapper/app";
+    import * as hljs from "highlight.js";
 
     import LoadFiles from "../../api/loader";
     import Tasks, { TasksReviewRequest } from "../../api/tasks";
@@ -17,6 +18,7 @@
         "error": "danger",
     };
 
+    let visible: boolean = true;
     let ownDatasets: any = null;
     let task: any = null;
 
@@ -24,6 +26,7 @@
 
     onMount(async () => {
         await load();
+        hljs.initHighlighting();
     });
 
     async function load() {
@@ -77,6 +80,7 @@
 
 
 <svelte:head>
+    <link rel="stylesheet" href="atom-one-light.css">
     <title>My Files</title>
 </svelte:head>
 
@@ -91,7 +95,7 @@
 
 <div class="container">
     <div class="row">
-        <div class="col">
+        <div class="col-4">
             <div class="my-5">
                 <h4>State</h4>
                 {task.state}
@@ -108,7 +112,14 @@
             </div>
             <div class="my-5">
                 <h4>Algorithm</h4>
-                {task.algorithm}
+                <ul style="list-style:none; padding-left: 0;">
+                    <li>{task.algorithm}</li>
+                    <li><button class="btn btn-primary" on:click={() => visible =!visible}>
+                    {#if visible} Show output
+                    {:else} Show algorithm
+                    {/if}
+                    </button></li>
+                </ul>
 
                 <h4>Dataset</h4>
                 {#if task.is_owner && task.state === "data_requested"}
@@ -169,10 +180,14 @@
                 {/if}
             {/if}
         </div>
-        <div class="col-xs-12 col-md-6 border">
-            <pre>{task.output || "No output (yet)…"}</pre>
-        </div>
+            <div hidden={!visible} class="col-12 col-md-8 border" style="padding-top: 20px;">
+                <pre><code class="python">{task.algorithm_content || "No algorithm (yet)…"}</code></pre>
+                <hr>
+                <h5>{task.algorithm_info}</h5>
+            </div>
+            <div hidden={visible} class="col-12 col-md-8 border" style="padding-top: 20px;">
+                <pre>{task.output || "No output (yet)…"}</pre>
+            </div>
     </div>
-
 </div>
 {/if}

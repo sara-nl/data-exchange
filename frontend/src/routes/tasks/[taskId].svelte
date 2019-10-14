@@ -147,8 +147,6 @@
               always run benevolent algorithms.
             </div>
 
-            <input bind:checked={approve_algorithm_all} type="checkbox" />
-            Approve continous use of dataset with this algorithm.
           </div>
         <div class="col-md-12">
           <button

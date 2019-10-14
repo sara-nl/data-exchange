@@ -52,12 +52,13 @@ class ResearchdriveClient:
         """
         return self.client.list(remote_path)
 
-    def download(self, remote_path, local_path, save_as=None):
+    def download(self, remote_path, local_path, save_as=None, etag=None):
         """
         Download a file from the Researchdrive
         :param save_as:
         :param remote_path: Path from file or folder located on researchdrive
         :param local_path: Download save location
+        :param etag: of file
         :return: True if successful, the error if not.
         """
         # The WebDav endpoint only supports forward slash.
@@ -79,12 +80,67 @@ class ResearchdriveClient:
             except FileExistsError:
                 pass
 
-        error = self.client.download_sync(remote_path, local_path)
-        if not error:
-            return True
-        return error
+        # Validate etag
+        # if self.__is_recent_etag(remote_path, etag):
+        if not etag:
+            error = self.client.download_sync(remote_path, local_path)
+            if not error:
+                return True
+            return error
+        else:
+            self.download_old_version(remote_path, local_path, etag)
+        return False
 
-    # Code below this point doens't make use of the webdav3.client package
+    # Code below this point doesn't make use of the webdav3.client package
+    @staticmethod
+    def __compare_tag(tag, versions, tagname):
+        """
+        Compares tag value in a list of dicts.
+        :param tag: Value you want to compare
+        :param versions: A list with dictionaries.
+        :param tagname: Key you want to check.
+        :return: True if tag is in, false if not.
+        """
+        for version in versions:
+            if str(version[tagname]) == str(tag):
+                return version
+        return False
+
+    def download_old_version(self, remote_path, local_path, old_id, etag=None):
+        """
+        Download older versions of the file based of an old_id or etag.
+        :param remote_path: Path on the server of the original file
+        :param local_path: Location where to save the file
+        :param old_id: id thats behind a version link ../1232190/v/99999
+        (99999, in this case).
+        :param etag: Compare etags
+        :return: Download the old version file to the local_path. True
+        if successful
+        """
+
+        # Get old version list
+        old_versions = self.get_file_versions(remote_path)
+
+        # Compare etags - Currently impossible because etag chances.
+        if etag:
+            version = self.__compare_tag(etag, old_versions, "etag")
+        else:
+            version = self.__compare_tag(old_id, old_versions, "old_id")
+
+        if version:
+            download_url = ResearchdriveClient.webdav_hostname + version["href"]
+
+            content = self.__execute_request(download_url, "GET")
+
+            try:
+                with open(local_path, "w") as local_file:
+                    local_file.write(content)
+                return True
+            except Exception as error:
+                raise error
+        else:
+            raise KeyError("The Etag cannot be found in previous versions.")
+
     def get_shares(self, uid_owner=None):
         """
         Get all shared files and folder. If a uid_owner is given
@@ -117,50 +173,65 @@ class ResearchdriveClient:
                 filtered.append(share)
         self.shares = filtered
 
-    def get_file_versions(self, file_id, remote_path):
+    def __is_recent_etag(self, remote_path, etag):
+        """
+        Checks if the etag is from the most recent file.
+        """
+        if str(self.get_fileid_etag(remote_path)["etag"]) == str(etag):
+            return True
+        return False
+
+    def get_fileid_etag(self, remote_path):
+        """
+        Retrieves file_id and etag from a remote_path.
+        :param remote_path: Path on the server.
+        :return: Dictionary with fileid and etag.
+        """
+
+        remote_path = remote_path.replace(os.sep, "/")
+
+        # The payload.
+        xml_content = (
+            '<?xml version="1.0"?><a:propfind xmlns:a="DAV:"'
+            + ' xmlns:oc="http://owncloud.org/ns"><a:prop>'
+            + "<oc:fileid/><a:getetag/></a:prop></a:propfind>"
+        )
+
+        # Execute request
+        url = (
+            ResearchdriveClient.current_version_endpoint
+            + self.options["webdav_login"]
+            + "/"
+            + remote_path
+        )
+        content = self.__execute_request(
+            url, "PROPFIND", {"Content-Type": "text/xml"}, data=xml_content
+        )
+
+        return self.parse_fileid_etag_xml(content)
+
+    def get_file_versions(self, remote_path):
         """
         Gets  href, last_modified and etag of all file versions.
-        :param file_id: Id of the file.
-        :param remote_path: Path on the server.
+        :param remote_path: Path on the server
         :return: List containing information aboout all file versions
         structured in dicts.
         """
+        file_id = self.get_fileid_etag(remote_path)["file_id"]
+
         endpoint = (
             ResearchdriveClient.version_api_startendpoint
             + str(file_id)
             + ResearchdriveClient.version_api_endendpoint
         )
 
-        current_version = self.get_current_file_version(remote_path)
-
         old_versions_content = self.__execute_request(
             endpoint, "PROPFIND", {"Accept": "*/*"}
         )
 
-        combined = current_version + self.parse_version_xml(old_versions_content)
+        return self.parse_version_xml(old_versions_content)
 
-        return combined
-
-    def get_current_file_version(self, remote_path):
-        """
-        Gets href, last_modified and etag, of the most recent file version.
-        :param remote_path: Path on the server.
-        :return: Returns a list containing a dict with the information.
-        """
-        endpoint = (
-            ResearchdriveClient.current_version_endpoint
-            + self.options["webdav_login"]
-            + "/"
-            + remote_path
-        )
-
-        content = self.__execute_request(
-            endpoint, "PROPFIND", {"Accept": "*/*", "Depth": "1"}
-        )
-
-        return self.parse_version_xml(content)
-
-    def __execute_request(self, endpoint, method, headers=None, params=None):
+    def __execute_request(self, endpoint, method, headers=None, params=None, data=None):
         """
         Executing request using the given variables.
         :param endpoint: Endpoint to which to request to.
@@ -176,6 +247,7 @@ class ResearchdriveClient:
                 auth=(self.options["webdav_login"], self.options["webdav_password"]),
                 headers=headers,
                 params=params,
+                data=data,
             )
             response.raise_for_status()
         except HTTPError as http_error:
@@ -186,9 +258,6 @@ class ResearchdriveClient:
             raise error
         else:
             return response.text
-
-    def get_file_id(self, remote_path):
-        return
 
     def get_remote_path(self, file_id):
         return
@@ -210,10 +279,33 @@ class ResearchdriveClient:
                 "last_modified": response.findtext(
                     "{DAV:}propstat/{DAV:}prop/{DAV:}getlastmodified"
                 ),
-                "etag": response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag"),
+                "etag": str(
+                    response.findtext("{DAV:}propstat/{DAV:}prop/{DAV:}getetag")
+                ).strip('"'),
+                "old_id": response.findtext("{DAV:}href").split("/")[-1],
             }
             file_versions.append(version)
         return file_versions
+
+    @staticmethod
+    def parse_fileid_etag_xml(content):
+        """
+        Parses a fileid and etag response into a dictionary
+        :param content: xml response.
+        :return: Dictionary with etag and file_id
+        """
+        tree = etree.fromstring(content)
+
+        # A list containing one response
+        tree_response = tree.findall("{DAV:}response")[0]
+        return {
+            "etag": tree_response.findtext(
+                "{DAV:}propstat/{DAV:}prop/{DAV:}getetag"
+            ).strip('"'),
+            "file_id": tree_response.findtext(
+                "{DAV:}propstat/{DAV:}prop/{http://owncloud.org/ns}fileid"
+            ),
+        }
 
 
 def main():

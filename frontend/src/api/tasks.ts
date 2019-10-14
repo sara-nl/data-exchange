@@ -13,6 +13,8 @@ export class TasksReviewRequest {
 
     public approved: boolean = false;
     public released: boolean = false;
+
+    public approve_algorithm_all: boolean = false;
 }
 
 export class TaskRetrieveRequest {

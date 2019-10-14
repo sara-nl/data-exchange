@@ -1,9 +1,11 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+
     import Runner from "../api/runner";
     import LoadFiles from "../api/loader";
 
-    let own_algorithms = []
-    let own_datasets = []
+    let own_algorithms: any = null;
+    let own_datasets: any = null;
 
     let output;
     let running = false
@@ -13,16 +15,25 @@
         data_file: "",
     };
 
-    getUserFiles()
+
+    onMount(async () => {
+        console.log("tet")
+        await load();
+    });
+
+    async function load() {
+
+        getUserFiles()
+
+    }
 
     async function getUserFiles(){
         try {
             let { data: response } = await LoadFiles.start();
             own_algorithms = response.output.own_algorithms;
             own_datasets = response.output.own_datasets;
-
         } catch (error) {
-            output = error.response ? error.response.data : error.toString();
+            console.log(error.toString())
         }
 
         return false
@@ -47,28 +58,32 @@
     <div class="row">
         <div class="col ym-5">
             <h3>Where to start?</h3>
-            {#if !own_algorithms && !own_datasets}
-                <div class="my-3">
-                <p>You haven't shared any files with the DataExchange<br>Click here to learn how to share files:</p>
-                <a class="btn btn-primary" href="/myfiles">Share files</a>
+            {#if own_datasets !== null && own_algorithms !== null}
+                {#if own_algorithms.length == 0 && own_datasets.length == 0}
+                    <div class="my-3">
+                    <p>You haven't shared any files with the DataExchange<br>Click here to learn how to share files:</p>
+                    <a class="btn btn-primary" href="/myfiles">Share files</a>
 
-                </div>
-            {/if}
+                    </div>
+                {/if}
 
 
-            {#if own_datasets}
-                <div class="my-3">
-                <p>You have shared datasets with the DataExchange<br>Click here to see requests for your data:</p>
-                <a class="btn btn-primary" href="/tasks">See requests</a>
-                </div>
-            {/if}
+                {#if own_datasets.length > 0}
+                    <div class="my-3">
+                    <p>You have shared datasets with the DataExchange<br>Click here to see requests for your data:</p>
+                    <a class="btn btn-primary" href="/tasks">See requests</a>
+                    </div>
+                {/if}
 
-            {#if own_algorithms}
-                <div class="my-3">
+                {#if own_algorithms.length > 0}
+                    <div class="my-3">
 
-                <p>You have shared algorithms with the DataExchange<br>Click here to make a request:</p>
-                <a class="btn btn-primary" href="/tasks/request">Make a request</a>
-                </div>
+                    <p>You have shared algorithms with the DataExchange<br>Click here to make a request:</p>
+                    <a class="btn btn-primary" href="/tasks/request">Make a request</a>
+                    </div>
+                {/if}
+            {:else}
+                Loading...
             {/if}
 
             <br>

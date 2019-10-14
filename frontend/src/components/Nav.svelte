@@ -19,7 +19,10 @@
 
                 <NavDropdown name="Tasks">
                     <NavItem dropdown name="Overview" href="/tasks" />
-                    <NavItem dropdown name="Request new" href="/tasks/request" />
+                    <NavItem dropdown name="Request dataset permission" href="/tasks/request" />
+                </NavDropdown>
+                <NavDropdown name="Permissions">
+                    <NavItem dropdown name="Permission overview" href="/permissions" />
                 </NavDropdown>
             {/if}
 

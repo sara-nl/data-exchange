@@ -87,6 +87,10 @@ Then, open another terminal (or use `screen`/`tmux`/similar) and run the task re
 python manage.py listen
 ```
 
+### Mail
+
+All outgoing emails can be read at: https://dataexchange.surfsara.nl/mail
+
 
 ## Tasker
 For instructions on how to run the tasker, see `tasker/README.md`.

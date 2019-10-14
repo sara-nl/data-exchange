@@ -11,6 +11,8 @@ done
 
 if [[ $1 = "runserver" ]]; then
   python -u manage.py migrate
+  python -u manage.py collectstatic
+  exec uwsgi --ini uwsgi.ini
+else
+  exec python -u manage.py $*
 fi
-
-exec python -u manage.py $*

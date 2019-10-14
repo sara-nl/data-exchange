@@ -1,5 +1,6 @@
-from surfsara.models import Task
+import os
 import pika
+from surfsara.models import Task
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
 
@@ -17,7 +18,7 @@ class StartContainer:
 def start(task: Task):
     # TODO: Set up some way of pooling connections instead of
     #       opening a new one every time.
-    self.connection = pika.BlockingConnection(
+    connection = pika.BlockingConnection(
         pika.ConnectionParameters(
             host=os.environ.get("RABBITMQ_HOST", "localhost"),
             credentials=pika.PlainCredentials(

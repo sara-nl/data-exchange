@@ -5,7 +5,11 @@ object Messages {
 
   case class StartContainer(taskId: String, dataPath: String, codePath: String)
 
-  // TODO Create enum for state (see backend/surfsara/models/task.py)
+  object Done {
+    def success(taskId: String, output: String) = Done(taskId, "success", output)
+    def error(taskId: String, output: String) = Done(taskId, "error", output)
+  }
+
   case class Done(taskId: String, state: String, output: String)
 
 }

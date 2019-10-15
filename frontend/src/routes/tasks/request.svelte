@@ -24,10 +24,10 @@
         algorithm_files = data.output.own_algorithms;
     }
 
-    async function createRequest(event: any) {
+    function createRequest(event: any) {
         event.preventDefault();
 
-        await Tasks.start(data);
+        Tasks.start(data);
         goto("/tasks");
     }
 </script>

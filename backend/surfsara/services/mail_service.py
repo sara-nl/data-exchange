@@ -8,4 +8,5 @@ def send_mail(mail_files, receiver, subject, **kwargs):
 
     message = EmailMultiAlternatives(subject, text_body, to=[receiver])
     message.attach_alternative(html_body, "text/html")
+    print(message)
     message.send()

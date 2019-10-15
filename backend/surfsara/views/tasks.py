@@ -158,9 +158,9 @@ class Tasks(viewsets.ViewSet):
 
         task.save()
 
-        url = f"http://{request.get_host()}/overview"
-        subject = "Your data request has been reviewed"
-        mail_service.send_mail("request_reviewed", request.user.email, subject, url=url)
+        # url = f"http://{request.get_host()}/overview"
+        # subject = "Your data request has been reviewed"
+        # mail_service.send_mail("request_reviewed", request.user.email, subject, url=url)
 
         return Response({"state": task.state, "output": output})
 

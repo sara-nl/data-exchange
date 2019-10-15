@@ -169,7 +169,7 @@ class ResearchdriveClient:
         share = self.__compare_tag(remote_path, shares, "file_target")
         if share:
             share_id = share['id']
-            endpoint = f'{ResearchdriveClient.share_api_endpoint}/pending/{share_id}'
+            endpoint = f'{ResearchdriveClient.share_api_endpoint}/{share_id}'
             response = self.__execute_request(endpoint, "DELETE")
 
             if self.parse_revoke_share_xml(response) == "100":

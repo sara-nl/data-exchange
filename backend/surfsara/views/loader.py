@@ -23,11 +23,15 @@ class GetUserFiles(viewsets.ViewSet):
         def can_be_dataset(share):
             return share.get("path")[-3:] != ".py"
 
-        def as_name(share):
-            return share.get("file_target").strip("/")
+        def as_name_id(share):
+            return {"name": share.get("file_target").strip("/"),
+                    "id": share.get("file_source")}
 
         def belongs_to_requester(share):
             return share.get("uid_owner") == str(request.user)
+
+        def as_id(share):
+            return share.get("file_source")
 
         def reducer(acc, share):
             if is_algorithm(share):
@@ -44,8 +48,8 @@ class GetUserFiles(viewsets.ViewSet):
         return Response(
             {
                 "output": {
-                    "own_algorithms": map(as_name, alg_shares),
-                    "own_datasets": map(as_name, data_shares),
+                    "own_algorithms": map(as_name_id, alg_shares),
+                    "own_datasets": map(as_name_id, data_shares),
                 }
             }
         )

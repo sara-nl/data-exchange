@@ -40,8 +40,8 @@
     }
 
     async function review_request(approved: boolean) {
-        data.approved = approved
-        data.updated_request = task
+        data.approved = approved;
+        data.updated_request = task;
 
         try {
             if(approved) {
@@ -64,7 +64,7 @@
     }
 
     async function release_output(released: boolean) {
-        data.released = released
+        data.released = released;
 
         try {
             let { data: response } = await Tasks.release(taskId, data);

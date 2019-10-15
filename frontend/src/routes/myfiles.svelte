@@ -1,12 +1,12 @@
 <script lang="ts">
     import LoadFiles from "../api/loader";
 
-    let own_algorithms = []
-    let own_datasets = []
-    let data = {}
+    let own_algorithms = [];
+    let own_datasets = [];
+    let data = {};
 
 
-    getUserFiles()
+    getUserFiles();
 
     async function getUserFiles(){
         try {
@@ -16,9 +16,18 @@
         } catch (error) {
             console.log(error.toString())
         }
-
         return false
     }
+
+    async function revokeFileShare(){
+        try {
+
+        } catch (error) {
+            console.log(error.toString())
+        }
+        return False
+    }
+
 </script>
 
 
@@ -39,7 +48,8 @@
             <h3>Algorithms:</h3>
             {#if own_algorithms.length > 0}
                 {#each own_algorithms as file}
-                    <div>{file}</div>
+                    <div>{file} <button class="btn btn-danger" on:click={() => revoke_fileshare(file.id)}>
+                        Revoke</button></div>
                 {/each}
             {:else}
                 <div>You have shared no algorithms</div>
@@ -57,7 +67,7 @@
         </div>
         <br>
         <div class="col border">
-            <h4 class="dispay-1">How to share files:</h4>
+            <h4 class="display-1">How to share files:</h4>
 
             <p><b>1.</b> Register and activate account with the <u>same email</u> as on ResearchDrive</p>
             <p><b>2.</b> In <a href="https://researchdrive.surfsara.nl">ResearchDrive</a> click on the share icon next to the file</p>

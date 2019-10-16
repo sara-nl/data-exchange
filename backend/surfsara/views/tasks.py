@@ -10,6 +10,8 @@ from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
 from backend.scripts.run_container import RunContainer
 
+RECENT_AMOUNT = 5
+
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -105,7 +107,10 @@ class Tasks(viewsets.ViewSet):
     def list(self, request):
         to_approve_requests = Task.objects.filter(
             Q(approver_email=request.user.email),
-            Q(state=Task.DATA_REQUESTED) | Q(state=Task.ANALYZING) | Q(state=Task.SUCCESS) | Q(state=Task.ERROR),
+            Q(state=Task.DATA_REQUESTED)
+            | Q(state=Task.ANALYZING)
+            | Q(state=Task.SUCCESS, review_output=True)
+            | Q(state=Task.ERROR),
         ).order_by("-registered_on")
 
         own_requests = Task.objects.filter(author_email=request.user.email).order_by(
@@ -115,12 +120,45 @@ class Tasks(viewsets.ViewSet):
             if request.state != Task.OUTPUT_RELEASED:
                 request.output = None
 
+
         return Response(
             {
                 "to_approve_requests": TaskSerializer(
                     to_approve_requests, many=True
                 ).data,
                 "own_requests": TaskSerializer(own_requests, many=True).data,
+            }
+        )
+
+    @action(
+        detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
+    )
+    def list_logs(self, request):
+        tasks_with_data_per_file = {}
+
+        own_tasks = Task.objects.filter(author_email=request.user.email).order_by(
+            "-registered_on"
+        )
+
+        tasks_with_data = Task.objects.filter(
+            approver_email=request.user.email
+        ).order_by("-registered_on")
+
+        for request in own_tasks:
+            if request.state != Task.OUTPUT_RELEASED:
+                request.output = None
+
+        tasks_with_data = TaskSerializer(tasks_with_data, many=True).data
+        for perm in tasks_with_data:
+            if perm["algorithm"] in tasks_with_data_per_file:
+                tasks_with_data_per_file[perm["algorithm"]].append(perm)
+            else:
+                tasks_with_data_per_file[perm["algorithm"]] = [perm]
+
+        return Response(
+            {
+                "own_tasks": TaskSerializer(own_tasks, many=True).data,
+                "tasks_with_data": tasks_with_data,
             }
         )
 
@@ -216,7 +254,6 @@ class Tasks(viewsets.ViewSet):
             dataset_desc="",
         )
         task.save()
-
 
         self.process_algorithm(task, request.data["algorithm"])
 

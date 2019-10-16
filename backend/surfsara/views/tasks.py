@@ -134,31 +134,40 @@ class Tasks(viewsets.ViewSet):
         detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
     )
     def list_logs(self, request):
-        tasks_with_data_per_file = {}
+        data_tasks_per_file = {}
+        algorithm_tasks_per_file = {}
 
-        own_tasks = Task.objects.filter(author_email=request.user.email).order_by(
+        algorithm_tasks = Task.objects.filter(author_email=request.user.email).order_by(
             "-registered_on"
         )
 
-        tasks_with_data = Task.objects.filter(
+        data_tasks = Task.objects.filter(
             approver_email=request.user.email
         ).order_by("-registered_on")
 
-        for request in own_tasks:
+
+        for request in algorithm_tasks:
             if request.state != Task.OUTPUT_RELEASED:
                 request.output = None
 
-        tasks_with_data = TaskSerializer(tasks_with_data, many=True).data
-        for perm in tasks_with_data:
-            if perm["algorithm"] in tasks_with_data_per_file:
-                tasks_with_data_per_file[perm["algorithm"]].append(perm)
+        data_tasks = TaskSerializer(data_tasks, many=True).data
+        for perm in data_tasks:
+            if perm["dataset"] in data_tasks_per_file:
+                data_tasks_per_file[perm["dataset"]].append(perm)
             else:
-                tasks_with_data_per_file[perm["algorithm"]] = [perm]
+                data_tasks_per_file[perm["dataset"]] = [perm]
+
+        algorithm_tasks = TaskSerializer(algorithm_tasks, many=True).data
+        for perm in algorithm_tasks:
+            if perm["algorithm"] in algorithm_tasks_per_file:
+                algorithm_tasks_per_file[perm["algorithm"]].append(perm)
+            else:
+                algorithm_tasks_per_file[perm["algorithm"]] = [perm]
 
         return Response(
             {
-                "own_tasks": TaskSerializer(own_tasks, many=True).data,
-                "tasks_with_data": tasks_with_data,
+                "algorithm_tasks": algorithm_tasks_per_file,
+                "data_tasks": data_tasks_per_file,
             }
         )
 

@@ -5,17 +5,23 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0011_auto_20191007_1341'),
-    ]
+    dependencies = [("surfsara", "0011_auto_20191007_1341")]
 
     operations = [
         migrations.CreateModel(
-            name='Permission',
+            name="Permission",
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('algorithm', models.TextField()),
-                ('dataset', models.TextField()),
+                (
+                    "id",
+                    models.AutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("algorithm", models.TextField()),
+                ("dataset", models.TextField()),
             ],
-        ),
+        )
     ]

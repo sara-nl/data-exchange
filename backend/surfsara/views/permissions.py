@@ -21,40 +21,78 @@ class Permissions(viewsets.ViewSet):
 
     def list(self, request):
         obtained_permissions = Permission.objects.filter(
-            Q(algorithm_provider=request.user.email))
+            Q(algorithm_provider=request.user.email)
+        )
         given_permissions = Permission.objects.filter(
-            Q(dataset_provider=request.user.email))
+            Q(dataset_provider=request.user.email)
+        )
 
         obtained_permissions = TaskSerializer(obtained_permissions, many=True).data
-        # obtained_permissions = {x["algorithm"]: x for x in obtained_permissions}
-        print(obtained_permissions)
+        given_permissions = TaskSerializer(given_permissions, many=True).data
 
-        new = {}
+        return Response(
+            {
+                "obtained_permissions": obtained_permissions,
+                "given_permissions": given_permissions,
+            }
+        )
+
+    @action(
+        detail=False, methods=["GET"], name="per_file", permission_classes=[AllowAny]
+    )
+    def per_file(self, request):
+        obtained_permissions = Permission.objects.filter(
+            Q(algorithm_provider=request.user.email)
+        )
+        given_permissions = Permission.objects.filter(
+            Q(dataset_provider=request.user.email)
+        )
+
+        obtained_permissions = TaskSerializer(obtained_permissions, many=True).data
+        obtained_per_file = {}
         for perm in obtained_permissions:
-            if perm["algorithm"] in new:
-                new[perm["algorithm"]].append(perm)
+            if perm["algorithm"] in obtained_per_file:
+                obtained_per_file[perm["algorithm"]].append(perm)
             else:
-                new[perm["algorithm"]] = [perm]
-
+                obtained_per_file[perm["algorithm"]] = [perm]
 
         given_permissions = TaskSerializer(given_permissions, many=True).data
-        given_permissions = {x["dataset"]: x for x in given_permissions}
+        given_per_file = {}
 
-        return Response({"obtained_permissions": new,
-                         "given_permissions": given_permissions})
+        for perm in given_permissions:
+            if perm["algorithm"] in given_per_file:
+                given_per_file[perm["algorithm"]].append(perm)
+            else:
+                given_per_file[perm["algorithm"]] = [perm]
+
+        return Response(
+            {
+                "obtained_permissions": obtained_per_file,
+                "given_permissions": given_per_file,
+            }
+        )
 
     @action(detail=True, methods=["POST"], name="remove", permission_classes=[AllowAny])
     def remove(self, request, pk=None):
-        permission = Permission.objects.get(
-            pk=pk, dataset_provider=request.user.email)
+        permission = Permission.objects.get(pk=pk, dataset_provider=request.user.email)
 
         if permission:
             permission.delete()
             obtained_permissions = Permission.objects.filter(
-                Q(algorithm_provider=request.user.email))
+                Q(algorithm_provider=request.user.email)
+            )
             given_permissions = Permission.objects.filter(
-                Q(dataset_provider=request.user.email))
+                Q(dataset_provider=request.user.email)
+            )
 
-            return Response({"obtained_permissions": TaskSerializer(obtained_permissions, many=True).data,
-                             "given_permissions": TaskSerializer(given_permissions, many=True).data})
+            return Response(
+                {
+                    "obtained_permissions": TaskSerializer(
+                        obtained_permissions, many=True
+                    ).data,
+                    "given_permissions": TaskSerializer(
+                        given_permissions, many=True
+                    ).data,
+                }
+            )
         return Response({})

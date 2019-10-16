@@ -18,11 +18,13 @@
     error: "danger"
   };
 
-  let visible: boolean = true;
+  let visible: boolean = false;
   let ownDatasets: any = null;
   let task: any = null;
 
   let approve_algorithm_all = false;
+  let review_output = true
+
   let data = new TasksReviewRequest();
 
   onMount(async () => {
@@ -46,6 +48,7 @@
     data.approved = approved;
     data.updated_request = task;
     data.approve_algorithm_all = approve_algorithm_all;
+    data.review_output = review_output
 
     try {
       if (approved) {
@@ -105,8 +108,13 @@
           {task.approver_email}
         </div>
         <div class="my-5">
-          <h4>Dataset description</h4>
-          {task.dataset_desc}
+          {#if task.state == 'data_requested'}
+            <h4>Dataset description</h4>
+            {task.dataset_desc}
+          {:else}
+            <h4>Review output</h4>
+              {task.review_output}
+          {/if}
         </div>
         <div class="my-5">
           <h4>Algorithm</h4>
@@ -173,7 +181,8 @@
               Only grant this permission if you trust {task.author_email} to
               always run benevolent algorithms.
             </div>
-
+            <input bind:checked={review_output} type="checkbox" />
+              Review the output of the algorithm
           </div>
           <div class="col-md-12">
             <button

@@ -33,4 +33,3 @@ def start(task: Task):
     )
 
     connection.close()
-

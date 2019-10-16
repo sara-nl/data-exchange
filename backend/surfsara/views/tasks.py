@@ -80,7 +80,7 @@ class Tasks(viewsets.ViewSet):
             return Response({"error": "unknown email"}, status=400)
 
         task = Task(
-            state=Task.DATA_REQUESTED,
+            state=Task.ANALYZING,
             author_email=request.user.email,
             approver_email=data_owner_email,
             algorithm=request.data["algorithm"],
@@ -89,6 +89,9 @@ class Tasks(viewsets.ViewSet):
         task.save()
 
         self.process_algorithm(task, request.data["algorithm"])
+
+        task.state = Task.DATA_REQUESTED
+        task.save()
 
         mail_service.send_mail(
             mail_files="data_request",
@@ -102,7 +105,7 @@ class Tasks(viewsets.ViewSet):
     def list(self, request):
         to_approve_requests = Task.objects.filter(
             Q(approver_email=request.user.email),
-            Q(state=Task.DATA_REQUESTED) | Q(state=Task.SUCCESS) | Q(state=Task.ERROR),
+            Q(state=Task.DATA_REQUESTED) | Q(state=Task.ANALYZING) | Q(state=Task.SUCCESS) | Q(state=Task.ERROR),
         ).order_by("-registered_on")
 
         own_requests = Task.objects.filter(author_email=request.user.email).order_by(
@@ -140,6 +143,8 @@ class Tasks(viewsets.ViewSet):
         if request.data["approved"]:
             task.state = Task.RUNNING
             task.dataset = request.data["updated_request"]["dataset"]
+            task.review_output = request.data["review_output"]
+
             task.save()
 
             task_service.start(task)
@@ -147,11 +152,15 @@ class Tasks(viewsets.ViewSet):
             if request.data["approve_algorithm_all"]:
                 permission = Permission()
                 permission.algorithm = request.data["updated_request"]["algorithm"]
-                permission.algorithm_provider = request.data["updated_request"]["author_email"]
+                permission.algorithm_provider = request.data["updated_request"][
+                    "author_email"
+                ]
                 permission.dataset = request.data["updated_request"]["dataset"]
-                permission.dataset_provider = request.data["updated_request"]["approver_email"]
+                permission.dataset_provider = request.data["updated_request"][
+                    "approver_email"
+                ]
 
-
+                permission.review_output = request.data["review_output"]
                 permission.save()
         else:
             task.state = Task.REQUEST_REJECTED
@@ -179,3 +188,40 @@ class Tasks(viewsets.ViewSet):
         task.save()
 
         return Response({"state": task.state})
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="start_with_perm",
+        permission_classes=[AllowAny],
+    )
+    def start_with_perm(self, request, pk=None):
+        perm = Permission.objects.get(
+            id=pk,
+            algorithm_provider=request.user.email,
+            dataset_provider=request.data["dataset_provider"],
+            algorithm=request.data["algorithm"],
+            dataset=request.data["dataset"],
+        )
+        print(perm.id)
+        if not perm:
+            return Response({"output": "You don't have this permission"})
+
+        task = Task(
+            state=Task.ANALYZING,
+            author_email=perm.algorithm_provider,
+            approver_email=perm.dataset_provider,
+            algorithm=perm.algorithm,
+            dataset=perm.dataset,
+            dataset_desc="",
+        )
+        task.save()
+
+
+        self.process_algorithm(task, request.data["algorithm"])
+
+        task_service.start(task)
+        task.state = Task.RUNNING
+        task.save()
+
+        return Response({"id": task.id})

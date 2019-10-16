@@ -22,6 +22,7 @@
     async function getUserPermissions(){
         try {
             let { data: response } = await Permissions.get();
+            console.log(response.obtained_permissions)
             obtained_permissions = response.obtained_permissions
             given_permissions = response.given_permissions
 

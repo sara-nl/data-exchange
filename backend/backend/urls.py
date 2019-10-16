@@ -16,7 +16,6 @@ router.register("tasks", tasks.Tasks, basename="tasks")
 router.register("permissions", permissions.Permissions, basename="permissions")
 
 
-
 urlpatterns = [
     path("api/", include(router.urls)),
     path("admin/", admin.site.urls),

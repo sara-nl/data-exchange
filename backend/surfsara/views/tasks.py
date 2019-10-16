@@ -213,6 +213,7 @@ class Tasks(viewsets.ViewSet):
             approver_email=perm.dataset_provider,
             algorithm=perm.algorithm,
             dataset=perm.dataset,
+            review_output=perm.review_output,
             dataset_desc="",
         )
         task.save()

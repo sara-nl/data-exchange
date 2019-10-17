@@ -83,10 +83,10 @@ object TaskerConfig {
     username = sys.env.get("RABBITMQ_USERNAME"),
     password = sys.env.get("RABBITMQ_PASSWORD"),
     ssl = false,
-    connectionTimeout = 3,
+    connectionTimeout = 5000,
     requeueOnNack = false,
     internalQueueSize = Some(500),
     automaticRecovery = true
-  ).copy(connectionTimeout = 5000)
+  )
 
 }

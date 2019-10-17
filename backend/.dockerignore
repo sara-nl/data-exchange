@@ -1,0 +1,4 @@
+.*
+files
+venv
+*.sqlite3

@@ -39,9 +39,11 @@ object TaskerConfig {
   }
 
   object docker {
+    val image = "datex:latest"
     val indexFile = "run.py"
     val containerCodePath = "/tmp/code"
     val containerDataPath = "/tmp/data"
+    val outputPath = "/tmp/output"
     val defaultImage = "python"
     val clientConfig = DefaultDockerClientConfig
       .createDefaultConfigBuilder()

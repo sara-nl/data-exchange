@@ -2,7 +2,7 @@
 # for running secure containers.
 
 FROM python
-COPY . /app
 RUN apt-get update
-RUN apt-get install -y strace nodejs npm jq
-RUN npm i -g b3-strace-parser
+RUN apt-get install -y strace
+COPY ./scripts /app
+RUN chmod u+x /app/tracerun.sh

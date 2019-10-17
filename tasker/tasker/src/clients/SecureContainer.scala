@@ -86,7 +86,7 @@ object SecureContainer {
       logger.info(s"Data path on host (docker): $dataRoot ($dockerDataPath)")
 
       val createContainerCommand = client
-        .createContainerCmd("python")
+        .createContainerCmd(TaskerConfig.docker.image)
         .withNetworkDisabled(true)
         .withHostConfig(
           new HostConfig().withBinds(
@@ -100,11 +100,16 @@ object SecureContainer {
                 dataRoot.toString,
                 new Volume(docker.containerDataPath),
                 AccessMode.ro
+              ),
+              new Bind(
+                "/tmp/tasker-out", // TODO: Make configurable
+                new Volume(docker.outputPath),
+                AccessMode.rw
               )
             ).asJava
           )
         )
-        .withCmd("python3", dockerScriptPath.toString, dockerDataPath.toString)
+        .withCmd("/app/tracerun.sh", dockerScriptPath.toString, dockerDataPath.toString, s"${docker.outputPath}/out.txt", s"${docker.outputPath}/error.txt", s"${docker.outputPath}/trace.txt")
         .withAttachStdin(true)
         .withAttachStderr(true)
 

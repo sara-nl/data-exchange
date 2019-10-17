@@ -4,4 +4,4 @@ until curl -s -o /dev/null -u guest:guest http://$RABBITMQ_HOST:15672/api/overvi
     sleep 1
 done
 
-exec java -jar out.jar
+exec java -Djava.io.tmpdir=/tmp/tasker -jar out.jar

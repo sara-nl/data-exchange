@@ -71,42 +71,43 @@ object SecureContainer {
                                           codeRelativePath: String,
                                           dataRelativePath: String): F[String] = {
     val logger = Logger[F]
-    val hostCodePath = Paths.get(codeRoot.toString, codeRelativePath)
-
-    val dockerScriptPath =
-      if (hostCodePath.toFile.isDirectory)
-        Paths.get(docker.containerCodePath, codeRelativePath, TaskerConfig.docker.indexFile)
-      else
-        Paths.get(docker.containerCodePath, codeRelativePath)
-
-    val dockerDataPath = Paths.get(docker.containerDataPath, dataRelativePath)
-
-    val createContainerCommand = client
-      .createContainerCmd("python")
-      .withNetworkDisabled(true)
-      .withHostConfig(
-        new HostConfig().withBinds(
-          List(
-            new Bind(
-              codeRoot.toString,
-              new Volume(docker.containerCodePath),
-              AccessMode.ro
-            ),
-            new Bind(
-              dataRoot.toString,
-              new Volume(docker.containerDataPath),
-              AccessMode.ro
+    for {
+      hostCodePath <- Sync[F].pure(Paths.get(codeRoot.toString, codeRelativePath))
+      dockerScriptPath <- Sync[F].delay {
+        if (hostCodePath.toFile.isDirectory)
+          Paths.get(docker.containerCodePath, codeRelativePath, TaskerConfig.docker.indexFile)
+        else
+          Paths.get(docker.containerCodePath, codeRelativePath)
+      }
+      dockerDataPath <- Sync[F].pure(Paths.get(docker.containerDataPath, dataRelativePath))
+      command <- Sync[F].delay {
+        client
+          .createContainerCmd("python")
+          .withNetworkDisabled(true)
+          .withHostConfig(
+            new HostConfig().withBinds(
+              List(
+                new Bind(
+                  codeRoot.toString,
+                  new Volume(docker.containerCodePath),
+                  AccessMode.ro
+                ),
+                new Bind(
+                  dataRoot.toString,
+                  new Volume(docker.containerDataPath),
+                  AccessMode.ro
+                )
+              ).asJava
             )
-          ).asJava
-        )
-      )
-      .withCmd("python3", dockerScriptPath.toString, dockerDataPath.toString)
-      .withAttachStdin(true)
-      .withAttachStderr(true)
-
-    logger.info(s"Code path on host (docker): $hostCodePath ($dockerScriptPath)") >>
-      logger.info(s"Data path on host (docker): $dataRoot ($dockerDataPath)") >>
-      Sync[F].delay(createContainerCommand.exec().getId)
+          )
+          .withCmd("python3", dockerScriptPath.toString, dockerDataPath.toString)
+          .withAttachStdin(true)
+          .withAttachStderr(true)
+      }
+      _ <- logger.info(s"Code path on host (docker): $hostCodePath ($dockerScriptPath)")
+      _ <- logger.info(s"Data path on host (docker): $dataRoot ($dockerDataPath)")
+      result <- Sync[F].delay(command.exec())
+    } yield result.getId
   }
 
   def startContainer(containerId: String): IO[String] = IO {

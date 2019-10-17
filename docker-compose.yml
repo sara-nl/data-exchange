@@ -12,6 +12,7 @@ services:
             - rabbitmq
         volumes:
             - /var/run/docker.sock:/var/run/docker.sock
+            - /tmp/tasker:/tmp/tasker
         command: "./entrypoint.sh"
 
     backend_listen:
@@ -64,6 +65,8 @@ services:
 
     rabbitmq:
         image: rabbitmq:3-management-alpine
+        ports:
+            - 127.0.0.1:8080:15672
         restart: always
 
     nginx:

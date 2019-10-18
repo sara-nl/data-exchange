@@ -337,15 +337,6 @@ class ResearchdriveClient:
 
 
 def main():
-    z = ResearchdriveClient()
-    print(z.get_remote_path(113426479))
-    # print(z.get_file_versions("106164754", "read_only(only for tijs).txt"))
-    # print(z.get_fileid_etag("read_only(only for tijs).txt"))
-    # print(z.get_file_versions("read_only(only for tijs).txt"))
-    # print("#############")
-    # z.download_old_version("read_only(only for tijs).txt", "test/helder_text_bestand.txt", "5d9e3b79e13ff")
-
-    #z.download_old_version("Sander_deelt_met_tijs.txt", "helder_text_bestand.txt", "1570455492")
     return
 
 

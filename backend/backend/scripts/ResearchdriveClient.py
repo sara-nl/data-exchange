@@ -165,10 +165,7 @@ class ResearchdriveClient:
     def remove_share_by_id(self, share_id):
         endpoint = f'{ResearchdriveClient.share_api_endpoint}/{share_id}'
         response = self.__execute_request(endpoint, "DELETE")
-
-        if self.parse_revoke_share_xml(response) == "100":
-            return True
-        return False
+        return self.parse_revoke_share_xml(response) == "100"
 
     def remove_share(self, remote_path):
         shares = self.get_shares()

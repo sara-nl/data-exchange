@@ -4,12 +4,8 @@
 
     let own_algorithms: any[] = [];
     let own_datasets: any[] = [];
-    let data = {};
 
-
-    getUserFiles();
-
-    async function getUserFiles(){
+    async function updateUserFiles(){
         try {
             let { data: response } = await LoadFiles.start();
             own_algorithms = response.output.own_algorithms;
@@ -20,16 +16,31 @@
         return false
     }
 
-    async function revokeFileShare(fileId: string){
-        try {
-            let { data: response} = await RemoveShare.remove(fileId);
-            await getUserFiles();
-        } catch (error) {
-            console.log(error.toString())
+    updateUserFiles();
+
+    function removeFromList(fileList : any[], fileId : string) {
+        for(let i = 0; i< fileList.length; i++) {
+            if (fileList[i]['id'] === fileId) {
+                fileList.splice(i, 1);
+            }
         }
-        return false
+        return fileList
     }
 
+    function quickUpdate(fileId: string) {
+        own_datasets = removeFromList(own_datasets, fileId);
+        own_algorithms = removeFromList(own_algorithms, fileId);
+    }
+
+    async function revokeFileShare(fileId: string){
+         try {
+             quickUpdate(fileId);
+             RemoveShare.remove(fileId).then(updateUserFiles)
+         } catch (error) {
+             console.log(error.toString())
+         }
+         return false
+     }
 </script>
 
 

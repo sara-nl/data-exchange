@@ -1,4 +1,5 @@
 import pika
+import os
 from django.core.management.base import BaseCommand, CommandError
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
@@ -20,7 +21,15 @@ class Command(BaseCommand):
 
     def __init__(self):
         super().__init__()
-        self.connection = pika.BlockingConnection()
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host=os.environ.get("RABBITMQ_HOST", "localhost"),
+                credentials=pika.PlainCredentials(
+                    username=os.environ.get("RABBITMQ_USERNAME", "guest"),
+                    password=os.environ.get("RABBITMQ_PASSWORD", "guest"),
+                ),
+            )
+        )
         self.channel = self.connection.channel()
 
     def handle(self, *args, **options):

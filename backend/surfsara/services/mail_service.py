@@ -8,4 +8,8 @@ def send_mail(mail_files, receiver, subject, **kwargs):
 
     message = EmailMultiAlternatives(subject, text_body, to=[receiver])
     message.attach_alternative(html_body, "text/html")
-    message.send()
+
+    try:
+        message.send()
+    except ConnectionRefusedError:
+        print(f"Could not send e-mail ({subject}). Ignoring...")

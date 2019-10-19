@@ -53,6 +53,9 @@ class Command(BaseCommand):
             task.state = task_completed.state
             task.save()
 
+            # TODO: Actually show the URL in the email. Currently, we can't really know
+            # what domain we're hosting on. Should probably get this from an environment
+            # variable, configured in the docker-compose.yml (or Django's settings.py)
             mail_service.send_mail(
                 mail_files="finished_running",
                 receiver=task.approver_email,

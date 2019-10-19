@@ -49,9 +49,10 @@ object Tasker extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
     Resources.blockerResource.use { blocker =>
-      Fs2Rabbit[IO](TaskerConfig.rabbitConfig, blocker).flatMap { client =>
-        program(client) >> IO(ExitCode.Success)
-      }
+      for {
+        client <- Fs2Rabbit[IO](TaskerConfig.rabbitConfig, blocker)
+        _ <- program(client)
+      } yield ExitCode.Success
     }
   }
 }

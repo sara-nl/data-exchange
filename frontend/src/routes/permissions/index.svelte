@@ -5,15 +5,6 @@
 
     import { goto, stores } from "@sapper/app";
 
-    let state_color = {
-        "request_rejected": "danger",
-        "release_rejected": "warning",
-        "output_released": "success",
-        "running": "info",
-        "success": "info",
-        "error": "danger",
-    };
-
     let obtained_permissions: [any] | null = null
     let given_permissions: [any] | null = null
 

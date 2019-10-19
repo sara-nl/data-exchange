@@ -17,7 +17,6 @@
 
 
     onMount(async () => {
-        console.log("tet")
         await load();
     });
 

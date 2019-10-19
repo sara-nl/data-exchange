@@ -4,8 +4,7 @@ from rest_framework import viewsets, serializers
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from rest_framework.permissions import AllowAny
-
+from rest_framework.permissions import AllowAny, IsAuthenticated
 
 from surfsara.models import Permission
 
@@ -17,9 +16,13 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class Permissions(viewsets.ViewSet):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     def list(self, request):
+        """
+        Gives list of obtained and given permissions
+        """
+
         obtained_permissions = Permission.objects.filter(
             Q(algorithm_provider=request.user.email)
         )
@@ -38,9 +41,15 @@ class Permissions(viewsets.ViewSet):
         )
 
     @action(
-        detail=False, methods=["GET"], name="per_file", permission_classes=[AllowAny]
+        detail=False,
+        methods=["GET"],
+        name="per_file",
+        permission_classes=[IsAuthenticated],
     )
     def per_file(self, request):
+        """
+        Returns list permissions per file in dict
+        """
         obtained_permissions = Permission.objects.filter(
             Q(algorithm_provider=request.user.email)
         )
@@ -72,8 +81,17 @@ class Permissions(viewsets.ViewSet):
             }
         )
 
-    @action(detail=True, methods=["POST"], name="remove", permission_classes=[AllowAny])
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="remove",
+        permission_classes=[IsAuthenticated],
+    )
     def remove(self, request, pk=None):
+        """
+        Removes permission from database
+        """
+
         permission = Permission.objects.get(pk=pk, dataset_provider=request.user.email)
 
         if permission:

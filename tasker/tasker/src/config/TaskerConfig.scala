@@ -74,15 +74,19 @@ object TaskerConfig {
 
   val rabbitConfig = Fs2RabbitConfig(
     virtualHost = "/",
-    nodes =
-      NonEmptyList.one(Fs2RabbitNodeConfig(host = "127.0.0.1", port = 5672)),
-    username = Some("guest"),
-    password = Some("guest"),
+    nodes = NonEmptyList.one(
+      Fs2RabbitNodeConfig(
+        host = sys.env.get("RABBITMQ_HOST").getOrElse("127.0.0.1"),
+        port = 5672,
+      ),
+    ),
+    username = sys.env.get("RABBITMQ_USERNAME"),
+    password = sys.env.get("RABBITMQ_PASSWORD"),
     ssl = false,
-    connectionTimeout = 3,
+    connectionTimeout = 5000,
     requeueOnNack = false,
     internalQueueSize = Some(500),
     automaticRecovery = true
-  ).copy(connectionTimeout = 5000)
+  )
 
 }

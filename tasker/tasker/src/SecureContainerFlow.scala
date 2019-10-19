@@ -1,7 +1,7 @@
 import java.nio.file.Paths
 
 import cats.effect._
-import clients.SecureContainer.startContainer
+import clients.SecureContainer.{removeContainer, startContainer}
 import clients.webdav.{Webdav, WebdavPath}
 import clients.SecureContainer
 import dev.profunktor.fs2rabbit.json.Fs2JsonEncoder
@@ -17,8 +17,6 @@ class SecureContainerFlow(consumer: Stream[IO, AmqpEnvelope[String]],
                           publisher: AmqpMessage[String] => IO[Unit]) {
   import io.circe.generic.auto._
 
-  private val jsonEncoder = new Fs2JsonEncoder
-
   val jsonDecodePipe
     : Pipe[IO, AmqpEnvelope[String], Either[io.circe.Error,
                                             Messages.StartContainer]] =
@@ -31,8 +29,6 @@ class SecureContainerFlow(consumer: Stream[IO, AmqpEnvelope[String]],
         case Right(startContainerCmd) =>
           Slf4jLogger.create[IO].flatMap { implicit logger =>
             Resources.tempDirResource.use { tempHome =>
-
-              logger.info(s"All files will be staged in ${tempHome.toString}")
               val codeHome = Paths.get(tempHome.toString, "code")
               val dataHome = Paths.get(tempHome.toString, "data")
 
@@ -55,14 +51,17 @@ class SecureContainerFlow(consumer: Stream[IO, AmqpEnvelope[String]],
               import config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
 
               val containerResultIO = for {
+                _ <- logger.info(s"All files will be staged in ${tempHome.toString}")
                 _ <- filesDownloadedIO
                 containerId <- createContainerIO
-                _ <- logger.info(s"Created container ${containerId}")
+                _ <- logger.info(s"Created container $containerId")
                 _ <- startContainer(containerId)
                 stateAndCode <- SecureContainer.lastStatusIO(containerId)
                 _ <- logger.info(s"Container $containerId execution stopped with ${stateAndCode.toString}")
                 output <- SecureContainer.outputStream(containerId)
                 _ <- logger.info(s"Container output: $output")
+                _ <- removeContainer(containerId)
+                _ <- logger.info(s"Removed container: $containerId")
               } yield (stateAndCode, output)
 
               containerResultIO.flatMap {
@@ -78,10 +77,7 @@ class SecureContainerFlow(consumer: Stream[IO, AmqpEnvelope[String]],
                     )
                   publisher(AmqpMessage(doneMsg.asJson.spaces2, AmqpProperties()))
                 case other =>
-                  for {
-                    logger <- Slf4jLogger.create[IO]
-                    _ <- logger.error(s"Container state was $other. Should never happen.")
-                  } yield ()
+                  logger.error(s"Container state was $other. Should never happen.")
               }
             }
           }

@@ -1,4 +1,3 @@
-from django.db import transaction
 from django.db.models import Q
 from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
@@ -7,7 +6,7 @@ from rest_framework.response import Response
 import os
 import string
 
-from surfsara.models import User, Task
+from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
 from backend.scripts.run_container import RunContainer
 
@@ -135,8 +134,6 @@ class Tasks(viewsets.ViewSet):
         output = ""
         task = Task.objects.get(pk=pk)
 
-        print(task.approver_email)
-
         if task.approver_email != request.user.email:
             return Response({"output": "Not your file"})
 
@@ -146,6 +143,16 @@ class Tasks(viewsets.ViewSet):
             task.save()
 
             task_service.start(task)
+
+            if request.data["approve_algorithm_all"]:
+                permission = Permission()
+                permission.algorithm = request.data["updated_request"]["algorithm"]
+                permission.algorithm_provider = request.data["updated_request"]["author_email"]
+                permission.dataset = request.data["updated_request"]["dataset"]
+                permission.dataset_provider = request.data["updated_request"]["approver_email"]
+
+
+                permission.save()
         else:
             task.state = Task.REQUEST_REJECTED
 

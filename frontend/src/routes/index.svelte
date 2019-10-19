@@ -2,18 +2,18 @@
     import Runner from "../api/runner";
     import LoadFiles from "../api/loader";
 
-    let own_algorithms = []
-    let own_datasets = []
+    let own_algorithms = [];
+    let own_datasets = [];
 
     let output;
-    let running = false
+    let running = false;
 
     let data = {
         algorithm_file: "",
         data_file: "",
     };
 
-    getUserFiles()
+    getUserFiles();
 
     async function getUserFiles(){
         try {

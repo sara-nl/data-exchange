@@ -60,7 +60,7 @@
                                 <option value="">Select algorithm</option>
 
                                 {#each algorithm_files as file}
-                                    <option value={file}>{file}</option>
+                                    <option value={file}>{file.name}</option>
                                 {/each}
                             {:else}
                                 <option value="">No algorithms available</option>

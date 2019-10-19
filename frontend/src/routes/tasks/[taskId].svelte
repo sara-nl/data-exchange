@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { stores } from "@sapper/app";
-    import * as hljs from "highlight.js";
+  import { onMount } from "svelte";
+  import { stores } from "@sapper/app";
+  import * as hljs from "highlight.js";
 
   import LoadFiles from "../../api/loader";
   import Tasks, { TasksReviewRequest } from "../../api/tasks";
+  import Spinner from "../../components/Spinner.svelte";
 
   const { page } = stores();
   const { taskId } = $page.params;
@@ -18,19 +19,17 @@
     error: "danger"
   };
 
-    let visible: boolean = true;
-    let ownDatasets: any = null;
-    let task: any = null;
+  let visible: boolean = true;
+  let ownDatasets: any = null;
+  let task: any = null;
 
   let approve_algorithm_all = false;
   let data = new TasksReviewRequest();
 
-    onMount(async () => {
-        await load();
-        hljs.initHighlighting();
-    });
-
-
+  onMount(async () => {
+    await load();
+    hljs.initHighlighting();
+  });
 
   async function load() {
     const { data } = await Tasks.retrieve(taskId);
@@ -90,7 +89,7 @@
 </svelte:head>
 
 {#if task === null}
-  <h3>Loading...</h3>
+  <Spinner />
 {:else}
   <h2 class="display-5">
     Request {taskId}
@@ -123,7 +122,7 @@
           <h4>Dataset</h4>
           {#if task.is_owner && task.state === 'data_requested'}
             {#if ownDatasets === null}
-              Loading…
+              <Spinner small />
             {:else if ownDatasets.length === 0}
               No datasets available.
             {:else}

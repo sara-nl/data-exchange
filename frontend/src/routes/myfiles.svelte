@@ -1,8 +1,9 @@
 <script lang="ts">
     import LoadFiles from "../api/loader";
+    import Spinner from "../components/Spinner.svelte";
 
-    let own_algorithms = []
-    let own_datasets = []
+    let own_algorithms = null
+    let own_datasets = null
     let data = {}
 
 
@@ -36,23 +37,23 @@
 
     <div class="row">
         <div class="col">
-            <h3>Algorithms:</h3>
-            {#if own_algorithms.length > 0}
+            {#if own_algorithms === null || own_datasets === null}
+                <Spinner />
+            {:else}
+                <h3>Algorithms:</h3>
                 {#each own_algorithms as file}
                     <div>{file}</div>
+                {:else}
+                    <div>You have shared no algorithms</div>
                 {/each}
-            {:else}
-                <div>You have shared no algorithms</div>
-            {/if}
-            <br>
+                <br>
 
-            <h3>Datasets:</h3>
-            {#if own_datasets.length > 0}
+                <h3>Datasets:</h3>
                 {#each own_datasets as file}
                     <div>{file}</div>
+                {:else}
+                    <div>You have shared no datasets</div>
                 {/each}
-            {:else}
-                <div>You have shared no datasets</div>
             {/if}
         </div>
         <br>

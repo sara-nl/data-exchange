@@ -1,7 +1,9 @@
 <script lang="ts">
+  import { goto, stores } from "@sapper/app";
+
   import LoadFiles from "../../api/loader";
   import Tasks from "../../api/tasks";
-  import { goto, stores } from "@sapper/app";
+  import Spinner from "../../components/Spinner.svelte";
 
   let state_color = {
     request_rejected: "danger",
@@ -12,8 +14,8 @@
     error: "danger"
   };
 
-  let dataset_tasks = {};
-  let alg_tasks = {};
+  let dataset_tasks: any = null;
+  let alg_tasks: any = null;
 
   let datasets = [];
   let algorithms = [];
@@ -60,7 +62,7 @@
 <h2 class="display-5">Logs</h2>
 
 {#if dataset_tasks === null || alg_tasks === null}
-  <h3>Loading...</h3>
+  <Spinner />
 {:else}
   <div class="container">
     <div class="row">

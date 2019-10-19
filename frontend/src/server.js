@@ -14,9 +14,9 @@ let server = polka();
 
 if (dev) {
     server = server.use(
-        proxy('/api', { target: 'http://localhost:8000' }),
-        proxy('/static', { target: 'http://localhost:8000' }),
-        proxy('/admin', { target: 'http://localhost:8000' }),
+        proxy('/api', { target: 'http://backend:8000' }),
+        proxy('/static', { target: 'http://backend:8000' }),
+        proxy('/admin', { target: 'http://backend:8000' }),
     );
 }
 

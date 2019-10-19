@@ -9,10 +9,15 @@ until psql -h "$DJANGO_DB_HOST" -U "$DJANGO_DB_USER" -c '\q'; do
   sleep 1
 done
 
-if [[ $1 = "runserver" ]]; then
+if [[ "$DJANGO_DEBUG" -eq 0 && "$1" == "runserver" ]]; then
   python -u manage.py migrate
   python -u manage.py collectstatic
+
   exec uwsgi --ini uwsgi.ini
 else
+  if [[ "$1" == "runserver" ]]; then
+    python -u manage.py migrate
+  fi
+
   exec python -u manage.py $*
 fi

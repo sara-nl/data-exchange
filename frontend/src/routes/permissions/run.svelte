@@ -3,28 +3,22 @@
   import Tasks from "../../api/tasks";
   import { goto } from "@sapper/app";
 
-
   let obtained_permissions: [any] | null = null;
 
   let algorithms: [any] | null = [];
   let algorithm_files: [any] | null = null;
   let dataset_files = [];
 
-  let running = false;
-
   let permission = "";
 
   let data = {
-      per_file: true
+    per_file: true
   };
-
-
 
   getUserPermissions();
 
   async function getUserPermissions() {
     try {
-
       let { data: response } = await Permissions.get_per_file();
       obtained_permissions = response.obtained_permissions;
       algorithms = Object.keys(obtained_permissions);
@@ -36,19 +30,15 @@
   }
 
   function run_with_perm() {
-    running = true;
-        let total_permission = obtained_permissions[data.algorithm_file][permission]
-        let perm_id = total_permission.id
-        console.log(perm_id)
+    let total_permission =
+      obtained_permissions[data.algorithm_file][permission];
+    let perm_id = total_permission.id;
     try {
-        let { data: response } = Tasks.start_with_perm(perm_id, total_permission);
-        goto('/tasks')
+      let { data: response } = Tasks.start_with_perm(perm_id, total_permission);
+      goto("/tasks");
     } catch (error) {
-        console.log(error.toString());
+      console.log(error.toString());
     }
-
-
-    running = false;
     return false;
   }
 </script>
@@ -95,35 +85,35 @@
         <div class="form-group">
           <label for="data-file">
 
-              <h3 class="display-6">Permissions</h3>
-              <select
-                bind:value={permission}
-                class="form-control"
-                id="data-file"
-                disabled={!(data.algorithm_file)}>
+            <h3 class="display-6">Permissions</h3>
+            <select
+              bind:value={permission}
+              class="form-control"
+              id="data-file"
+              disabled={!data.algorithm_file}>
 
-                {#if !data.algorithm_file }
-                  <option value="">Select algorithm first</option>
-                {:else if obtained_permissions[data.algorithm_file].length > 0}
-                  <option value="">Select permission</option>
+              {#if !data.algorithm_file}
+                <option value="">Select algorithm first</option>
+              {:else if obtained_permissions[data.algorithm_file].length > 0}
+                <option value="">Select permission</option>
 
-                  {#each obtained_permissions[data.algorithm_file] as file, i}
-                    <option value={i}>{file.dataset}/{file.algorithm}</option>
-                  {/each}
-                {:else}
-                  <option value="">No permissions</option>
-                {/if}
-              </select>
+                {#each obtained_permissions[data.algorithm_file] as file, i}
+                  <option value={i}>{file.dataset}/{file.algorithm}</option>
+                {/each}
+              {:else}
+                <option value="">No permissions</option>
+              {/if}
+            </select>
           </label>
         </div>
-        </form>
+      </form>
 
-          <button
-            class="form-control btn btn-primary"
-            disabled={permission === ""}
-            on:click={run_with_perm}>
-            {'Run!'}
-          </button>
+      <button
+        class="form-control btn btn-primary"
+        disabled={permission === ''}
+        on:click={run_with_perm}>
+        {'Run!'}
+      </button>
     </div>
     <div class="col-xl-14 col-md-7 border p-3">
       <h4 class="text-muted">Permission info</h4>
@@ -131,7 +121,6 @@
         <div class="my-3">
           <h5>Permission given by</h5>
           {obtained_permissions[data.algorithm_file][permission].dataset_provider}
-
           <h5>Permission given to</h5>
           <b>You</b>
         </div>
@@ -144,7 +133,7 @@
         </div>
         <div class="my-3">
           <h5>Review output</h5>
-            {obtained_permissions[data.algorithm_file][permission].review_output}
+          {obtained_permissions[data.algorithm_file][permission].review_output}
         </div>
       {/if}
     </div>

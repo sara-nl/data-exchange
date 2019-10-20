@@ -1,7 +1,7 @@
 Dear user,
 
-A task you approved has finished running. Now, please check if the output makes
-sense and, if so, release the output to the user!
+A task you approved has finished running. Please verify the output and, if in
+order, release the data the the user.
 
 Click the following link to review the output:
 INSERT_URL_HERE

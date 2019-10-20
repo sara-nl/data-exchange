@@ -1,12 +1,11 @@
-from django.db.models import Q
-
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, serializers
-from rest_framework.response import Response
 from rest_framework.decorators import action
-
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.response import Response
 
-from surfsara.models import Permission
+from surfsara.models import Permission, User
+from surfsara.services import mail_service
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -51,10 +50,10 @@ class Permissions(viewsets.ViewSet):
         Returns list permissions per file in dict
         """
         obtained_permissions = Permission.objects.filter(
-            Q(algorithm_provider=request.user.email)
+            algorithm_provider=request.user.email
         )
         given_permissions = Permission.objects.filter(
-            Q(dataset_provider=request.user.email)
+            dataset_provider=request.user.email
         )
 
         obtained_permissions = TaskSerializer(obtained_permissions, many=True).data
@@ -67,7 +66,6 @@ class Permissions(viewsets.ViewSet):
 
         given_permissions = TaskSerializer(given_permissions, many=True).data
         given_per_file = {}
-
         for perm in given_permissions:
             if perm["algorithm"] in given_per_file:
                 given_per_file[perm["algorithm"]].append(perm)
@@ -92,25 +90,17 @@ class Permissions(viewsets.ViewSet):
         Removes permission from database
         """
 
-        permission = Permission.objects.get(pk=pk, dataset_provider=request.user.email)
+        permission: Permission = get_object_or_404(
+            Permission, pk=pk, dataset_provider=request.user.email
+        )
+        permission.delete()
 
-        if permission:
-            permission.delete()
-            obtained_permissions = Permission.objects.filter(
-                Q(algorithm_provider=request.user.email)
-            )
-            given_permissions = Permission.objects.filter(
-                Q(dataset_provider=request.user.email)
-            )
+        mail_service.send_mail(
+            "permission_revoked",
+            permission.algorithm_provider,
+            "Permission revoked for dataset",
+            dataset=permission.dataset,
+            url=f"http://{request.get_host()}/permissions",
+        )
 
-            return Response(
-                {
-                    "obtained_permissions": TaskSerializer(
-                        obtained_permissions, many=True
-                    ).data,
-                    "given_permissions": TaskSerializer(
-                        given_permissions, many=True
-                    ).data,
-                }
-            )
-        return Response({})
+        return self.list(request)

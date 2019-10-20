@@ -97,7 +97,9 @@ class Tasks(viewsets.ViewSet):
             mail_files="data_request",
             receiver=data_owner_email,
             subject="You got a data request",
-            url=f"http://{request.get_host()}/review",
+            url=f"http://{request.get_host()}/tasks/{task.pk}",
+            author=task.author_email,
+            dataset=task.dataset,
         )
 
         return Response({"owner": True})
@@ -196,44 +198,61 @@ class Tasks(viewsets.ViewSet):
         by data provider
         """
 
-        output = ""
         task = Task.objects.get(pk=pk)
 
         if task.approver_email != request.user.email:
             return Response({"output": "Not your file"})
 
+        update = request.data["updated_request"]
         if request.data["approved"]:
-            task.state = Task.RUNNING
-            task.dataset = request.data["updated_request"]["dataset"]
-            task.review_output = request.data["review_output"]
+            result = "approved"
 
+            task.state = Task.RUNNING
+            task.dataset = update["dataset"]
+            task.review_output = request.data["review_output"]
             task.save()
 
             task_service.start(task)
 
             if request.data["approve_algorithm_all"]:
-                permission = Permission()
-                permission.algorithm = request.data["updated_request"]["algorithm"]
-                permission.algorithm_provider = request.data["updated_request"][
-                    "author_email"
-                ]
-                permission.dataset = request.data["updated_request"]["dataset"]
-                permission.dataset_provider = request.data["updated_request"][
-                    "approver_email"
-                ]
+                mail_service.send_mail(
+                    mail_files="permission_granted_do",
+                    receiver=task.approver_email,
+                    subject="You granted someone continuous access to your dataset",
+                    url=f"http://{request.get_host()}/permissions",
+                    **update,
+                )
 
-                permission.review_output = request.data["review_output"]
-                permission.save()
+                mail_service.send_mail(
+                    mail_files="permission_granted_ao",
+                    receiver=task.author_email,
+                    subject="You were granted continuous access to a dataset",
+                    url=f"http://{request.get_host()}/permissions",
+                    **update,
+                )
+
+                Permission(
+                    algorithm=update["algorithm"],
+                    algorithm_provider=update["author_email"],
+                    dataset=update["dataset"],
+                    dataset_provider=update["approver_email"],
+                    review_output=request.data["review_output"],
+                ).save()
         else:
+            result = "rejected"
             task.state = Task.REQUEST_REJECTED
+            task.save()
 
-        task.save()
+        mail_service.send_mail(
+            mail_files="request_reviewed",
+            receiver=update["author_email"],
+            subject=f"Your data request was {result}",
+            url=f"http://{request.get_host()}/overview",
+            reviewable="data request",
+            result=result,
+        )
 
-        url = f"http://{request.get_host()}/overview"
-        subject = "Your data request has been reviewed"
-        mail_service.send_mail("request_reviewed", request.user.email, subject, url=url)
-
-        return Response({"state": task.state, "output": output})
+        return Response({"state": task.state, "output": task.output})
 
     @action(
         detail=True,
@@ -249,12 +268,23 @@ class Tasks(viewsets.ViewSet):
         if not Task.objects.filter(pk=pk, approver_email=request.user.email):
             return Response({"output": "Not your file"})
 
-        task = Task.objects.get(pk=pk)
+        task: Task = Task.objects.get(pk=pk)
         if request.data["released"]:
             task.state = Task.OUTPUT_RELEASED
+            result = "approved"
         else:
             task.state = Task.RELEASE_REJECTED
+            result = "rejected"
         task.save()
+
+        mail_service.send_mail(
+            mail_files="request_reviewed",
+            receiver=task.author_email,
+            subject=f"The output of your task was {result}",
+            url=f"http://{request.get_host()}/tasks/{task.pk}",
+            reviewable="algorithm output",
+            result=result,
+        )
 
         return Response({"state": task.state})
 

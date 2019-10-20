@@ -1,0 +1,14 @@
+Dear user,
+
+You just granted {{author_email}} **continuous access** to your dataset
+({{dataset}}) for their algorithm ({{algorithm}}).
+
+If this was not your intention, click the following URL to immediately revoke
+access:
+
+{{url}}
+
+If the above link is not clickable, try copying and pasting it into the address
+bar of your web browser.
+
+DataExchange

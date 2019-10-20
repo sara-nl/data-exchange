@@ -1,32 +1,15 @@
 <script lang="ts">
     import { onMount } from "svelte";
-
-    import Runner from "../api/runner";
     import LoadFiles from "../api/loader";
 
     let own_algorithms: any = null;
     let own_datasets: any = null;
 
-    let output;
-    let running = false
-
-    let data = {
-        algorithm_file: "",
-        data_file: "",
-    };
-
-
     onMount(async () => {
-        await load();
+        await getUserFiles();
     });
 
-    async function load() {
-
-        getUserFiles()
-
-    }
-
-    async function getUserFiles(){
+    async function getUserFiles() {
         try {
             let { data: response } = await LoadFiles.start();
             own_algorithms = response.output.own_algorithms;
@@ -34,11 +17,7 @@
         } catch (error) {
             console.log(error.toString())
         }
-
-        return false
     }
-
-
 </script>
 
 <svelte:head>

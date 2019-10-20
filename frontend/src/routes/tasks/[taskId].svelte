@@ -43,8 +43,6 @@
   }
 
   async function review_request(approved: boolean) {
-    console.log(approve_algorithm_all);
-
     data.approved = approved;
     data.updated_request = task;
     data.approve_algorithm_all = approve_algorithm_all;
@@ -113,7 +111,7 @@
             {task.dataset_desc}
           {:else}
             <h4>Review output</h4>
-              {task.review_output}
+            {task.review_output}
           {/if}
         </div>
         <div class="my-5">

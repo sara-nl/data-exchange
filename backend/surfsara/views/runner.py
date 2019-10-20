@@ -31,14 +31,6 @@ class StartParser(JSONParser):
         return data
 
 
-class ViewShares(viewsets.ViewSet):
-    permission_classes = (AllowAny,)
-
-    def create(self, request):
-        rd_client = ResearchdriveClient()
-        return Response({"output": rd_client.get_shares()})
-
-
 class ViewFileVersions(viewsets.ViewSet):
     permission_classes = (AllowAny,)
 

@@ -6,15 +6,6 @@
     import Permissions from "../../api/permissions";
     import Spinner from "../../components/Spinner.svelte";
 
-    let state_color = {
-        "request_rejected": "danger",
-        "release_rejected": "warning",
-        "output_released": "success",
-        "running": "info",
-        "success": "info",
-        "error": "danger",
-    };
-
     let obtained_permissions: [any] | null = null
     let given_permissions: [any] | null = null
 
@@ -23,6 +14,7 @@
     async function getUserPermissions(){
         try {
             let { data: response } = await Permissions.get();
+            console.log(response.obtained_permissions)
             obtained_permissions = response.obtained_permissions
             given_permissions = response.given_permissions
 

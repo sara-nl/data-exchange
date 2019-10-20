@@ -23,10 +23,10 @@ class Permissions(viewsets.ViewSet):
         """
 
         obtained_permissions = Permission.objects.filter(
-            Q(algorithm_provider=request.user.email)
+            algorithm_provider=request.user.email
         )
         given_permissions = Permission.objects.filter(
-            Q(dataset_provider=request.user.email)
+            dataset_provider=request.user.email
         )
 
         obtained_permissions = TaskSerializer(obtained_permissions, many=True).data

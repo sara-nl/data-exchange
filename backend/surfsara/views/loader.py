@@ -10,7 +10,7 @@ from functools import reduce
 
 class GetUserFiles(viewsets.ViewSet):
     permission_classes = (AllowAny,)
-    folderRunScript = 'run.py'
+    folderRunScript = "run.py"
     rd_client = ResearchdriveClient()
 
     def list(self, request):

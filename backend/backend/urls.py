@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework import routers, serializers, viewsets
 from rest_framework.authtoken.views import obtain_auth_token
 
-from surfsara.views import user, runner, loader, tasks, shares
+from surfsara.views import user, runner, loader, tasks, shares, permissions
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()
@@ -12,6 +12,7 @@ router.register("runner/versions", runner.ViewFileVersions, basename="versions")
 router.register("loader/user_files", loader.GetUserFiles, basename="user_files")
 router.register("shares", shares.ViewShares, basename="shares")
 router.register("tasks", tasks.Tasks, basename="tasks")
+router.register("permissions", permissions.Permissions, basename="permissions")
 
 
 urlpatterns = [

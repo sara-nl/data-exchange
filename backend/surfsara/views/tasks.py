@@ -1,13 +1,12 @@
-from django.db import transaction
 from django.db.models import Q
 from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 import os
 import string
 
-from surfsara.models import User, Task
+from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
 from backend.scripts.run_container import RunContainer
 
@@ -19,7 +18,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class Tasks(viewsets.ViewSet):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     # This processes have to move to the taskmanager, so it doesn't slow down the site!
     @staticmethod
@@ -81,7 +80,7 @@ class Tasks(viewsets.ViewSet):
             return Response({"error": "unknown email"}, status=400)
 
         task = Task(
-            state=Task.DATA_REQUESTED,
+            state=Task.ANALYZING,
             author_email=request.user.email,
             approver_email=data_owner_email,
             algorithm=request.data["algorithm"],
@@ -90,6 +89,9 @@ class Tasks(viewsets.ViewSet):
         task.save()
 
         self.process_algorithm(task, request.data["algorithm"])
+
+        task.state = Task.DATA_REQUESTED
+        task.save()
 
         mail_service.send_mail(
             mail_files="data_request",
@@ -101,9 +103,17 @@ class Tasks(viewsets.ViewSet):
         return Response({"owner": True})
 
     def list(self, request):
+        """
+        Gets all requests you made and requests on your data that
+        are in a state to approve something/
+        """
+
         to_approve_requests = Task.objects.filter(
             Q(approver_email=request.user.email),
-            Q(state=Task.DATA_REQUESTED) | Q(state=Task.SUCCESS) | Q(state=Task.ERROR),
+            Q(state=Task.DATA_REQUESTED)
+            | Q(state=Task.ANALYZING)
+            | Q(state=Task.SUCCESS)
+            | Q(state=Task.ERROR),
         ).order_by("-registered_on")
 
         own_requests = Task.objects.filter(author_email=request.user.email).order_by(
@@ -123,6 +133,10 @@ class Tasks(viewsets.ViewSet):
         )
 
     def retrieve(self, request, pk=None):
+        """
+        Gets specific task
+        """
+
         task = Task.objects.get(pk=pk)
         is_owner = task.approver_email == request.user.email
         if task.state != Task.OUTPUT_RELEASED and not is_owner:
@@ -130,12 +144,20 @@ class Tasks(viewsets.ViewSet):
 
         return Response({"is_owner": is_owner, **TaskSerializer(task).data})
 
-    @action(detail=True, methods=["POST"], name="review", permission_classes=[AllowAny])
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="review",
+        permission_classes=[IsAuthenticated],
+    )
     def review(self, request, pk=None):
+        """
+        Processes review of request made by algorithm provider and reviewed
+        by data provider
+        """
+
         output = ""
         task = Task.objects.get(pk=pk)
-
-        print(task.approver_email)
 
         if task.approver_email != request.user.email:
             return Response({"output": "Not your file"})
@@ -143,9 +165,25 @@ class Tasks(viewsets.ViewSet):
         if request.data["approved"]:
             task.state = Task.RUNNING
             task.dataset = request.data["updated_request"]["dataset"]
+            task.review_output = request.data["review_output"]
+
             task.save()
 
             task_service.start(task)
+
+            if request.data["approve_algorithm_all"]:
+                permission = Permission()
+                permission.algorithm = request.data["updated_request"]["algorithm"]
+                permission.algorithm_provider = request.data["updated_request"][
+                    "author_email"
+                ]
+                permission.dataset = request.data["updated_request"]["dataset"]
+                permission.dataset_provider = request.data["updated_request"][
+                    "approver_email"
+                ]
+
+                permission.review_output = request.data["review_output"]
+                permission.save()
         else:
             task.state = Task.REQUEST_REJECTED
 
@@ -158,9 +196,16 @@ class Tasks(viewsets.ViewSet):
         return Response({"state": task.state, "output": output})
 
     @action(
-        detail=True, methods=["POST"], name="release", permission_classes=[AllowAny]
+        detail=True,
+        methods=["POST"],
+        name="release",
+        permission_classes=[IsAuthenticated],
     )
     def release(self, request, pk=None):
+        """
+        Processes release or not release of output
+        """
+
         if not Task.objects.filter(pk=pk, approver_email=request.user.email):
             return Response({"output": "Not your file"})
 
@@ -172,3 +217,40 @@ class Tasks(viewsets.ViewSet):
         task.save()
 
         return Response({"state": task.state})
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="start_with_perm",
+        permission_classes=[AllowAny],
+    )
+    def start_with_perm(self, request, pk=None):
+        perm = Permission.objects.get(
+            id=pk,
+            algorithm_provider=request.user.email,
+            dataset_provider=request.data["dataset_provider"],
+            algorithm=request.data["algorithm"],
+            dataset=request.data["dataset"],
+        )
+
+        if not perm:
+            return Response({"output": "You don't have this permission"})
+
+        task = Task(
+            state=Task.ANALYZING,
+            author_email=perm.algorithm_provider,
+            approver_email=perm.dataset_provider,
+            algorithm=perm.algorithm,
+            dataset=perm.dataset,
+            review_output=perm.review_output,
+            dataset_desc="",
+        )
+        task.save()
+
+        self.process_algorithm(task, request.data["algorithm"])
+
+        task_service.start(task)
+        task.state = Task.RUNNING
+        task.save()
+
+        return Response({"id": task.id})

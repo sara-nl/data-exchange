@@ -7,12 +7,20 @@ export class TasksStartRequest {
     public dataset_desc: string = "";
 }
 
+export class TasksPermRequest {
+    public permission?: any;
+
+}
+
 export class TasksReviewRequest {
     public data?: any;
     public updated_request?: any;
 
     public approved: boolean = false;
     public released: boolean = false;
+
+    public approve_algorithm_all: boolean = false;
+    public review_output: boolean = true;
 }
 
 export class TaskRetrieveRequest {
@@ -23,6 +31,10 @@ export class TaskRetrieveRequest {
 export default class Tasks extends Controller {
     public static async start(data: TasksStartRequest): Promise<AxiosResponse> {
         return this.client.post("/tasks/", data);
+    }
+
+    public static async start_with_perm(id: number, permission: TasksPermRequest): Promise<AxiosResponse> {
+        return this.client.post(`/tasks/${id}/start_with_perm/`, permission)
     }
 
     public static async get(): Promise<AxiosResponse> {

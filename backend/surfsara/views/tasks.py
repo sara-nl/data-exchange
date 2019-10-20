@@ -112,7 +112,7 @@ class Tasks(viewsets.ViewSet):
             Q(approver_email=request.user.email),
             Q(state=Task.DATA_REQUESTED)
             | Q(state=Task.ANALYZING)
-            | Q(state=Task.SUCCESS)
+            | Q(state=Task.SUCCESS, review_output=True)
             | Q(state=Task.ERROR),
         ).order_by("-registered_on")
 
@@ -129,6 +129,46 @@ class Tasks(viewsets.ViewSet):
                     to_approve_requests, many=True
                 ).data,
                 "own_requests": TaskSerializer(own_requests, many=True).data,
+            }
+        )
+
+    @action(
+        detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
+    )
+    def list_logs(self, request):
+        data_tasks_per_file = {}
+        algorithm_tasks_per_file = {}
+
+        algorithm_tasks = Task.objects.filter(author_email=request.user.email).order_by(
+            "-registered_on"
+        )
+
+        data_tasks = Task.objects.filter(approver_email=request.user.email).order_by(
+            "-registered_on"
+        )
+
+        for request in algorithm_tasks:
+            if request.state != Task.OUTPUT_RELEASED:
+                request.output = None
+
+        data_tasks = TaskSerializer(data_tasks, many=True).data
+        for perm in data_tasks:
+            if perm["dataset"] in data_tasks_per_file:
+                data_tasks_per_file[perm["dataset"]].append(perm)
+            else:
+                data_tasks_per_file[perm["dataset"]] = [perm]
+
+        algorithm_tasks = TaskSerializer(algorithm_tasks, many=True).data
+        for perm in algorithm_tasks:
+            if perm["algorithm"] in algorithm_tasks_per_file:
+                algorithm_tasks_per_file[perm["algorithm"]].append(perm)
+            else:
+                algorithm_tasks_per_file[perm["algorithm"]] = [perm]
+
+        return Response(
+            {
+                "algorithm_tasks": algorithm_tasks_per_file,
+                "data_tasks": data_tasks_per_file,
             }
         )
 
@@ -222,7 +262,7 @@ class Tasks(viewsets.ViewSet):
         detail=True,
         methods=["POST"],
         name="start_with_perm",
-        permission_classes=[AllowAny],
+        permission_classes=[IsAuthenticated],
     )
     def start_with_perm(self, request, pk=None):
         perm = Permission.objects.get(

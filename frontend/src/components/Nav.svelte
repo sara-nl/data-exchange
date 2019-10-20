@@ -23,6 +23,7 @@
                 </NavDropdown>
                 <NavDropdown name="Permissions">
                     <NavItem dropdown name="Permission overview" href="/permissions" />
+                    <NavItem dropdown name="Permission logs" href="/permissions/logs" />
                     <NavItem dropdown name="Run with permission" href="/permissions/run" />
 
                 </NavDropdown>

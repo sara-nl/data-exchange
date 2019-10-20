@@ -1,9 +1,11 @@
 <script lang="ts">
     import LoadFiles from "../api/loader";
     import RemoveShare from "../api/shares";
+    import Spinner from "../components/Spinner.svelte";
 
     let own_algorithms: any[] = [];
     let own_datasets: any[] = [];
+    let data = {}
 
     async function updateUserFiles(){
         try {
@@ -58,25 +60,33 @@
 
     <div class="row">
         <div class="col">
-            <h3>Algorithms:</h3>
-            {#if own_algorithms.length > 0}
+            {#if own_algorithms === null || own_datasets === null}
+                <Spinner />
+            {:else}
+                <h3>Algorithms:</h3>
                 {#each own_algorithms as file}
-                    <div style="height: 40px">{file.name} <button style="float: right;" class="btn btn-danger" on:click={() => revokeFileShare(file.id)}>
-                        Revoke</button></div>
+                    <div style="height: 40px">
+                        {file.name}
+                        <button style="float: right;" class="btn btn-danger" on:click={() => revokeFileShare(file.id)}>
+                            Revoke
+                        </button>
+                    </div>
+                {:else}
+                    <div>You have shared no algorithms</div>
                 {/each}
-            {:else}
-                <div>You have shared no algorithms</div>
-            {/if}
-            <br>
+                <br>
 
-            <h3>Datasets:</h3>
-            {#if own_datasets.length > 0}
+                <h3>Datasets:</h3>
                 {#each own_datasets as file}
-                    <div style="height: 40px">{file.name} <button style="float: right;" class="btn btn-danger" on:click={() => revokeFileShare(file.id)}>
-                        Revoke</button></div>
+                    <div style="height: 40px">
+                        {file.name}
+                        <button style="float: right;" class="btn btn-danger" on:click={() => revokeFileShare(file.id)}>
+                            Revoke
+                        </button>
+                    </div>
+                {:else}
+                    <div>You have shared no datasets</div>
                 {/each}
-            {:else}
-                <div>You have shared no datasets</div>
             {/if}
         </div>
         <br>

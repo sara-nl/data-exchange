@@ -5,6 +5,7 @@
 
   import LoadFiles from "../../api/loader";
   import Tasks, { TasksReviewRequest } from "../../api/tasks";
+  import Spinner from "../../components/Spinner.svelte";
 
   const { page } = stores();
   const { taskId } = $page.params;
@@ -89,7 +90,7 @@
 </svelte:head>
 
 {#if task === null}
-  <h3>Loading...</h3>
+  <Spinner />
 {:else}
   <h2 class="display-5">
     Request {taskId}
@@ -129,7 +130,7 @@
           <h4>Dataset</h4>
           {#if task.is_owner && task.state === 'data_requested'}
             {#if ownDatasets === null}
-              Loading…
+              <Spinner small />
             {:else if ownDatasets.length === 0}
               No datasets available.
             {:else}

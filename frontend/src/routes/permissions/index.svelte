@@ -1,9 +1,10 @@
 <script lang="ts">
+    import { goto, stores } from "@sapper/app";
+
     import LoadFiles from "../../api/loader";
     import Tasks from "../../api/tasks";
     import Permissions from "../../api/permissions";
-
-    import { goto, stores } from "@sapper/app";
+    import Spinner from "../../components/Spinner.svelte";
 
     let obtained_permissions: [any] | null = null
     let given_permissions: [any] | null = null
@@ -50,7 +51,7 @@
 </h2>
 
 {#if obtained_permissions === null || given_permissions === null}
-<h3>Loading...</h3>
+<Spinner />
 {:else}
 <div class="container">
     <div class="row">

@@ -82,7 +82,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def register(self, request):
         with transaction.atomic():
             email = request.data["email"]
-            user = User(email=email, is_active=False)
+            user = User(email=email, is_active=True)
             user.set_password(request.data["password"])
             user.save()
 
@@ -102,9 +102,9 @@ class UserViewSet(viewsets.ModelViewSet):
             #
             # Sticking this in a task queue will just make the email sending slower,
             # not the entire server.
-            message = EmailMultiAlternatives(subject, text_body, to=[email])
-            message.attach_alternative(html_body, "text/html")
-            message.send()
+            # message = EmailMultiAlternatives(subject, text_body, to=[email])
+            # message.attach_alternative(html_body, "text/html")
+            # message.send()
 
             return Response({})
 

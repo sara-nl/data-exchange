@@ -18,6 +18,37 @@ class Permissions(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     def list(self, request):
+        """
+        Gives list of obtained and given permissions
+        """
+
+        obtained_permissions = Permission.objects.filter(
+            Q(algorithm_provider=request.user.email)
+        )
+        given_permissions = Permission.objects.filter(
+            Q(dataset_provider=request.user.email)
+        )
+
+        obtained_permissions = TaskSerializer(obtained_permissions, many=True).data
+        given_permissions = TaskSerializer(given_permissions, many=True).data
+
+        return Response(
+            {
+                "obtained_permissions": obtained_permissions,
+                "given_permissions": given_permissions,
+            }
+        )
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        name="per_file",
+        permission_classes=[IsAuthenticated],
+    )
+    def per_file(self, request):
+        """
+        Returns list permissions per file in dict
+        """
         obtained_permissions = Permission.objects.filter(
             algorithm_provider=request.user.email
         )
@@ -25,17 +56,40 @@ class Permissions(viewsets.ViewSet):
             dataset_provider=request.user.email
         )
 
+        obtained_permissions = TaskSerializer(obtained_permissions, many=True).data
+        obtained_per_file = {}
+        for perm in obtained_permissions:
+            if perm["algorithm"] in obtained_per_file:
+                obtained_per_file[perm["algorithm"]].append(perm)
+            else:
+                obtained_per_file[perm["algorithm"]] = [perm]
+
+        given_permissions = TaskSerializer(given_permissions, many=True).data
+        given_per_file = {}
+        for perm in given_permissions:
+            if perm["algorithm"] in given_per_file:
+                given_per_file[perm["algorithm"]].append(perm)
+            else:
+                given_per_file[perm["algorithm"]] = [perm]
+
         return Response(
             {
-                "obtained_permissions": TaskSerializer(
-                    obtained_permissions, many=True
-                ).data,
-                "given_permissions": TaskSerializer(given_permissions, many=True).data,
+                "obtained_permissions": obtained_per_file,
+                "given_permissions": given_per_file,
             }
         )
 
-    @action(detail=True, methods=["POST"], name="remove", permission_classes=[AllowAny])
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="remove",
+        permission_classes=[IsAuthenticated],
+    )
     def remove(self, request, pk=None):
+        """
+        Removes permission from database
+        """
+
         permission: Permission = get_object_or_404(
             Permission, pk=pk, dataset_provider=request.user.email
         )

@@ -1,7 +1,7 @@
 from django.db.models import Q
 from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 import os
 import string
@@ -18,7 +18,7 @@ class TaskSerializer(serializers.ModelSerializer):
 
 
 class Tasks(viewsets.ViewSet):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated,)
 
     # This processes have to move to the taskmanager, so it doesn't slow down the site!
     @staticmethod
@@ -80,7 +80,7 @@ class Tasks(viewsets.ViewSet):
             return Response({"error": "unknown email"}, status=400)
 
         task = Task(
-            state=Task.DATA_REQUESTED,
+            state=Task.ANALYZING,
             author_email=request.user.email,
             approver_email=data_owner_email,
             algorithm=request.data["algorithm"],
@@ -89,6 +89,9 @@ class Tasks(viewsets.ViewSet):
         task.save()
 
         self.process_algorithm(task, request.data["algorithm"])
+
+        task.state = Task.DATA_REQUESTED
+        task.save()
 
         mail_service.send_mail(
             mail_files="data_request",
@@ -102,9 +105,17 @@ class Tasks(viewsets.ViewSet):
         return Response({"owner": True})
 
     def list(self, request):
+        """
+        Gets all requests you made and requests on your data that
+        are in a state to approve something/
+        """
+
         to_approve_requests = Task.objects.filter(
             Q(approver_email=request.user.email),
-            Q(state=Task.DATA_REQUESTED) | Q(state=Task.SUCCESS) | Q(state=Task.ERROR),
+            Q(state=Task.DATA_REQUESTED)
+            | Q(state=Task.ANALYZING)
+            | Q(state=Task.SUCCESS)
+            | Q(state=Task.ERROR),
         ).order_by("-registered_on")
 
         own_requests = Task.objects.filter(author_email=request.user.email).order_by(
@@ -124,6 +135,10 @@ class Tasks(viewsets.ViewSet):
         )
 
     def retrieve(self, request, pk=None):
+        """
+        Gets specific task
+        """
+
         task = Task.objects.get(pk=pk)
         is_owner = task.approver_email == request.user.email
         if task.state != Task.OUTPUT_RELEASED and not is_owner:
@@ -131,8 +146,18 @@ class Tasks(viewsets.ViewSet):
 
         return Response({"is_owner": is_owner, **TaskSerializer(task).data})
 
-    @action(detail=True, methods=["POST"], name="review", permission_classes=[AllowAny])
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="review",
+        permission_classes=[IsAuthenticated],
+    )
     def review(self, request, pk=None):
+        """
+        Processes review of request made by algorithm provider and reviewed
+        by data provider
+        """
+
         task = Task.objects.get(pk=pk)
 
         if task.approver_email != request.user.email:
@@ -144,6 +169,7 @@ class Tasks(viewsets.ViewSet):
 
             task.state = Task.RUNNING
             task.dataset = update["dataset"]
+            task.review_output = request.data["review_output"]
             task.save()
 
             task_service.start(task)
@@ -170,6 +196,7 @@ class Tasks(viewsets.ViewSet):
                     algorithm_provider=update["author_email"],
                     dataset=update["dataset"],
                     dataset_provider=update["approver_email"],
+                    review_output=request.data["review_output"],
                 ).save()
         else:
             result = "rejected"
@@ -188,9 +215,16 @@ class Tasks(viewsets.ViewSet):
         return Response({"state": task.state, "output": task.output})
 
     @action(
-        detail=True, methods=["POST"], name="release", permission_classes=[AllowAny]
+        detail=True,
+        methods=["POST"],
+        name="release",
+        permission_classes=[IsAuthenticated],
     )
     def release(self, request, pk=None):
+        """
+        Processes release or not release of output
+        """
+
         if not Task.objects.filter(pk=pk, approver_email=request.user.email):
             return Response({"output": "Not your file"})
 
@@ -213,3 +247,40 @@ class Tasks(viewsets.ViewSet):
         )
 
         return Response({"state": task.state})
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="start_with_perm",
+        permission_classes=[AllowAny],
+    )
+    def start_with_perm(self, request, pk=None):
+        perm = Permission.objects.get(
+            id=pk,
+            algorithm_provider=request.user.email,
+            dataset_provider=request.data["dataset_provider"],
+            algorithm=request.data["algorithm"],
+            dataset=request.data["dataset"],
+        )
+
+        if not perm:
+            return Response({"output": "You don't have this permission"})
+
+        task = Task(
+            state=Task.ANALYZING,
+            author_email=perm.algorithm_provider,
+            approver_email=perm.dataset_provider,
+            algorithm=perm.algorithm,
+            dataset=perm.dataset,
+            review_output=perm.review_output,
+            dataset_desc="",
+        )
+        task.save()
+
+        self.process_algorithm(task, request.data["algorithm"])
+
+        task_service.start(task)
+        task.state = Task.RUNNING
+        task.save()
+
+        return Response({"id": task.id})

@@ -4,6 +4,7 @@ from django.db import models
 class Task(models.Model):
     REGISTERED = "registered"
     DATA_REQUESTED = "data_requested"
+    ANALYZING = "analyzing_algorithm"
     RUNNING = "running"
     SUCCESS = "success"
     ERROR = "error"
@@ -18,6 +19,7 @@ class Task(models.Model):
             (REGISTERED, "Registered"),
             (DATA_REQUESTED, "Data Requested"),
             (RUNNING, "Running"),
+            (ANALYZING, "Analyzing_algorithm"),
             (SUCCESS, "Success"),
             (ERROR, "Error"),
             (OUTPUT_RELEASED, "Output Released"),
@@ -33,4 +35,5 @@ class Task(models.Model):
     dataset = models.TextField()
     dataset_desc = models.TextField()
     output = models.TextField(null=True)
+    review_output = models.BooleanField(default=True)
     registered_on = models.DateTimeField(auto_now_add=True)

@@ -5,13 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0016_merge_20191019_1540'),
-    ]
+    dependencies = [("surfsara", "0016_merge_20191019_1540")]
 
-    operations = [
-        migrations.RemoveField(
-            model_name='task',
-            name='review_output',
-        ),
-    ]
+    operations = [migrations.RemoveField(model_name="task", name="review_output")]

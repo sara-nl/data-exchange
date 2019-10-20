@@ -1,7 +1,7 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { stores } from "@sapper/app";
-    import * as hljs from "highlight.js";
+  import { onMount } from "svelte";
+  import { stores } from "@sapper/app";
+  import * as hljs from "highlight.js";
 
   import LoadFiles from "../../api/loader";
   import Tasks, { TasksReviewRequest } from "../../api/tasks";
@@ -18,19 +18,19 @@
     error: "danger"
   };
 
-    let visible: boolean = true;
-    let ownDatasets: any = null;
-    let task: any = null;
+  let visible: boolean = false;
+  let ownDatasets: any = null;
+  let task: any = null;
 
   let approve_algorithm_all = false;
+  let review_output = true
+
   let data = new TasksReviewRequest();
 
-    onMount(async () => {
-        await load();
-        hljs.initHighlighting();
-    });
-
-
+  onMount(async () => {
+    await load();
+    hljs.initHighlighting();
+  });
 
   async function load() {
     const { data } = await Tasks.retrieve(taskId);
@@ -43,11 +43,10 @@
   }
 
   async function review_request(approved: boolean) {
-    console.log(approve_algorithm_all);
-
     data.approved = approved;
     data.updated_request = task;
     data.approve_algorithm_all = approve_algorithm_all;
+    data.review_output = review_output
 
     try {
       if (approved) {
@@ -85,8 +84,8 @@
 </script>
 
 <svelte:head>
-    <link rel="stylesheet" href="atom-one-light.css">
-    <title>My Files</title>
+  <link rel="stylesheet" href="atom-one-light.css" />
+  <title>My Files</title>
 </svelte:head>
 
 {#if task === null}
@@ -107,18 +106,25 @@
           {task.approver_email}
         </div>
         <div class="my-5">
-          <h4>Dataset description</h4>
-          {task.dataset_desc}
+          {#if task.state == 'data_requested'}
+            <h4>Dataset description</h4>
+            {task.dataset_desc}
+          {:else}
+            <h4>Review output</h4>
+            {task.review_output}
+          {/if}
         </div>
         <div class="my-5">
           <h4>Algorithm</h4>
           <ul style="list-style:none; padding-left: 0;">
             <li>{task.algorithm}</li>
-            <li><button class="btn btn-primary" on:click={() => visible =!visible}>
-            {#if visible} Show output
-            {:else} Show algorithm
-            {/if}
-            </button></li>
+            <li>
+              <button
+                class="btn btn-primary"
+                on:click={() => (visible = !visible)}>
+                {#if visible}Show output{:else}Show algorithm{/if}
+              </button>
+            </li>
           </ul>
           <h4>Dataset</h4>
           {#if task.is_owner && task.state === 'data_requested'}
@@ -141,16 +147,25 @@
           {:else}{task.dataset || 'No dataset selected'}{/if}
         </div>
       </div>
-            <div hidden={!visible} class="col-12 col-md-8 border" style="padding-top: 20px;">
-                <pre><code class="python">{task.algorithm_content || "No algorithm (yet)…"}</code></pre>
-                <hr>
-                <h5>{task.algorithm_info}</h5>
-            </div>
-            <div hidden={visible} class="col-12 col-md-8 border" style="padding-top: 20px;">
-                <pre>{task.output || "No output (yet)…"}</pre>
-            </div>
-          </div>
-
+      <div
+        hidden={!visible}
+        class="col-12 col-md-8 border"
+        style="padding-top: 20px;">
+        <pre>
+          <code class="python">
+            {task.algorithm_content || 'Algorithm being processed'}
+          </code>
+        </pre>
+        <hr />
+        <h5>{task.algorithm_info}</h5>
+      </div>
+      <div
+        hidden={visible}
+        class="col-12 col-md-8 border"
+        style="padding-top: 20px;">
+        <pre>{task.output || 'No output (yet)…'}</pre>
+      </div>
+    </div>
 
     <div class="row">
 
@@ -164,19 +179,22 @@
               Only grant this permission if you trust {task.author_email} to
               always run benevolent algorithms.
             </div>
-
+            <input bind:checked={review_output} type="checkbox" />
+              Review the output of the algorithm
           </div>
-        <div class="col-md-12">
-          <button
-            disabled={!task.dataset}
-            class="btn btn-success"
-            on:click={() => review_request(true)}>
-            Grant permission
-          </button>
-          <button class="btn btn-danger" on:click={() => review_request(false)}>
-            Reject
-          </button>
-        </div>
+          <div class="col-md-12">
+            <button
+              disabled={!task.dataset}
+              class="btn btn-success"
+              on:click={() => review_request(true)}>
+              Grant permission
+            </button>
+            <button
+              class="btn btn-danger"
+              on:click={() => review_request(false)}>
+              Reject
+            </button>
+          </div>
         {:else}
           <h4>Waiting for the data provider to review the algorithm…</h4>
         {/if}

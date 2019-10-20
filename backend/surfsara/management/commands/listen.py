@@ -50,7 +50,11 @@ class Command(BaseCommand):
 
             task = Task.objects.get(pk=task_completed.task_id)
             task.output = task_completed.output
-            task.state = task_completed.state
+
+            if not task.review_output and task_completed.state == "success":
+                task.state = Task.OUTPUT_RELEASED
+            else:
+                task.state = task_completed.state
             task.save()
 
             mail_service.send_mail(

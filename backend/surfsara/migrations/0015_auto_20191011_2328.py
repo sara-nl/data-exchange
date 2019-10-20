@@ -5,14 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0014_task_review_output'),
-    ]
+    dependencies = [("surfsara", "0014_task_review_output")]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='review_output',
+            model_name="task",
+            name="review_output",
             field=models.BooleanField(default=True),
-        ),
+        )
     ]

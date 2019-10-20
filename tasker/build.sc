@@ -6,7 +6,7 @@ object tasker extends ScalaModule with ScalafmtModule {
 
   override def mainClass = Some("Tasker")
 
-  override def forkArgs = Seq("-Djava.io.tmpdir=/tmp")
+  override def forkArgs = Seq("-Djava.io.tmpdir=/tmp/tasker")
 
   override def ivyDeps = Agg(
     ivy"org.typelevel::cats-effect:2.0.0",

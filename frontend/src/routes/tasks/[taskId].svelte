@@ -141,7 +141,7 @@
                 <option value="">Select dataset</option>
 
                 {#each ownDatasets as file}
-                  <option value={file}>{file}</option>
+                  <option value={file.name}>{file.name}</option>
                 {/each}
               </select>
             {/if}

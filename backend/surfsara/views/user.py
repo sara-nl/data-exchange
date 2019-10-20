@@ -80,31 +80,39 @@ class UserViewSet(viewsets.ModelViewSet):
         parser_classes=[RegisterParser],
     )
     def register(self, request):
+
         with transaction.atomic():
+
             email = request.data["email"]
-            user = User(email=email, is_active=True)
+
+            user = User(email=email, is_active=False)
             user.set_password(request.data["password"])
             user.save()
 
             path = self.reverse_action("activate", args=[user.pk])
             token = account_activation_token.make_token(user)
+
             domain = request.get_host()
-
             url = f"http://{domain}/register/activate?pk={user.pk}&token={token}"
-            options = {"user": user, "url": url}
 
+            options = {"user": user, "url": url}
             subject = "Activate your email address"
             text_body = render_to_string("activation_email.txt", options)
             html_body = render_to_string("activation_email.html", options)
 
             # TODO: This is perfect for in Celery (or another task queue)! Sending an
+
             # email takes quite a while, which does not scale _at all_.
+
             #
+
             # Sticking this in a task queue will just make the email sending slower,
+
             # not the entire server.
-            # message = EmailMultiAlternatives(subject, text_body, to=[email])
-            # message.attach_alternative(html_body, "text/html")
-            # message.send()
+
+            message = EmailMultiAlternatives(subject, text_body, to=[email])
+            message.attach_alternative(html_body, "text/html")
+            message.send()
 
             return Response({})
 

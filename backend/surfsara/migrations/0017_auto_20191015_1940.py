@@ -16,15 +16,5 @@ class Migration(migrations.Migration):
                 auto_now_add=True, default=django.utils.timezone.now
             ),
             preserve_default=False,
-        ),
-        migrations.AddField(
-            model_name="permission",
-            name="review_output",
-            field=models.BooleanField(default=True),
-        ),
-        migrations.AddField(
-            model_name="task",
-            name="review_output",
-            field=models.BooleanField(default=True),
-        ),
+        )
     ]

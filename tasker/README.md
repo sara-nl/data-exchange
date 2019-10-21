@@ -14,6 +14,17 @@ Also see in `tasker/src/Messages.scala`
 
 Example:
 ```json
+  {
+    "taskId": "123", 
+    "codePath": "demo1_code",
+    "dataPath": "demo1_data"
+  }
+```
+
+### Done (`[T] -> tasker_done`)
+
+
+```json
 {
   "taskId" : "123",
   "state" : "success",
@@ -24,17 +35,6 @@ Example:
     "strace" : "execve(\"/bin/sh\", [\"sh\", \"-c\", \"python /tmp/code/demo1_code/run.\"...], 0x7ffe8a712338 ...."
   }
 }
-```
-
-### Done (`[T] -> tasker_done`)
-
-
-```json
-  {
-    "taskId": "123",
-    "state": "DONE",
-    "output": "~~ Some output ~~"
-  }
 ```
 
 ## Debugging container contents

@@ -1,14 +1,12 @@
 package clients
-import java.nio.file.{Path, Paths}
 
 import cats.effect.{IO, _}
-import cats.implicits._
 import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
 import config.TaskerConfig
 import config.TaskerConfig.docker
-import io.chrisdavenport.log4cats.Logger
+import container.ContainerEnv
 
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
@@ -70,73 +68,34 @@ object SecureContainer {
     } yield lastOption.getOrElse("")
   }
 
-  def createContainer[F[_]: Sync: Logger](
-    codeRoot: Path,
-    dataRoot: Path,
-    codeRelativePath: String,
-    dataRelativePath: String
-  ): F[String] = {
-    val logger = Logger[F]
+  def createContainer(containerEnv: ContainerEnv): IO[String] = {
     for {
-      hostCodePath <- Sync[F].pure(
-        Paths.get(codeRoot.toString, codeRelativePath)
-      )
-      dockerScriptPath <- Sync[F].delay {
-        if (hostCodePath.toFile.isDirectory)
-          Paths.get(
-            docker.containerCodePath,
-            codeRelativePath,
-            TaskerConfig.docker.indexFile
-          )
-        else
-          Paths.get(docker.containerCodePath, codeRelativePath)
-      }
-      dockerDataPath <- Sync[F].pure(
-        Paths.get(docker.containerDataPath, dataRelativePath)
-      )
-      command <- Sync[F].delay {
+      dockerScriptPath <- containerEnv.codeArtifact.executablePath
+      command <- IO {
         client
           .createContainerCmd(TaskerConfig.docker.image)
           .withNetworkDisabled(true)
           .withHostConfig(
             new HostConfig().withBinds(
               List(
-                new Bind(
-                  codeRoot.toString,
-                  new Volume(docker.containerCodePath),
-                  AccessMode.ro
-                ),
-                new Bind(
-                  dataRoot.toString,
-                  new Volume(docker.containerDataPath),
-                  AccessMode.ro
-                ),
-                new Bind(
-                  "/tmp/tasker-out", // TODO: Make configurable
-                  new Volume(docker.outputPath),
-                  AccessMode.rw
-                )
+                containerEnv.codeArtifact.asBind(AccessMode.ro),
+                containerEnv.dataArtifact.asBind(AccessMode.ro),
+                containerEnv.outputArtifact.asBind(AccessMode.rw)
               ).asJava
             )
           )
           .withCmd(
             "/app/tracerun.sh",
             dockerScriptPath.toString,
-            dockerDataPath.toString,
-            s"${docker.outputPath}/out.txt",
-            s"${docker.outputPath}/error.txt",
-            s"${docker.outputPath}/trace.txt"
+            containerEnv.dataArtifact.containerPath.toString,
+            s"${docker.containerOutPath}/stdout.txt",
+            s"${docker.containerOutPath}/error.txt",
+            s"${docker.containerOutPath}/trace.txt"
           )
           .withAttachStdin(true)
           .withAttachStderr(true)
       }
-      _ <- logger.info(
-        s"Code path on host (docker): $hostCodePath ($dockerScriptPath)"
-      )
-      _ <- logger.info(
-        s"Data path on host (docker): $dataRoot ($dockerDataPath)"
-      )
-      result <- Sync[F].delay(command.exec())
+      result <- IO(command.exec())
     } yield result.getId
   }
 

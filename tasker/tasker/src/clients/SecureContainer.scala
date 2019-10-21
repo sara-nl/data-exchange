@@ -5,7 +5,6 @@ import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
 import config.TaskerConfig
-import config.TaskerConfig.docker
 import container.ContainerEnv
 
 import scala.jdk.CollectionConverters._

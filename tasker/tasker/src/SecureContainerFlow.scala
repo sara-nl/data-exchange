@@ -76,7 +76,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                   (
                     stateAndCode,
                     (
-                      scriptOutput,
+                      s"$scriptOutput\n$stdoutContent\n$stderrContent",
                       ContainerOutput(
                         stdoutContent,
                         stderrContent,

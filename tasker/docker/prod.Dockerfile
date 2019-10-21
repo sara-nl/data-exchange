@@ -15,6 +15,5 @@ FROM alpine:3
 WORKDIR /app
 
 RUN apk add -U openjdk11-jre-headless unzip curl
-COPY entrypoint.sh .
+COPY docker docker
 COPY --from=build /app/out/tasker/assembly/dest/out.jar out.jar
-CMD java -Djava.io.tmpdir=/tmp -cp out.jar Tasker

@@ -201,7 +201,7 @@
         {/if}
       {/if}
 
-      {#if task.state === 'success' || task.state === 'error'}
+      {#if task.state === 'success' || (task.state === 'error' && task.review_output) }
         {#if task.is_owner}
           <button class="btn btn-success" on:click={() => release_output(true)}>
             Release Output

@@ -115,7 +115,7 @@ class Tasks(viewsets.ViewSet):
             Q(state=Task.DATA_REQUESTED)
             | Q(state=Task.ANALYZING)
             | Q(state=Task.SUCCESS, review_output=True)
-            | Q(state=Task.ERROR),
+            | Q(state=Task.ERROR, review_output=True),
         ).order_by("-registered_on")
 
         own_requests = Task.objects.filter(author_email=request.user.email).order_by(
@@ -181,7 +181,11 @@ class Tasks(viewsets.ViewSet):
 
         task = Task.objects.get(pk=pk)
         is_owner = task.approver_email == request.user.email
-        if task.state != Task.OUTPUT_RELEASED and not is_owner:
+        if (
+            task.state != Task.OUTPUT_RELEASED
+            and not (task.state == Task.ERROR and task.review_output == False)
+            and not is_owner
+        ):
             task.output = None
 
         return Response({"is_owner": is_owner, **TaskSerializer(task).data})

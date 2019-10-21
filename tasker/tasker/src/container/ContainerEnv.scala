@@ -6,7 +6,7 @@ import cats.effect.IO
 import com.github.dockerjava.api.model.{AccessMode, Bind, Volume}
 import config.TaskerConfig
 import config.TaskerConfig.docker
-import container.ContainerEnv.{Artifact, Executable}
+import container.ContainerEnv.{Artifact, Executable, OutputFiles}
 
 object ContainerEnv {
 
@@ -54,6 +54,7 @@ object ContainerEnv {
     // TODO: make outputPath an option
     def output(hostHome: Path) =
       new Artifact(hostHome, Path.of(docker.containerOutPath), ".")
+      with OutputFiles
 
     def data(hostHome: Path, relativePath: String) =
       new Artifact(hostHome, Path.of(docker.containerDataPath), relativePath)
@@ -73,6 +74,28 @@ object ContainerEnv {
     }
   }
 
+  trait OutputFiles {
+    this: Artifact =>
+
+    val hostStdoutFilePath =
+      Paths.get(hostHome.toString, "stdout.txt")
+
+    val containerStdoutFilePath =
+      Paths.get(containerHome.toString, "stdout.txt")
+
+    val hostStderrFilePath =
+      Paths.get(hostHome.toString, "stderr.txt")
+
+    val containerStderrFilePath =
+      Paths.get(containerHome.toString, "stderr.txt")
+
+    val hostStraceFilePath =
+      Paths.get(hostHome.toString, "strace.txt")
+
+    val containerStraceFilePath =
+      Paths.get(containerHome.toString, "strace.txt")
+  }
+
 }
 
 /**
@@ -83,4 +106,4 @@ object ContainerEnv {
   */
 case class ContainerEnv(codeArtifact: Artifact with Executable,
                         dataArtifact: Artifact,
-                        outputArtifact: Artifact)
+                        outputArtifact: Artifact with OutputFiles)

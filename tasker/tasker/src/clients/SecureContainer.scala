@@ -88,9 +88,9 @@ object SecureContainer {
             "/app/tracerun.sh",
             dockerScriptPath.toString,
             containerEnv.dataArtifact.containerPath.toString,
-            s"${docker.containerOutPath}/stdout.txt",
-            s"${docker.containerOutPath}/error.txt",
-            s"${docker.containerOutPath}/trace.txt"
+            containerEnv.outputArtifact.containerStdoutFilePath.toString,
+            containerEnv.outputArtifact.containerStderrFilePath.toString,
+            containerEnv.outputArtifact.containerStraceFilePath.toString
           )
           .withAttachStdin(true)
           .withAttachStderr(true)

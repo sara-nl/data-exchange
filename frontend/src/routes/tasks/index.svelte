@@ -1,7 +1,9 @@
 <script lang="ts">
+    import { goto, stores } from "@sapper/app";
+
     import LoadFiles from "../../api/loader";
     import Tasks from "../../api/tasks";
-    import { goto, stores } from "@sapper/app";
+    import Spinner from "../../components/Spinner.svelte";
 
     let state_color = {
         "request_rejected": "danger",
@@ -58,7 +60,7 @@
 </h2>
 
 {#if to_approve_requests === null || own_requests === null}
-<h3>Loading...</h3>
+<Spinner />
 {:else}
 <div class="container">
     <div class="row">

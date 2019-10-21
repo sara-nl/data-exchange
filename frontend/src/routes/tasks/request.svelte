@@ -4,6 +4,7 @@
 
     import LoadFiles from "../../api/loader";
     import Tasks, { TasksStartRequest } from "../../api/tasks";
+    import Spinner from "../../components/Spinner.svelte";
 
     let state_color = {
         "request_rejected": "danger",
@@ -12,8 +13,9 @@
         "running": "info"
     }
 
-    let algorithm_files = []
+    let algorithm_files = null;
     let data = new TasksStartRequest();
+    let requesting = false;
 
     onMount(async () => {
         await getUserFiles();
@@ -25,10 +27,16 @@
     }
 
     async function createRequest(event: any) {
+        requesting = true;
         event.preventDefault();
 
-        await Tasks.start(data);
-        goto("/tasks");
+        try {
+            await Tasks.start(data);
+            goto("/tasks");
+        } catch (error) {
+            requesting = false;
+            throw error;
+        }
     }
 </script>
 
@@ -50,22 +58,23 @@
                 <div class="form-group">
                     <label for="algorithm">
                         Algorithm
-                        <select
-                            class="form-control"
-                            id="algorithm-file"
-                            bind:value={data.algorithm}
-                        >
-
-                            {#if algorithm_files.length > 0}
+                        {#if algorithm_files === null}
+                            <Spinner small />
+                        {:else if algorithm_files.length === 0}
+                            No algorithms available.
+                        {:else}
+                            <select
+                                class="form-control"
+                                id="algorithm-file"
+                                bind:value={data.algorithm}
+                            >
                                 <option value="">Select algorithm</option>
 
                                 {#each algorithm_files as file}
-                                    <option value={file}>{file}</option>
+                                    <option value={file.name}>{file.name}</option>
                                 {/each}
-                            {:else}
-                                <option value="">No algorithms available</option>
-                            {/if}
-                        </select>
+                            </select>
+                        {/if}
                     </label>
                 </div>
                 <div class="form-group">
@@ -94,9 +103,9 @@
                 <div class="form-group">
                     <input
                         type="submit"
-                        disabled={!(data.algorithm && data.data_owner && data.dataset_desc)}
+                        disabled={!(data.algorithm && data.data_owner && data.dataset_desc) || requesting}
                         class="form-control btn btn-primary"
-                        value={"Request data"}
+                        value={requesting ? "Requesting..." : "Request data"}
                     >
                 </div>
             </form>

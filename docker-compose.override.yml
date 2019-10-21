@@ -1,0 +1,43 @@
+# docker-compose overrides for development.
+
+version: "3"
+services:
+    tasker:
+        build:
+            dockerfile: "docker/dev.Dockerfile"
+        environment:
+            ENVIRONMENT: "development"
+        volumes:
+            - "./tasker:/app"
+
+    backend_listen:
+        build:
+            dockerfile: "docker/dev.Dockerfile"
+        environment:
+            DJANGO_DEBUG: 1
+        volumes:
+            - "./backend:/app"
+        command: "./docker/entrypoint.sh listen"
+
+    backend:
+        build:
+            dockerfile: "docker/dev.Dockerfile"
+        environment:
+            DJANGO_DEBUG: 1
+        volumes:
+            - "./backend:/app"
+        ports:
+            - "127.0.0.1:8000:8000"
+        command: "./docker/entrypoint.sh runserver 0.0.0.0:8000"
+
+    frontend:
+        build:
+            dockerfile: "docker/dev.Dockerfile"
+        environment:
+            NODE_ENV: "development"
+        volumes:
+            - "./frontend:/app"
+        ports:
+            - "127.0.0.1:3000:3000"
+            - "127.0.0.1:10000:10000"
+        command: "yarn dev"

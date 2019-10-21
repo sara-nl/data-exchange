@@ -1,14 +1,13 @@
 <script lang="ts">
     import LoadFiles from "../api/loader";
+    import RemoveShare from "../api/shares";
+    import Spinner from "../components/Spinner.svelte";
 
-    let own_algorithms = []
-    let own_datasets = []
+    let own_algorithms: any[] = [];
+    let own_datasets: any[] = [];
     let data = {}
 
-
-    getUserFiles()
-
-    async function getUserFiles(){
+    async function updateUserFiles(){
         try {
             let { data: response } = await LoadFiles.start();
             own_algorithms = response.output.own_algorithms;
@@ -16,9 +15,34 @@
         } catch (error) {
             console.log(error.toString())
         }
-
         return false
     }
+
+    updateUserFiles();
+
+    function removeFromList(fileList : any[], fileId : string) {
+        for(let i = 0; i< fileList.length; i++) {
+            if (fileList[i]['id'] === fileId) {
+                fileList.splice(i, 1);
+            }
+        }
+        return fileList
+    }
+
+    function quickUpdate(fileId: string) {
+        own_datasets = removeFromList(own_datasets, fileId);
+        own_algorithms = removeFromList(own_algorithms, fileId);
+    }
+
+    async function revokeFileShare(fileId: string){
+         try {
+             quickUpdate(fileId);
+             RemoveShare.remove(fileId).then(updateUserFiles)
+         } catch (error) {
+             console.log(error.toString())
+         }
+         return false
+     }
 </script>
 
 
@@ -36,28 +60,38 @@
 
     <div class="row">
         <div class="col">
-            <h3>Algorithms:</h3>
-            {#if own_algorithms.length > 0}
+            {#if own_algorithms === null || own_datasets === null}
+                <Spinner />
+            {:else}
+                <h3>Algorithms:</h3>
                 {#each own_algorithms as file}
-                    <div>{file}</div>
+                    <div style="height: 40px">
+                        {file.name}
+                        <button style="float: right;" class="btn btn-danger" on:click={() => revokeFileShare(file.id)}>
+                            Revoke
+                        </button>
+                    </div>
+                {:else}
+                    <div>You have shared no algorithms</div>
                 {/each}
-            {:else}
-                <div>You have shared no algorithms</div>
-            {/if}
-            <br>
+                <br>
 
-            <h3>Datasets:</h3>
-            {#if own_datasets.length > 0}
+                <h3>Datasets:</h3>
                 {#each own_datasets as file}
-                    <div>{file}</div>
+                    <div style="height: 40px">
+                        {file.name}
+                        <button style="float: right;" class="btn btn-danger" on:click={() => revokeFileShare(file.id)}>
+                            Revoke
+                        </button>
+                    </div>
+                {:else}
+                    <div>You have shared no datasets</div>
                 {/each}
-            {:else}
-                <div>You have shared no datasets</div>
             {/if}
         </div>
         <br>
         <div class="col border">
-            <h4 class="dispay-1">How to share files:</h4>
+            <h4>How to share files:</h4>
 
             <p><b>1.</b> Register and activate account with the <u>same email</u> as on ResearchDrive</p>
             <p><b>2.</b> In <a href="https://researchdrive.surfsara.nl">ResearchDrive</a> click on the share icon next to the file</p>

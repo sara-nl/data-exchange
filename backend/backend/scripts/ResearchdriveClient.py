@@ -162,6 +162,18 @@ class ResearchdriveClient:
             self.filter_shares(uid_owner)
         return self.shares
 
+    def remove_share_by_id(self, share_id):
+        endpoint = f'{ResearchdriveClient.share_api_endpoint}/{share_id}'
+        response = self.__execute_request(endpoint, "DELETE")
+        return self.parse_revoke_share_xml(response) == "100"
+
+    def remove_share(self, remote_path):
+        shares = self.get_shares()
+        share = self.__compare_tag(remote_path, shares, "file_target")
+        if share:
+            return self.remove_share_by_id(share['id'])
+        return True
+
     def filter_shares(self, uid_owner):
         """
         Filters and updates shares based on a unique id of the owner.
@@ -209,6 +221,20 @@ class ResearchdriveClient:
         )
 
         return self.parse_fileid_etag_xml(content)
+
+    def get_remote_path(self, file_id):
+        shares = self.get_shares()
+        for share in shares:
+            if str(share['item_source']) == str(file_id):
+                return share['path']
+        return False
+
+    def get_share_id(self, file_id):
+        shares = self.get_shares()
+        for share in shares:
+            if str(share['item_source']) == str(file_id):
+                return share['id']
+        return False
 
     def get_file_versions(self, remote_path):
         """
@@ -259,9 +285,6 @@ class ResearchdriveClient:
         else:
             return response.text
 
-    def get_remote_path(self, file_id):
-        return
-
     @staticmethod
     def parse_version_xml(content):
         """
@@ -306,6 +329,11 @@ class ResearchdriveClient:
                 "{DAV:}propstat/{DAV:}prop/{http://owncloud.org/ns}fileid"
             ),
         }
+
+    @staticmethod
+    def parse_revoke_share_xml(content):
+        tree = etree.fromstring(content)
+        return tree.findtext(".//statuscode")
 
 
 def main():

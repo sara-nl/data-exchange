@@ -1,30 +1,7 @@
 # Deploying
-## Frontend
-First install `nodejs` and `npm`, and then use `npm` to install `yarn`:
+First, install Docker and docker-compose, then run
+`docker-compose -f docker-compose.yml -f docker-compose.prod.yml up --build -d`.
 
-```bash
-sudo apt update
-sudo apt install nodejs npm
-
-sudo npm install -g yarn
-```
-
-Then, to install dependencies and build a production-ready version of the application, `cd` to the `frontend` directory and run:
-
-```bash
-# Install dependencies
-yarn install
-
-# Create a production-ready version
-yarn build
-```
-
-After this is finished, run the frontend server. For now, this is done with `nohup`, but this will be replaced by Docker in the future:
-
-```bash
-nohup node __happer__/build &
-```
-
-Logs will be output to `nohup.out`.
-
-## Backend
+Then, configure a reverse proxy to `http://localhost:3000`
+([instructions for nginx](https://docs.nginx.com/nginx/admin-guide/web-server/reverse-proxy/)),
+set up HTTPS and you're done!

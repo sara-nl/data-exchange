@@ -1,0 +1,11 @@
+Dear user,
+
+The dataset owner has revoked your access to the dataset {{dataset}}.
+
+Click the following link for more detail about the datasets you have access to:
+{{url}}
+
+If the above link is not clickable, try copying and pasting it into the address
+bar of your web browser.
+
+DataExchange

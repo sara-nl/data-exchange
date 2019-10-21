@@ -1,10 +1,12 @@
 Dear user,
-You have a request for the use of one of your shared datasets.
+
+You have received a request from {{author}} for the use of one of your shared
+datasets ({{dataset}}).
 
 Click the following link to review this request:
-{{ url }}
+{{url}}
 
-If the above link is not clickable, try copying and pasting it into the address bar of your web browser.
-
+If the above link is not clickable, try copying and pasting it into the address
+bar of your web browser.
 
 DataExchange

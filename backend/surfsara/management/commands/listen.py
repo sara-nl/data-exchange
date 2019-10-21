@@ -1,4 +1,5 @@
 import pika
+import os
 from django.core.management.base import BaseCommand, CommandError
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
@@ -20,7 +21,15 @@ class Command(BaseCommand):
 
     def __init__(self):
         super().__init__()
-        self.connection = pika.BlockingConnection()
+        self.connection = pika.BlockingConnection(
+            pika.ConnectionParameters(
+                host=os.environ.get("RABBITMQ_HOST", "localhost"),
+                credentials=pika.PlainCredentials(
+                    username=os.environ.get("RABBITMQ_USERNAME", "guest"),
+                    password=os.environ.get("RABBITMQ_PASSWORD", "guest"),
+                ),
+            )
+        )
         self.channel = self.connection.channel()
 
     def handle(self, *args, **options):
@@ -41,9 +50,16 @@ class Command(BaseCommand):
 
             task = Task.objects.get(pk=task_completed.task_id)
             task.output = task_completed.output
-            task.state = task_completed.state
+
+            if not task.review_output and task_completed.state == "success":
+                task.state = Task.OUTPUT_RELEASED
+            else:
+                task.state = task_completed.state
             task.save()
 
+            # TODO: Actually show the URL in the email. Currently, we can't really know
+            # what domain we're hosting on. Should probably get this from an environment
+            # variable, configured in the docker-compose.yml (or Django's settings.py)
             mail_service.send_mail(
                 mail_files="finished_running",
                 receiver=task.approver_email,

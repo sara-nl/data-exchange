@@ -7,23 +7,24 @@ import * as sapper from '@sapper/server';
 const { PORT, NODE_ENV } = process.env;
 const dev = NODE_ENV === 'development';
 
-polka()
+// Handle SIGTERM, to immediately quit when Docker asks us to.
+process.on("SIGTERM", () => process.exit(128 + 15));
+
+let server = polka();
+
+if (dev) {
+    server = server.use(
+        proxy('/api', { target: 'http://backend:8000' }),
+        proxy('/static', { target: 'http://backend:8000' }),
+        proxy('/admin', { target: 'http://backend:8000' }),
+    );
+}
+
+server
     .use(
-        proxy('/api', {
-          logLevel: 'debug',
-          target: 'http://localhost:8000',
-        }),
-        proxy('/static', {
-          logLevel: 'debug',
-          target: 'http://localhost:8000',
-        }),
-        proxy('/admin', {
-          logLevel: 'debug',
-          target: 'http://localhost:8000',
-        }),
         compression({ threshold: 0 }),
         sirv('static', { dev }),
-        sapper.middleware()
+        sapper.middleware(),
     )
     .listen(PORT, err => {
         if (err) console.log('error', err);

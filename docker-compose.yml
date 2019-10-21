@@ -1,0 +1,61 @@
+# Base docker-compose file
+
+version: "3"
+services:
+    tasker:
+        build:
+            context: "tasker/"
+        environment:
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_USERNAME: guest
+            RABBITMQ_PASSWORD: guest
+        depends_on:
+            - rabbitmq
+        volumes:
+            - /var/run/docker.sock:/var/run/docker.sock
+            - /tmp/tasker:/tmp/tasker
+        command: "./docker/entrypoint.sh"
+
+    backend_listen:
+        build:
+            context: "backend/"
+        environment:
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_USERNAME: guest
+            RABBITMQ_PASSWORD: guest
+            DJANGO_DB_ENGINE: postgresql_psycopg2
+            DJANGO_DB_HOST: postgres
+            DJANGO_DB_NAME: surfsara
+            DJANGO_DB_USER: surfsara
+        depends_on:
+            - rabbitmq
+            - postgres
+
+    backend:
+        build:
+            context: "backend/"
+        environment:
+            RABBITMQ_HOST: rabbitmq
+            RABBITMQ_USERNAME: guest
+            RABBITMQ_PASSWORD: guest
+            DJANGO_DB_ENGINE: postgresql_psycopg2
+            DJANGO_DB_HOST: postgres
+            DJANGO_DB_NAME: surfsara
+            DJANGO_DB_USER: surfsara
+        depends_on:
+            - rabbitmq
+            - postgres
+
+    frontend:
+        build:
+            context: "frontend/"
+
+    postgres:
+        image: postgres:11-alpine
+        environment:
+            POSTGRES_USER: surfsara
+
+    rabbitmq:
+        image: rabbitmq:3-management-alpine
+        ports:
+            - 127.0.0.1:8080:15672

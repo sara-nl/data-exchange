@@ -1,7 +1,9 @@
 <script>
     import { onMount } from "svelte";
     import { stores } from "@sapper/app";
+
     import Users, { ActivateRequest } from "../../api/users";
+    import Spinner from "../../components/Spinner.svelte";
 
     const { page } = stores();
     const { token, pk } = $page.query;
@@ -25,7 +27,7 @@
     <div class="row">
         <div class="col-xs-12 col-md-8">
             {#if loading}
-                <h1>Loading...</h1>
+                <Spinner />
             {:else if error}
                 <h1>Something went wrong</h1>
                 <p>{error}</p>

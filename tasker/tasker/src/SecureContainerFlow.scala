@@ -2,9 +2,11 @@ import java.io.FileInputStream
 
 import Messages.ContainerOutput
 import cats.effect._
-import clients.SecureContainer.{removeContainer, startContainer}
+import clients.DockerContainer.{removeContainer, startContainer}
 import clients.webdav.{Webdav, WebdavPath}
-import clients.SecureContainer
+import clients.DockerContainer
+import com.github.dockerjava.api.model.ContainerConfig
+import container.ContainerCommand
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.syntax._
@@ -47,14 +49,19 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                 val containerOutputIO = for {
                   _ <- logger.info(s"Container environment: ${containerEnv}")
                   _ <- filesDownloadedIO
-                  containerId <- SecureContainer.createContainer(containerEnv)
-                  _ <- logger.info(s"Created container $containerId")
-                  _ <- startContainer(containerId)
-                  stateAndCode <- SecureContainer.lastStatusIO(containerId)
+                  runAlgorithmCmd <- ContainerCommand
+                    .runWithStrace(containerEnv)
+                  runAlgorithmCntId <- DockerContainer
+                    .createContainer(containerEnv, runAlgorithmCmd)
+                  _ <- logger.info(s"Created container $runAlgorithmCntId")
+                  _ <- startContainer(runAlgorithmCntId)
+                  stateAndCode <- DockerContainer
+                    .lastStatusIO(runAlgorithmCntId)
                   _ <- logger.info(
-                    s"Container $containerId execution stopped with ${stateAndCode.toString}"
+                    s"Container $runAlgorithmCntId execution stopped with ${stateAndCode.toString}"
                   )
-                  scriptOutput <- SecureContainer.outputStream(containerId)
+                  scriptOutput <- DockerContainer
+                    .outputStream(runAlgorithmCntId)
                   stdoutContent <- FilesIO.readFileContent(
                     containerEnv.outputArtifact.hostStdoutFilePath
                   )
@@ -70,8 +77,8 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                   _ <- logger.info(
                     s"\n ----- Start of STDERR -----\n $stderrContent \n ----- End of STDERR -----"
                   )
-                  _ <- removeContainer(containerId)
-                  _ <- logger.info(s"Removed container: $containerId")
+                  _ <- removeContainer(runAlgorithmCntId)
+                  _ <- logger.info(s"Removed container: $runAlgorithmCntId")
                 } yield
                   (
                     stateAndCode,

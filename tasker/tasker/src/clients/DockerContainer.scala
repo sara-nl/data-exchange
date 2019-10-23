@@ -5,17 +5,17 @@ import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
 import config.TaskerConfig
-import container.ContainerEnv
+import container.{ContainerCommand, ContainerEnv}
 
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
-object SecureContainer {
+object DockerContainer {
 
-  private val client = DockerClientBuilder.getInstance().build()
+  private val dockerClient = DockerClientBuilder.getInstance().build()
 
   def lastStatusIO(containerId: String): IO[Option[(String, Int)]] =
-    SecureContainer
+    DockerContainer
       .statusStream(containerId)
       .compile
       .last
@@ -23,7 +23,7 @@ object SecureContainer {
   def statusStream(containerId: String): fs2.Stream[IO, (String, Int)] = {
     fs2.Stream
       .eval(IO {
-        client.inspectContainerCmd(containerId).exec().getState
+        dockerClient.inspectContainerCmd(containerId).exec().getState
       })
       .flatMap {
         case state if state.getRunning =>
@@ -39,7 +39,7 @@ object SecureContainer {
     import fs2.concurrent._
 
     def allLogsCommand(containerId: String) =
-      client
+      dockerClient
         .logContainerCmd(containerId)
         .withFollowStream(false)
         .withTailAll()
@@ -67,13 +67,13 @@ object SecureContainer {
     } yield lastOption.getOrElse("")
   }
 
-  def createContainer(containerEnv: ContainerEnv): IO[String] = {
+  def createContainer(containerEnv: ContainerEnv,
+                      command: ContainerCommand): IO[String] = {
     for {
-      dockerScriptPath <- containerEnv.codeArtifact.executablePath
-      command <- IO {
-        client
+      dockerCommand <- IO {
+        dockerClient
           .createContainerCmd(TaskerConfig.docker.image)
-          .withNetworkDisabled(true)
+          .withNetworkDisabled(command.secureContainer)
           .withHostConfig(
             new HostConfig().withBinds(
               List(
@@ -83,28 +83,21 @@ object SecureContainer {
               ).asJava
             )
           )
-          .withCmd(
-            "/app/tracerun.sh",
-            dockerScriptPath.toString,
-            containerEnv.dataArtifact.containerPath.toString,
-            containerEnv.outputArtifact.containerStdoutFilePath.toString,
-            containerEnv.outputArtifact.containerStderrFilePath.toString,
-            containerEnv.outputArtifact.containerStraceFilePath.toString
-          )
+          .withCmd(command.toArgs.asJava)
           .withAttachStdin(true)
           .withAttachStderr(true)
       }
-      result <- IO(command.exec())
+      result <- IO(dockerCommand.exec())
     } yield result.getId
   }
 
   def startContainer(containerId: String): IO[String] = IO {
-    client.startContainerCmd(containerId).exec()
+    dockerClient.startContainerCmd(containerId).exec()
     containerId
   }
 
   def removeContainer(containerId: String): IO[String] = IO {
-    client.removeContainerCmd(containerId).exec()
+    dockerClient.removeContainerCmd(containerId).exec()
     containerId
   }
 

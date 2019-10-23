@@ -1,11 +1,8 @@
-import java.io.FileInputStream
-
 import Messages.ContainerOutput
 import cats.effect._
 import clients.DockerContainer.{removeContainer, startContainer}
 import clients.webdav.{Webdav, WebdavPath}
 import clients.DockerContainer
-import com.github.dockerjava.api.model.ContainerConfig
 import container.ContainerCommand
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
@@ -23,32 +20,51 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
       .through(Codecs.messageDecodePipe)
       .evalMap {
         case Right(startContainerCmd) =>
-          Slf4jLogger.create[IO].flatMap { implicit logger =>
+          Slf4jLogger.create[IO].flatMap { logger =>
             Resources
               .containerEnvironmentResource(startContainerCmd)
               .use { containerEnv =>
-                val filesDownloadedIO = fs2.Stream
-                  .emits(
-                    List(
-                      (
-                        WebdavPath(startContainerCmd.codePath),
-                        containerEnv.codeArtifact.hostHome
-                      ),
-                      (
-                        WebdavPath(startContainerCmd.dataPath),
-                        containerEnv.dataArtifact.hostHome
-                      )
-                    )
-                  )
-                  .through(Webdav.downloadFilesPipe)
-                  .compile
-                  .drain
-
+                val artifactsToBeDownloaded = Map(
+                  WebdavPath(startContainerCmd.codePath) -> containerEnv.codeArtifact,
+                  WebdavPath(startContainerCmd.dataPath) -> containerEnv.dataArtifact
+                )
                 import config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
 
                 val containerOutputIO = for {
                   _ <- logger.info(s"Container environment: ${containerEnv}")
-                  _ <- filesDownloadedIO
+                  _ <- Webdav.downloadToHost(artifactsToBeDownloaded)
+                  requirementsFileOption <- containerEnv.codeArtifact.requirementsFile
+                  _ <- {
+                    requirementsFileOption match {
+                      case Some(requirements) =>
+                        for {
+                          _ <- logger
+                            .info(s"Installing requirements from $requirements")
+                          installReqCmd <- ContainerCommand
+                            .installDeps(requirements)
+                          containerId <- DockerContainer
+                            .createContainer(containerEnv, installReqCmd)
+                          _ <- logger.info(
+                            s"Container with installed dependencies: ${containerId}"
+                          )
+                          _ <- startContainer(containerId)
+                          stateAndCode <- DockerContainer
+                            .lastStatusIO(containerId)
+                          _ <- logger.info(
+                            s"Container $containerId execution stopped with ${stateAndCode.toString}"
+                          )
+                          imageId <- DockerContainer.commit(containerId)
+                          _ <- logger.info(
+                            s"Image id with installed dependencies: $imageId"
+                          )
+                          scriptOutput <- DockerContainer
+                            .outputStream(containerId)
+                          _ <- logger.info(s"Container output: $scriptOutput")
+                        } yield ()
+                      case None =>
+                        logger.info("There are no requirements to install")
+                    }
+                  }
                   runAlgorithmCmd <- ContainerCommand
                     .runWithStrace(containerEnv)
                   runAlgorithmCntId <- DockerContainer

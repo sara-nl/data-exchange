@@ -41,6 +41,7 @@ object TaskerConfig {
   object docker {
     val image = "datex:latest"
     val indexFile = "run.py"
+    val requirementsFile = "requirements.txt"
     val containerCodePath = "/tmp/code"
     val containerDataPath = "/tmp/data"
     val containerOutPath = "/tmp/out"

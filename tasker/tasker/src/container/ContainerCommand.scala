@@ -1,5 +1,7 @@
 package container
 
+import java.nio.file.Path
+
 import cats.effect.IO
 
 object ContainerCommand {
@@ -8,7 +10,7 @@ object ContainerCommand {
       ContainerCommand(
         "/app/tracerun.sh",
         List(
-          codeEntryPoint,
+          codeEntryPoint.toString,
           env.dataArtifact.containerPath.toString,
           env.outputArtifact.containerStdoutFilePath.toString,
           env.outputArtifact.containerStderrFilePath.toString,
@@ -16,8 +18,14 @@ object ContainerCommand {
         )
       )
 
-  def installDeps(env: ContainerEnv) =
-    IO.pure(ContainerCommand(???, List(???), secureContainer = false))
+  def installDeps(requirementsContainerPath: Path) =
+    IO.pure(
+      ContainerCommand(
+        "pip",
+        List("install", "-r", requirementsContainerPath.toString),
+        secureContainer = false
+      )
+    )
 }
 
 /**

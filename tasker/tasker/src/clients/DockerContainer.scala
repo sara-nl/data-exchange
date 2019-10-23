@@ -9,6 +9,7 @@ import container.{ContainerCommand, ContainerEnv}
 
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
+import scala.util.Try
 
 object DockerContainer {
 
@@ -66,6 +67,14 @@ object DockerContainer {
         .last
     } yield lastOption.getOrElse("")
   }
+
+  def commit(containerId: String) =
+    IO(
+      dockerClient
+        .commitCmd(containerId)
+        .withTag("datex/tasker")
+        .exec()
+    )
 
   def createContainer(containerEnv: ContainerEnv,
                       command: ContainerCommand): IO[String] = {

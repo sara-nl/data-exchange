@@ -2,8 +2,6 @@ package container
 
 import java.nio.file.Path
 
-import cats.effect.IO
-
 object ContainerCommand {
   def runWithStrace(env: ContainerEnv) =
     for { codeEntryPoint <- env.codeArtifact.executablePath } yield
@@ -19,12 +17,10 @@ object ContainerCommand {
       )
 
   def installDeps(requirementsContainerPath: Path) =
-    IO.pure(
-      ContainerCommand(
-        "pip",
-        List("install", "-r", requirementsContainerPath.toString),
-        secureContainer = false
-      )
+    ContainerCommand(
+      "pip",
+      List("install", "-r", requirementsContainerPath.toString),
+      secureContainer = false
     )
 }
 

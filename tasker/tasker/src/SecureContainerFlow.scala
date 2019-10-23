@@ -1,19 +1,42 @@
+import java.nio.file.Path
+
 import Messages.ContainerOutput
 import cats.effect._
-import clients.DockerContainer.{removeContainer, startContainer}
 import clients.webdav.{Webdav, WebdavPath}
 import clients.DockerContainer
-import container.ContainerCommand
+import config.TaskerConfig
+import container.{ContainerCommand, ContainerEnv}
+import container.Ids.ImageId
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.syntax._
 import utils.FilesIO
-
+import cats.implicits._
 import scala.language.postfixOps
 
 class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                           publisher: AmqpMessage[String] => IO[Unit]) {
   import io.circe.generic.auto._
+
+  // TODO: handle error in installed dependencies
+  private def imageResource(
+    containerEnv: ContainerEnv,
+    requirementsTxtOption: Option[Path]
+  ): Resource[IO, ImageId] = requirementsTxtOption match {
+    case Some(requirementsTxtContainerPath) =>
+      DockerContainer
+        .startedContainer(
+          containerEnv,
+          ContainerCommand.installDeps(requirementsTxtContainerPath),
+          TaskerConfig.docker.image
+        )
+        .evalMap(
+          containerId =>
+            DockerContainer.lastStatusIO(containerId) *> IO.pure(containerId)
+        )
+        .flatMap(containerId => DockerContainer.imageFromContainer(containerId))
+    case None => Resource.pure(TaskerConfig.docker.image)
+  }
 
   val flow: fs2.Stream[IO, Unit] =
     consumer
@@ -31,53 +54,74 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                 import config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
 
                 val containerOutputIO = for {
-                  _ <- logger.info(s"Container environment: ${containerEnv}")
+                  _ <- logger.info(s"Container environment: $containerEnv")
                   _ <- Webdav.downloadToHost(artifactsToBeDownloaded)
                   requirementsFileOption <- containerEnv.codeArtifact.requirementsFile
-                  _ <- {
-                    requirementsFileOption match {
-                      case Some(requirements) =>
-                        for {
-                          _ <- logger
-                            .info(s"Installing requirements from $requirements")
-                          installReqCmd <- ContainerCommand
-                            .installDeps(requirements)
-                          containerId <- DockerContainer
-                            .createContainer(containerEnv, installReqCmd)
-                          _ <- logger.info(
-                            s"Container with installed dependencies: ${containerId}"
-                          )
-                          _ <- startContainer(containerId)
-                          stateAndCode <- DockerContainer
-                            .lastStatusIO(containerId)
-                          _ <- logger.info(
-                            s"Container $containerId execution stopped with ${stateAndCode.toString}"
-                          )
-                          imageId <- DockerContainer.commit(containerId)
-                          _ <- logger.info(
-                            s"Image id with installed dependencies: $imageId"
-                          )
-                          scriptOutput <- DockerContainer
-                            .outputStream(containerId)
-                          _ <- logger.info(s"Container output: $scriptOutput")
-                        } yield ()
-                      case None =>
-                        logger.info("There are no requirements to install")
-                    }
-                  }
+//                  _ <- {
+//                    requirementsFileOption match {
+//                      case Some(requirements) =>
+//                        for {
+//                          _ <- logger
+//                            .info(s"Installing requirements from $requirements")
+//                          installReqCmd <- ContainerCommand
+//                            .installDeps(requirements)
+//                          containerId <- DockerContainer
+//                            .createContainer(containerEnv, installReqCmd)
+//                          _ <- logger.info(
+//                            s"Container with installed dependencies: ${containerId}"
+//                          )
+//                          _ <- startContainer(containerId)
+//                          stateAndCode <- DockerContainer
+//                            .lastStatusIO(containerId)
+//                          _ <- logger.info(
+//                            s"Container $containerId execution stopped with ${stateAndCode.toString}"
+//                          )
+//                          imageId <- DockerContainer.createImage(containerId)
+//                          _ <- logger.info(
+//                            s"Image id with installed dependencies: $imageId"
+//                          )
+//                          scriptOutput <- DockerContainer
+//                            .outputStream(containerId)
+//                          _ <- logger.info(s"Container output: $scriptOutput")
+//                        } yield ()
+//                      case None =>
+//                        logger.info("There are no requirements to install")
+//                    }
+//                  }
                   runAlgorithmCmd <- ContainerCommand
                     .runWithStrace(containerEnv)
-                  runAlgorithmCntId <- DockerContainer
-                    .createContainer(containerEnv, runAlgorithmCmd)
-                  _ <- logger.info(s"Created container $runAlgorithmCntId")
-                  _ <- startContainer(runAlgorithmCntId)
-                  stateAndCode <- DockerContainer
-                    .lastStatusIO(runAlgorithmCntId)
-                  _ <- logger.info(
-                    s"Container $runAlgorithmCntId execution stopped with ${stateAndCode.toString}"
-                  )
-                  scriptOutput <- DockerContainer
-                    .outputStream(runAlgorithmCntId)
+                  results <- imageResource(containerEnv, requirementsFileOption)
+                    .use { imageId =>
+                      DockerContainer
+                        .startedContainer(
+                          containerEnv,
+                          runAlgorithmCmd,
+                          imageId
+                        )
+                        .use(containerId => {
+                          for {
+                            stateAndCodeOption <- DockerContainer
+                              .lastStatusIO(containerId)
+                            _ <- logger.info(
+                              s"$containerId execution stopped with ${stateAndCodeOption.toString}"
+                            )
+                            scriptOutput <- DockerContainer
+                              .outputStream(containerId)
+                          } yield (stateAndCodeOption, scriptOutput)
+                        })
+                    }
+                  (stateAndCodeOption, scriptOutput) = results
+//                  runAlgorithmCntId <- DockerContainer
+//                    .createContainer(containerEnv, runAlgorithmCmd)
+//                  _ <- logger.info(s"Created container $runAlgorithmCntId")
+//                  _ <- startContainer(runAlgorithmCntId)
+//                  stateAndCode <- DockerContainer
+//                    .lastStatusIO(runAlgorithmCntId)
+//                  _ <- logger.info(
+//                    s"Container $runAlgorithmCntId execution stopped with ${stateAndCode.toString}"
+//                  )
+//                  scriptOutput <- DockerContainer
+//                    .outputStream(runAlgorithmCntId)
                   stdoutContent <- FilesIO.readFileContent(
                     containerEnv.outputArtifact.hostStdoutFilePath
                   )
@@ -93,11 +137,11 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                   _ <- logger.info(
                     s"\n ----- Start of STDERR -----\n $stderrContent \n ----- End of STDERR -----"
                   )
-                  _ <- removeContainer(runAlgorithmCntId)
-                  _ <- logger.info(s"Removed container: $runAlgorithmCntId")
+//                  _ <- removeContainer(runAlgorithmCntId)
+//                  _ <- logger.info(s"Removed container: $runAlgorithmCntId")
                 } yield
                   (
-                    stateAndCode,
+                    stateAndCodeOption,
                     (
                       s"$scriptOutput\n$stdoutContent\n$stderrContent",
                       ContainerOutput(

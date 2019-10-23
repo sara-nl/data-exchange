@@ -4,27 +4,32 @@ import cats.effect.{IO, _}
 import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
-import config.TaskerConfig
+import cats.implicits._
+import container.Ids.{ContainerId, ImageId}
 import container.{ContainerCommand, ContainerEnv}
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
-import scala.util.Try
 
+// TODO: reduce methods visibility as much as possible
 object DockerContainer {
 
   private val dockerClient = DockerClientBuilder.getInstance().build()
 
-  def lastStatusIO(containerId: String): IO[Option[(String, Int)]] =
+  /**
+    * Returns IO of the last state and the exit code.
+    */
+  def lastStatusIO(containerId: ContainerId): IO[Option[(String, Int)]] =
     DockerContainer
       .statusStream(containerId)
       .compile
       .last
 
-  def statusStream(containerId: String): fs2.Stream[IO, (String, Int)] = {
+  def statusStream(containerId: ContainerId): fs2.Stream[IO, (String, Int)] = {
     fs2.Stream
       .eval(IO {
-        dockerClient.inspectContainerCmd(containerId).exec().getState
+        dockerClient.inspectContainerCmd(containerId.value).exec().getState
       })
       .flatMap {
         case state if state.getRunning =>
@@ -35,13 +40,14 @@ object DockerContainer {
       }
   }
 
-  def outputStream(containerId: String)(implicit F: ConcurrentEffect[IO],
-                                        cs: ContextShift[IO]): IO[String] = {
+  def outputStream(
+    containerId: ContainerId
+  )(implicit F: ConcurrentEffect[IO], cs: ContextShift[IO]): IO[String] = {
     import fs2.concurrent._
 
-    def allLogsCommand(containerId: String) =
+    val allLogsCommand =
       dockerClient
-        .logContainerCmd(containerId)
+        .logContainerCmd(containerId.value)
         .withFollowStream(false)
         .withTailAll()
         .withStdErr(true)
@@ -51,7 +57,7 @@ object DockerContainer {
     for {
       q <- Queue.noneTerminated[IO, String]
       _ <- IO.delay {
-        allLogsCommand(containerId)
+        allLogsCommand
           .exec(new LogContainerResultCallback {
             override def onNext(item: Frame): Unit = {
               val line = new String(item.getPayload)
@@ -68,20 +74,64 @@ object DockerContainer {
     } yield lastOption.getOrElse("")
   }
 
-  def commit(containerId: String) =
+  /**
+    * Makes a snapshot of the container and returns the ID of an image
+    */
+  def createImage(containerId: ContainerId): IO[ImageId] =
+    IO(
+      ImageId(
+        dockerClient
+          .commitCmd(containerId.value)
+          .withTag("datex/tasker")
+          .exec()
+      )
+    ).flatMap { imageId =>
+      Slf4jLogger
+        .getLogger[IO]
+        .info(s"Created $imageId from $containerId") *> IO.pure(imageId)
+    }
+
+  /**
+    * Removes the image with the given ID
+    */
+  def removeImage(imageId: ImageId): IO[Unit] =
     IO(
       dockerClient
-        .commitCmd(containerId)
-        .withTag("datex/tasker")
+        .removeImageCmd(imageId.value)
         .exec()
-    )
+    ) *> Slf4jLogger
+      .getLogger[IO]
+      .info(s"Removed $imageId")
+
+  /**
+    * Resource of a docker container.
+    * Acquire: creates a new container and executes the command.
+    * Release: removes the container.
+    */
+  def startedContainer(containerEnv: ContainerEnv,
+                       cmd: ContainerCommand,
+                       imageId: ImageId): Resource[IO, ContainerId] =
+    Resource.make(for {
+      containerId <- DockerContainer
+        .createContainer(containerEnv, cmd, imageId)
+      _ <- startContainer(containerId)
+    } yield containerId)(removeContainer)
+
+  /**
+    * Resource of an image created from a container.
+    * Acquire: creates an image of a container using `snapshot` operation.
+    * Release: removes the image.
+    */
+  def imageFromContainer(containerId: ContainerId): Resource[IO, ImageId] =
+    Resource.make(createImage(containerId))(removeImage)
 
   def createContainer(containerEnv: ContainerEnv,
-                      command: ContainerCommand): IO[String] = {
+                      command: ContainerCommand,
+                      imageId: ImageId): IO[ContainerId] = {
     for {
       dockerCommand <- IO {
         dockerClient
-          .createContainerCmd(TaskerConfig.docker.image)
+          .createContainerCmd(imageId.value)
           .withNetworkDisabled(command.secureContainer)
           .withHostConfig(
             new HostConfig().withBinds(
@@ -96,18 +146,21 @@ object DockerContainer {
           .withAttachStdin(true)
           .withAttachStderr(true)
       }
-      result <- IO(dockerCommand.exec())
-    } yield result.getId
+      containerId <- IO(ContainerId(dockerCommand.exec().getId))
+      _ <- Slf4jLogger.getLogger[IO].info(s"Created $containerId")
+    } yield containerId
   }
 
-  def startContainer(containerId: String): IO[String] = IO {
-    dockerClient.startContainerCmd(containerId).exec()
-    containerId
-  }
+  def startContainer(containerId: ContainerId): IO[ContainerId] =
+    IO(dockerClient.startContainerCmd(containerId.value).exec()) *>
+      Slf4jLogger
+        .getLogger[IO]
+        .info(s"Started $containerId") *>
+      IO.pure(containerId)
 
-  def removeContainer(containerId: String): IO[String] = IO {
-    dockerClient.removeContainerCmd(containerId).exec()
-    containerId
-  }
+  def removeContainer(containerId: ContainerId): IO[Unit] =
+    IO {
+      dockerClient.removeContainerCmd(containerId.value).exec()
+    } *> Slf4jLogger.getLogger[IO].info(s"Removed $containerId")
 
 }

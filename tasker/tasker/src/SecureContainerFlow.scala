@@ -23,24 +23,19 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
       logger <- Slf4jLogger.create[IO]
       requirementsFileOption <- containerEnv.codeArtifact.requirementsFile
       result <- Resources
-        .bakedImageResource(containerEnv, requirementsFileOption)
-        .use { imageId =>
-          DockerContainer
-            .startedContainer(containerEnv, runAlgorithmCmd, imageId)
-            .use(containerId => {
-              for {
-                stateAndCodeOption <- DockerContainer.lastStatusIO(containerId)
-                _ <- logger.info(
-                  s"$containerId execution stopped with ${stateAndCodeOption.toString}"
-                )
-                scriptOutput <- DockerContainer.outputStream(containerId)
-              } yield
-                stateAndCodeOption match {
-                  case Some((status, code)) =>
-                    ContainerState.Exited(code, status, scriptOutput)
-                  case None => ContainerState.Unknown
-                }
-            })
+        .bakedImageWithDeps(containerEnv, requirementsFileOption)
+        .use {
+          case Right(imageId) =>
+            DockerContainer
+              .startedContainer(containerEnv, runAlgorithmCmd, imageId)
+              .use(containerId => {
+                for {
+                  state <- DockerContainer.terminalStateIO(containerId)
+                  _ <- logger
+                    .info(s"$containerId execution stopped with ${state}")
+                } yield state
+              })
+          case Left(containerState) => IO.pure(containerState)
         }
     } yield result
 
@@ -61,10 +56,16 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
             endState <- runAlgorithm(containerEnv, runAlgorithmCmd)
             stdoutContent <- FilesIO
               .readFileContent(containerEnv.outputArtifact.hostStdoutFilePath)
+              .attempt
+              .map(_.toOption.getOrElse(""))
             stderrContent <- FilesIO
               .readFileContent(containerEnv.outputArtifact.hostStderrFilePath)
+              .attempt
+              .map(_.toOption.getOrElse(""))
             straceContent <- FilesIO
               .readFileContent(containerEnv.outputArtifact.hostStraceFilePath)
+              .attempt
+              .map(_.toOption.getOrElse(""))
             _ <- logger.info(
               LogMessages.largeOutputWithNewlines("STDOUT", stdoutContent)
             )
@@ -109,6 +110,8 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
         case Right(startContainerCmd) =>
           for {
             doneMsg <- processMessage(startContainerCmd)
+            logger <- Slf4jLogger.create[IO]
+            _ <- logger.info(s"The DONE message is $doneMsg")
             _ <- publisher(
               AmqpMessage(doneMsg.asJson.spaces2, AmqpProperties())
             )

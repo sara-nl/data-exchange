@@ -6,27 +6,44 @@ import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
 import cats.implicits._
 import container.Ids.{ContainerId, ImageId}
-import container.{ContainerCommand, ContainerEnv}
+import container.{ContainerCommand, ContainerEnv, ContainerState}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 import scala.jdk.CollectionConverters._
 import scala.language.postfixOps
 
-// TODO: reduce methods visibility as much as possible
 object DockerContainer {
 
   private val dockerClient = DockerClientBuilder.getInstance().build()
 
+  def terminalStateIO(containerId: ContainerId)(
+    implicit F: ConcurrentEffect[IO],
+    cs: ContextShift[IO]
+  ): IO[ContainerState] =
+    for {
+      lastStatusOption <- lastStatusIO(containerId)
+      output <- outputStream(containerId)
+    } yield
+      lastStatusOption match {
+        case Some((dockerState, exitCode)) =>
+          ContainerState.Exited(exitCode, dockerState, output)
+        case _ => ContainerState.Unknown
+      }
+
   /**
     * Returns IO of the last state and the exit code.
     */
-  def lastStatusIO(containerId: ContainerId): IO[Option[(String, Int)]] =
+  private def lastStatusIO(
+    containerId: ContainerId
+  ): IO[Option[(String, Int)]] =
     DockerContainer
       .statusStream(containerId)
       .compile
       .last
 
-  def statusStream(containerId: ContainerId): fs2.Stream[IO, (String, Int)] = {
+  private def statusStream(
+    containerId: ContainerId
+  ): fs2.Stream[IO, (String, Int)] = {
     fs2.Stream
       .eval(IO {
         dockerClient.inspectContainerCmd(containerId.value).exec().getState
@@ -40,7 +57,7 @@ object DockerContainer {
       }
   }
 
-  def outputStream(
+  private def outputStream(
     containerId: ContainerId
   )(implicit F: ConcurrentEffect[IO], cs: ContextShift[IO]): IO[String] = {
     import fs2.concurrent._
@@ -77,13 +94,14 @@ object DockerContainer {
   /**
     * Makes a snapshot of the container and returns the ID of an image
     */
-  def createImage(containerId: ContainerId): IO[ImageId] =
+  private def createImage(containerId: ContainerId): IO[ImageId] =
     IO(
       ImageId(
         dockerClient
           .commitCmd(containerId.value)
           .withTag("datex/tasker")
-          .exec()
+          .exec(),
+        Some(containerId)
       )
     ).flatMap { imageId =>
       Slf4jLogger
@@ -94,7 +112,7 @@ object DockerContainer {
   /**
     * Removes the image with the given ID
     */
-  def removeImage(imageId: ImageId): IO[Unit] =
+  private def removeImage(imageId: ImageId): IO[Unit] =
     IO(
       dockerClient
         .removeImageCmd(imageId.value)
@@ -125,9 +143,9 @@ object DockerContainer {
   def imageFromContainer(containerId: ContainerId): Resource[IO, ImageId] =
     Resource.make(createImage(containerId))(removeImage)
 
-  def createContainer(containerEnv: ContainerEnv,
-                      command: ContainerCommand,
-                      imageId: ImageId): IO[ContainerId] = {
+  private def createContainer(containerEnv: ContainerEnv,
+                              command: ContainerCommand,
+                              imageId: ImageId): IO[ContainerId] = {
     for {
       dockerCommand <- IO {
         dockerClient
@@ -151,14 +169,14 @@ object DockerContainer {
     } yield containerId
   }
 
-  def startContainer(containerId: ContainerId): IO[ContainerId] =
+  private def startContainer(containerId: ContainerId): IO[ContainerId] =
     IO(dockerClient.startContainerCmd(containerId.value).exec()) *>
       Slf4jLogger
         .getLogger[IO]
         .info(s"Started $containerId") *>
       IO.pure(containerId)
 
-  def removeContainer(containerId: ContainerId): IO[Unit] =
+  private def removeContainer(containerId: ContainerId): IO[Unit] =
     IO {
       dockerClient.removeContainerCmd(containerId.value).exec()
     } *> Slf4jLogger.getLogger[IO].info(s"Removed $containerId")

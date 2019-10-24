@@ -1,14 +1,13 @@
 import java.nio.file.{Files, Path, Paths}
 import java.util.concurrent.Executors
 
-import cats.effect.{Blocker, IO, Resource}
+import cats.effect.{Blocker, ConcurrentEffect, ContextShift, IO, Resource}
 import clients.DockerContainer
 import config.TaskerConfig
-import container.{ContainerCommand, ContainerEnv}
 import container.ContainerEnv.Artifact
 import container.Ids.ImageId
+import container.{ContainerCommand, ContainerEnv, ContainerState}
 import org.apache.commons.io.FileUtils
-import cats.implicits._
 
 object Resources {
 
@@ -53,23 +52,36 @@ object Resources {
     * Acquire: If necessary - container is created, dependencies installed, image created.
     * Release: If necessary - container and image removed.
     */
-  def bakedImageResource(
+  def bakedImageWithDeps(
     containerEnv: ContainerEnv,
     requirementsTxtOption: Option[Path]
-  ): Resource[IO, ImageId] = requirementsTxtOption match {
-    case Some(requirementsTxtContainerPath) =>
-      DockerContainer
-        .startedContainer(
-          containerEnv,
-          ContainerCommand.installDeps(requirementsTxtContainerPath),
-          TaskerConfig.docker.image
+  )(implicit F: ConcurrentEffect[IO],
+    cs: ContextShift[IO]): Resource[IO, Either[ContainerState, ImageId]] =
+    requirementsTxtOption match {
+      case Some(requirementsTxtContainerPath) =>
+        for {
+          containerId <- DockerContainer
+            .startedContainer(
+              containerEnv,
+              ContainerCommand.installDeps(requirementsTxtContainerPath),
+              TaskerConfig.docker.image
+            )
+          containerState <- Resource.liftF(
+            DockerContainer.terminalStateIO(containerId)
+          )
+          result <- containerState match {
+            case ContainerState.Exited(0, _, _) =>
+              DockerContainer
+                .imageFromContainer(containerId)
+                .map(Right(_).withLeft[ContainerState])
+            case otherState =>
+              Resource.pure(Left(otherState).withRight[ImageId])
+          }
+        } yield result
+      case None =>
+        Resource.pure[IO, Either[ContainerState, ImageId]](
+          Right(TaskerConfig.docker.image)
         )
-        .evalMap(
-          containerId =>
-            DockerContainer.lastStatusIO(containerId) *> IO.pure(containerId)
-        )
-        .flatMap(containerId => DockerContainer.imageFromContainer(containerId))
-    case None => Resource.pure(TaskerConfig.docker.image)
-  }
+    }
 
 }

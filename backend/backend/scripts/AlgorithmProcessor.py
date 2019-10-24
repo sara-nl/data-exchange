@@ -1,12 +1,17 @@
 import os
 from ResearchdriveClient import ResearchdriveClient
-
+from multiprocessing import Process
+import string
+import tempfile
 
 class AlgorithmProcessor:
 
     def __init__(self, algorithm_name, data_requester):
         self.algorithm_name = algorithm_name
         self.data_requester = data_requester
+        self.rd_client = ResearchdriveClient()
+        self.is_folder = self.is_folder()
+        self.processes = []
         self.files = []
 
     def create_temp_file(self):
@@ -21,33 +26,64 @@ class AlgorithmProcessor:
         This functions checks the recorded filetype as saved on researchdrive.
         :return: True or False if it's a folder.
         """
-        rd_client = ResearchdriveClient()
-        shares = rd_client.get_shares(self.data_requester, self.algorithm_name)
+        shares = self.rd_client.get_shares(self.data_requester, self.algorithm_name)
 
         if "directory" in shares[0]['mimetype']:
-            print(rd_client.list(self.algorithm_name))
-            rd_client.
             return True
         return False
 
     def download_file(self):
+        tempname = tempfile.NamedTemporaryFile(dir=os.getcwd(), delete=False).name
+        print(tempname)
+        print(files)
+        rd_client.download(self.algorithm_name + "/" + files[0], os.getcwd(), tempname)
         return
 
     def update_database(self):
         return
 
     def process(self):
+        if self.is_folder:
+            for file in self.rd_client.list(self.algorithm_name):
+                remote_path = self.algorithm_name + "/" + file
+                algorithm_process = Process(target=self.process_algorithm, args=(remote_path,))
+                algorithm_process.start()
+                self.processes.append(algorithm_process)
 
-        if not self.is_folder():
-            self.download_file()
+            for process in self.processes:
+                process.join()
+
+            print("finished")
+
         else:
-            # list folder
-            a = 1
+            self.process_algorithm(self.algorithm_name)
 
         return
 
-    @staticmethod
-    def process_algorithm(task, algorithm):
+    def process_algorithm(self, remote_path):
+
+        # Download to temp file.
+        tempname = tempfile.NamedTemporaryFile(dir=os.getcwd(), delete=False).name
+        self.rd_client.download(remote_path, os.getcwd(), tempname)
+
+        original_name = remote_path.split("/")[-1]
+
+        # Open file, analyze and save information
+        with open(os.path.join(os.getcwd(), tempname), "r") as algorithm_file:
+            lines = algorithm_file.readlines()
+            algorithm_content = " ".join(line for line in lines)
+            algorithm_info = self.calculate_algorithm_info(lines)
+
+        self.files.append({"algorithm_name": original_name, "algorithm_content": algorithm_content,
+                           "algorithm_info": algorithm_info})
+
+        print(self.files)
+        # Cleanup
+        os.remove(tempname)
+
+
+
+        # Save information to Task
         # download_container = RunContainer(algorithm, "", download_dir=os.getcwd())
         # download_container.create_files()
         # download_container.download_from_rd(data=False)
@@ -101,7 +137,7 @@ class AlgorithmProcessor:
 
 def main():
     a = AlgorithmProcessor("INT_30", "sander@wearebit.com")
-    a.is_folder()
+    a.process()
 
     return
 

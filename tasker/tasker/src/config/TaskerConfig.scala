@@ -39,9 +39,11 @@ object TaskerConfig {
   }
 
   object docker {
+    val image = "datex:latest"
     val indexFile = "run.py"
     val containerCodePath = "/tmp/code"
     val containerDataPath = "/tmp/data"
+    val containerOutPath = "/tmp/out"
     val defaultImage = "python"
     val clientConfig = DefaultDockerClientConfig
       .createDefaultConfigBuilder()
@@ -76,7 +78,7 @@ object TaskerConfig {
     virtualHost = "/",
     nodes = NonEmptyList.one(
       Fs2RabbitNodeConfig(
-        host = sys.env.get("RABBITMQ_HOST").getOrElse("127.0.0.1"),
+        host = sys.env.getOrElse("RABBITMQ_HOST", "127.0.0.1"),
         port = 5672,
       ),
     ),

@@ -1,0 +1,1 @@
+This directory contains the Dockerfile, which is used for creating the secure Docker container.

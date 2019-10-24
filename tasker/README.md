@@ -25,17 +25,26 @@ Example:
 
 
 ```json
-  {
-    "taskId": "123",
-    "state": "DONE",
-    "output": "~~ Some output ~~"
+{
+  "taskId" : "123",
+  "state" : "success",
+  "output" : "",
+  "containerOutput" : {
+    "stdout" : "Average fortune: 100350000000.0 of 4 people",
+    "stderr" : "",
+    "strace" : "execve(\"/bin/sh\", [\"sh\", \"-c\", \"python /tmp/code/demo1_code/run.\"...], 0x7ffe8a712338 ...."
   }
+}
 ```
 
-## Planned functionality:
+## Debugging container contents
 
-* Starting / stopping container (85%)
-* ... TBD
+... can be tricky, because the container normally exits very quickly and you can't get a shell inside of it anymore. Luckily, there is an easy solution:
+
+* Add `sleep 1000` in the script `tracerun.sh`
+* Check the container ID in the output of the tasker
+* `docker exec -it <container-id> bash` and you are in
+* If you kill tasker before the script finishes its sleep, delete the container manually.
 
 ## Deployment
 * Install JRE 11;

@@ -1,4 +1,7 @@
 <script lang="ts">
+  // XXX Work-around until proper TypeScript support arrives
+  declare var $page: any;
+
   import { onMount } from "svelte";
   import { stores } from "@sapper/app";
   import * as hljs from "highlight.js";

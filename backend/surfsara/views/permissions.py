@@ -8,7 +8,7 @@ from surfsara.models import Permission, User
 from surfsara.services import mail_service
 
 
-class TaskSerializer(serializers.ModelSerializer):
+class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
         fields = "__all__"
@@ -29,8 +29,10 @@ class Permissions(viewsets.ViewSet):
             dataset_provider=request.user.email
         )
 
-        obtained_permissions = TaskSerializer(obtained_permissions, many=True).data
-        given_permissions = TaskSerializer(given_permissions, many=True).data
+        obtained_permissions = PermissionSerializer(
+            obtained_permissions, many=True
+        ).data
+        given_permissions = PermissionSerializer(given_permissions, many=True).data
 
         return Response(
             {
@@ -56,7 +58,9 @@ class Permissions(viewsets.ViewSet):
             dataset_provider=request.user.email
         )
 
-        obtained_permissions = TaskSerializer(obtained_permissions, many=True).data
+        obtained_permissions = PermissionSerializer(
+            obtained_permissions, many=True
+        ).data
         obtained_per_file = {}
         for perm in obtained_permissions:
             if perm["algorithm"] in obtained_per_file:
@@ -64,7 +68,7 @@ class Permissions(viewsets.ViewSet):
             else:
                 obtained_per_file[perm["algorithm"]] = [perm]
 
-        given_permissions = TaskSerializer(given_permissions, many=True).data
+        given_permissions = PermissionSerializer(given_permissions, many=True).data
         given_per_file = {}
         for perm in given_permissions:
             if perm["algorithm"] in given_per_file:

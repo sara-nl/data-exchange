@@ -1,19 +1,9 @@
-import cats.MonadError
-import cats.effect.{ExitCode, IO, IOApp, Resource, Sync}
-import dev.profunktor.fs2rabbit.interpreter.Fs2Rabbit
-import dev.profunktor.fs2rabbit.model.AckResult.Ack
-import dev.profunktor.fs2rabbit.model.{
-  AMQPChannel,
-  AckResult,
-  AmqpEnvelope,
-  AmqpMessage,
-  ExchangeName,
-  ExchangeType
-}
-import cats.implicits._
 import Codecs._
+import cats.effect.{ExitCode, IO, IOApp, Resource}
 import config.TaskerConfig
 import config.TaskerConfig.queues
+import dev.profunktor.fs2rabbit.interpreter.Fs2Rabbit
+import dev.profunktor.fs2rabbit.model.{AMQPChannel, AmqpMessage}
 
 object Tasker extends IOApp {
 

@@ -4,5 +4,6 @@
 FROM python
 RUN apt-get update
 RUN apt-get install -y strace
+RUN pip install --upgrade pip
 COPY ./scripts /app
 RUN chmod u+x /app/tracerun.sh

@@ -3,8 +3,8 @@
     import RemoveShare from "../api/shares";
     import Spinner from "../components/Spinner.svelte";
 
-    let own_algorithms: any[] = [];
-    let own_datasets: any[] = [];
+    let own_algorithms: any[] | null = null;
+    let own_datasets: any[] | null = null;
     let data = {}
 
     async function updateUserFiles(){

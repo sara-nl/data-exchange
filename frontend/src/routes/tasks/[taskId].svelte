@@ -22,9 +22,10 @@
   let visible: boolean = false;
   let ownDatasets: any = null;
   let task: any = null;
+  let algorithms: any = null;
 
   let approve_algorithm_all = false;
-  let review_output = true
+  let review_output = true;
 
   let data = new TasksReviewRequest();
 
@@ -37,6 +38,9 @@
     const { data } = await Tasks.retrieve(taskId);
     task = data;
 
+    console.log(task.algorithm_content)
+    algorithms = JSON.parse(task.algorithm_content);
+
     if (task.state === "data_requested") {
       const { data } = await LoadFiles.start();
       ownDatasets = data.output.own_datasets;
@@ -47,7 +51,7 @@
     data.approved = approved;
     data.updated_request = task;
     data.approve_algorithm_all = approve_algorithm_all;
-    data.review_output = review_output
+    data.review_output = review_output;
 
     try {
       if (approved) {
@@ -98,6 +102,9 @@
   </h2>
 
   <div class="container">
+    <div class="row">
+        <button>joe</button>
+    </div>
     <div class="row">
       <div class="col">
         <div class="my-5">
@@ -152,13 +159,15 @@
         hidden={!visible}
         class="col-12 col-md-8 border"
         style="padding-top: 20px;">
+        {#each algorithms as alg, i}
         <pre>
           <code class="python">
-            {task.algorithm_content || 'Algorithm being processed'}
+            {alg.algorithm_content || 'Algorithm being processed'}
           </code>
         </pre>
         <hr />
-        <h5>{task.algorithm_info}</h5>
+        <h5>{alg.algorithm_info}</h5>
+        {/each}
       </div>
       <div
         hidden={visible}

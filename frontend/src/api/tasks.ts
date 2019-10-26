@@ -21,6 +21,7 @@ export class TasksReviewRequest {
 
     public approve_algorithm_all: boolean = false;
     public review_output: boolean = true;
+    public stream: boolean = false;
 }
 
 export class TaskRetrieveRequest {

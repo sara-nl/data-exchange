@@ -1,4 +1,5 @@
 from django.db import models
+from surfsara.models.permission import Permission
 
 
 class Task(models.Model):
@@ -36,4 +37,5 @@ class Task(models.Model):
     dataset_desc = models.TextField()
     output = models.TextField(null=True)
     review_output = models.BooleanField(default=True)
+    permission = models.ForeignKey(Permission, null=True, on_delete=models.SET_NULL)
     registered_on = models.DateTimeField(auto_now_add=True)

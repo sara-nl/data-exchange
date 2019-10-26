@@ -24,7 +24,8 @@
   let task: any = null;
 
   let approve_algorithm_all = false;
-  let review_output = true
+  let review_output = true;
+  let stream = false;
 
   let data = new TasksReviewRequest();
 
@@ -44,10 +45,11 @@
   }
 
   async function review_request(approved: boolean) {
-    data.approved = approved;
-    data.updated_request = task;
-    data.approve_algorithm_all = approve_algorithm_all;
-    data.review_output = review_output
+    data = {
+      ...data,
+      approved,
+      updated_request: task,
+    };
 
     try {
       if (approved) {
@@ -174,14 +176,40 @@
         {#if task.is_owner}
           <div class="col my-2">
             <h4>Permissions</h4>
-            <input bind:checked={approve_algorithm_all} type="checkbox" />
-            Approve continous use of dataset with this algorithm.
-            <div class="text-muted">
-              Only grant this permission if you trust {task.author_email} to
-              always run benevolent algorithms.
+            <div class="form-group">
+              <label for="approve_algorithm_all">
+                <input
+                  bind:checked={data.approve_algorithm_all}
+                  id="approve_algorithm_all"
+                  type="checkbox"
+                />
+
+                Approve continous use of dataset with this algorithm.
+
+                <div class="text-muted">
+                  Only grant this permission if you trust {task.author_email} to
+                  always run benevolent algorithms.
+                </div>
+              </label>
             </div>
-            <input bind:checked={review_output} type="checkbox" />
-              Review the output of the algorithm
+
+            <div class="form-group">
+              <label for="stream">
+                <input bind:checked={data.stream} id="stream" type="checkbox" />
+                Automatically run this algorithm on data changes.
+
+                <div class="text-muted">
+                  The algorithm will automatically be rerun when changes to
+                  your dataset are detected.
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label for="review_output">
+                <input bind:checked={data.review_output} id="review_output" type="checkbox" />
+                Review the output of the algorithm
+              </label>
+            </div>
           </div>
           <div class="col-md-12">
             <button

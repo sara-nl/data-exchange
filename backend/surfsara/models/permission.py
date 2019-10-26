@@ -7,4 +7,5 @@ class Permission(models.Model):
     dataset = models.TextField()
     dataset_provider = models.TextField()
     review_output = models.BooleanField(default=True)
+    stream = models.BooleanField(default=False)
     registered_on = models.DateTimeField(auto_now_add=True)

@@ -318,6 +318,7 @@ class Tasks(viewsets.ViewSet):
             dataset=perm.dataset,
             review_output=perm.review_output,
             dataset_desc="",
+            permission=perm,
         )
         task.save()
 

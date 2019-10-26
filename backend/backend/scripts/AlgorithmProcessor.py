@@ -1,6 +1,6 @@
 import os
 from .ResearchdriveClient import ResearchdriveClient
-from multiprocessing import Process
+from threading import Thread
 import string
 import tempfile
 
@@ -11,7 +11,7 @@ class AlgorithmProcessor:
         self.data_requester = data_requester
         self.rd_client = ResearchdriveClient()
         self.is_folder = self.is_folder()
-        self.processes = []
+        self.threads = []
         self.files = []
 
     def is_folder(self):
@@ -32,15 +32,15 @@ class AlgorithmProcessor:
         if self.is_folder:
             for file in self.rd_client.list(self.algorithm_name):
                 remote_path = self.algorithm_name + "/" + file
-                algorithm_process = Process(
+                algorithm_thread = Thread(
                     target=self.process_algorithm, args=(remote_path,)
                 )
-                algorithm_process.start()
-                self.processes.append(algorithm_process)
+                algorithm_thread.start()
+                self.threads.append(algorithm_thread)
 
-            for process in self.processes:
-                process.join()
-            self.processes = []
+            for thread in self.threads:
+                thread.join()
+            self.threads = []
         else:
             self.process_algorithm(self.algorithm_name)
         return self.files
@@ -59,6 +59,7 @@ class AlgorithmProcessor:
             algorithm_content = " ".join(line for line in lines)
             algorithm_info = self.calculate_algorithm_info(lines)
 
+        print(original_name, algorithm_info, algorithm_content)
         self.files.append(
             {
                 "algorithm_name": original_name,
@@ -66,6 +67,8 @@ class AlgorithmProcessor:
                 "algorithm_info": algorithm_info,
             }
         )
+
+        print(self.files)
 
         os.remove(tempname)
 

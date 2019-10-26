@@ -8,10 +8,13 @@ import string
 
 from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
+from surfsara.views import permissions
 from backend.scripts.run_container import RunContainer
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    permission = permissions.PermissionSerializer(many=False, read_only=True)
+
     class Meta:
         model = Task
         fields = "__all__"

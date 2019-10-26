@@ -60,10 +60,12 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th scope="col">Permission given by</th>
-                        <th scope="col">Permission given to</th>
+                        <th scope="col">Given by</th>
+                        <th scope="col">Given to</th>
                         <th scope="col">Dataset</th>
                         <th scope="col">Algorithm</th>
+                        <th scope="col">Type</th>
+                        <th scope="col"></th>
                     </tr>
                 </thead>
 
@@ -74,6 +76,10 @@
                         <td>{file.algorithm_provider}</td>
                         <td>{file.dataset}</td>
                         <td>{file.algorithm}</td>
+                        <td>
+                          <strong>streaming:</strong> {file.stream ? "yes" : "no"}<br>
+                          <strong>review output:</strong> {file.review_output ? "yes" : "no"}
+                        </td>
                         <td>
                             <button class="close" on:click={() => remove_permission(file.id)}>
                                 <span aria-hidden="true">&times;</span>

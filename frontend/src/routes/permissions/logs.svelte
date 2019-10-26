@@ -97,16 +97,25 @@
               <th scope="col">Requester</th>
               <th scope="col">Algorithm</th>
               <th scope="col">Dataset</th>
+              <th scope="col">Continuous<br>permission</th>
               <th scope="col">Registered on</th>
             </thead>
             {#each dataset_tasks[file] as task}
               <tbody id="data-{i}" class="collapse">
 
-                <tr  on:click={() => goto(`/tasks/${task.id}`)}>
+                <tr on:click={() => goto(`/tasks/${task.id}`)}>
                   <td>{task.state}</td>
                   <td>{task.author_email}</td>
                   <td>{task.algorithm}</td>
                   <td>{task.dataset}</td>
+                  <td>
+                    {#if task.permission}
+                      <strong>streaming:</strong> {task.permission.stream ? "yes" : "no"}<br>
+                      <strong>review output:</strong> {task.permission.review_output ? "yes" : "no"}
+                    {:else}
+                      No
+                    {/if}
+                  </td>
                   <td>{to_date(task.registered_on)}</td>
                 </tr>
               </tbody>

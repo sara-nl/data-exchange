@@ -9,6 +9,7 @@ import string
 from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
 from backend.scripts.run_container import RunContainer
+from backend.scripts.ResearchdriveClient import ResearchdriveClient
 from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 
 

@@ -1,5 +1,5 @@
 import os
-from ResearchdriveClient import ResearchdriveClient
+from .ResearchdriveClient import ResearchdriveClient
 from multiprocessing import Process
 import string
 import tempfile
@@ -103,8 +103,8 @@ class AlgorithmProcessor:
 
 
 def main():
-    a = AlgorithmProcessor("INT_30", "sander@wearebit.com")
-    a.start_processing()
+    #a = AlgorithmProcessor("INT_30", "sander@wearebit.com")
+    #a.start_processing()
 
     return
 

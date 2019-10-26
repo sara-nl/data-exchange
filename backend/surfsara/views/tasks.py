@@ -36,9 +36,10 @@ class Tasks(viewsets.ViewSet):
         )
         task.save()
 
-        task.algorithm_content = AlgorithmProcessor(request.data["algorithm"],
-                                                    request.user.email).start_processing()
+        # task.algorithm_content = AlgorithmProcessor(request.data["algorithm"],
+        #                                           request.user.email).start_processing()
         # self.process_algorithm(task, request.data["algorithm"])
+        task_service.start(task, "algorithm_processed")
 
         task.state = Task.DATA_REQUESTED
         task.save()
@@ -166,7 +167,8 @@ class Tasks(viewsets.ViewSet):
             task.review_output = request.data["review_output"]
             task.save()
 
-            task_service.start(task)
+            #task_service.start(task, "tasker_todo")
+            task_service.send()
 
             if request.data["approve_algorithm_all"]:
                 mail_service.send_mail(
@@ -271,9 +273,7 @@ class Tasks(viewsets.ViewSet):
         )
         task.save()
 
-        self.process_algorithm(task, request.data["algorithm"])
-
-        task_service.start(task)
+        task_service.start(task, "tasker_todo")
         task.state = Task.RUNNING
         task.save()
 

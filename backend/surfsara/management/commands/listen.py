@@ -6,6 +6,7 @@ from dataclasses_json import dataclass_json, LetterCase
 
 from surfsara.models import Task
 from surfsara.services import mail_service
+from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 
 
 @dataclass
@@ -14,6 +15,13 @@ class TaskCompleted:
     task_id: str
     state: str
     output: str
+
+
+@dataclass
+@dataclass_json(letter_case=LetterCase.CAMEL)
+class ProcessedAlgorithm:
+    task_id: str
+    alg_name: str
 
 
 class Command(BaseCommand):
@@ -38,12 +46,14 @@ class Command(BaseCommand):
         )
 
         queue_name = "tasker_done"
+        algorithm_queue_name = "algorithm_processed"
 
-        def callback(ch, method, properties, body):
+        def callback(channel, method, properties, body):
             # This is also the place, where we may want to trigger the output approval
             # flow, like sending an email to the reviewer and so on. Right now I just
             # store task as completed in DB
 
+            self.stdout.write(f"Received {body, properties, method, channel}")
             # Probably it needs to be wrapped in try/except too :-)
             task_completed = TaskCompleted.from_json(body)
             self.stdout.write(f"Received {task_completed}")
@@ -67,6 +77,25 @@ class Command(BaseCommand):
             )
 
             self.stdout.write(f"Successfully updated task {task_completed.task_id}")
+
+        def alg_process_callback(ch, method, properties, body):
+            print(" CALLBACKASDKASDKASLDKAS EWTWEGASARHGwrwhgwrw")
+
+            # Receiving message
+            processed_algorithm = ProcessedAlgorithm.from_json(body)
+            self.stdout.write(f"Received {processed_algorithm}")
+
+            # Loading
+            task = Task.objects.get(pk=processed_algorithm.task_id)
+
+            # Processing
+            proces = AlgorithmProcessor(processed_algorithm.alg_name,
+                                        task.author_email).start_processing()
+
+            # Saving
+            task.algorithm_content = proces.files
+            task.save()
+            self.stdout.write(f"Successfully parsed algorithms from {processed_algorithm.task_id}")
 
         self.channel.queue_declare(queue=queue_name)
 

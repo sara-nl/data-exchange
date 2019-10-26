@@ -7,6 +7,8 @@ import com.github.dockerjava.api.model.{AccessMode, Bind, Volume}
 import config.TaskerConfig
 import config.TaskerConfig.docker
 import container.ContainerEnv.{Artifact, Executable, OutputFiles}
+import cats.syntax._
+import cats.implicits._
 
 object ContainerEnv {
 
@@ -71,6 +73,28 @@ object ContainerEnv {
         Paths.get(containerPath.toString, TaskerConfig.docker.indexFile)
       case false =>
         containerPath
+    }
+
+    /**
+      * Some with the container path to the requirements file, or None if it's not there, or the artifact is not a directory
+      */
+    val requirementsFile: IO[Option[Path]] = isDirectory flatMap {
+      case true =>
+        IO {
+          val requirementsHostPath = Paths
+            .get(hostPath.toString, TaskerConfig.docker.requirementsFile)
+          if (requirementsHostPath.toFile
+                .exists())
+            Some(
+              Paths
+                .get(
+                  containerPath.toString,
+                  TaskerConfig.docker.requirementsFile
+                )
+            )
+          else None
+        }
+      case false => None.pure[IO]
     }
   }
 

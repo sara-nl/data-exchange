@@ -22,7 +22,6 @@
   let visible: boolean = false;
   let ownDatasets: any = null;
   let task: any = null;
-  let algorithms: any = null;
 
   let approve_algorithm_all = false;
   let review_output = true;
@@ -37,9 +36,6 @@
   async function load() {
     const { data } = await Tasks.retrieve(taskId);
     task = data;
-
-    console.log(task.algorithm_content)
-    algorithms = JSON.parse(task.algorithm_content);
 
     if (task.state === "data_requested") {
       const { data } = await LoadFiles.start();
@@ -103,9 +99,6 @@
 
   <div class="container">
     <div class="row">
-        <button>joe</button>
-    </div>
-    <div class="row">
       <div class="col">
         <div class="my-5">
           <h4>Requester</h4>
@@ -159,14 +152,16 @@
         hidden={!visible}
         class="col-12 col-md-8 border"
         style="padding-top: 20px;">
-        {#each algorithms as alg, i}
+        <h4>{task.algorithm}</h4>
+        {#each task.algorithm_content as alg, i}
+        <h6>{alg.algorithm_name}</h6>
         <pre>
           <code class="python">
             {alg.algorithm_content || 'Algorithm being processed'}
           </code>
         </pre>
-        <hr />
-        <h5>{alg.algorithm_info}</h5>
+        <h6>{alg.algorithm_info}</h6>
+          <hr />
         {/each}
       </div>
       <div

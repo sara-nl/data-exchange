@@ -30,8 +30,13 @@
     }
 
     function quickUpdate(fileId: string) {
-        own_datasets = removeFromList(own_datasets, fileId);
-        own_algorithms = removeFromList(own_algorithms, fileId);
+        if (own_datasets !== null) {
+            own_datasets = removeFromList(own_datasets, fileId);
+        }
+
+        if (own_algorithms !== null) {
+            own_algorithms = removeFromList(own_algorithms, fileId);
+        }
     }
 
     async function revokeFileShare(fileId: string){

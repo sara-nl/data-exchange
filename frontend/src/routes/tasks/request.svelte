@@ -5,6 +5,7 @@
     import LoadFiles from "../../api/loader";
     import Tasks, { TasksStartRequest } from "../../api/tasks";
     import Spinner from "../../components/Spinner.svelte";
+    import ErrorMessage from "../../components/ErrorMessage.svelte";
 
     let state_color = {
         "request_rejected": "danger",
@@ -16,6 +17,7 @@
     let algorithm_files = null;
     let data = new TasksStartRequest();
     let requesting = false;
+    let showError: any = null;
 
     onMount(async () => {
         await getUserFiles();
@@ -35,7 +37,7 @@
             goto("/tasks");
         } catch (error) {
             requesting = false;
-            throw error;
+            showError = error.response && error.response.data && error.response.data.error || null;
         }
     }
 </script>
@@ -43,6 +45,8 @@
 <svelte:head>
     <title>My Files</title>
 </svelte:head>
+
+<ErrorMessage error={showError} />
 
 <h2 class="display-5">
     Request use of a dataset
@@ -68,7 +72,7 @@
                                 id="algorithm-file"
                                 bind:value={data.algorithm}
                             >
-                                <option value="">Select algorithm</option>
+                                <option disabled value="">Select algorithm</option>
 
                                 {#each algorithm_files as file}
                                     <option value={file.name}>{file.name}</option>

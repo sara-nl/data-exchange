@@ -7,6 +7,9 @@ This is the list of known ~issues~ limitations.
 * Research Drive only;
 * Output is only STDOUT/STDERR;
 * Webdav interface of Research Drive is relatively slow;
+* A shared algorithm is file or a folder with one layer depth
+(so a folder containing only files. If it contains more folders,
+they will not be used/shown)
 
 ## File sharing
 * Maximal level of nested directories in code/data folders is 50;

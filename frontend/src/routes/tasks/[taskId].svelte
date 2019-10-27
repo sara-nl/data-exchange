@@ -1,4 +1,7 @@
 <script lang="ts">
+  // XXX Work-around until proper TypeScript support arrives
+  declare var $page: any;
+
   import { onMount } from "svelte";
   import { stores } from "@sapper/app";
   import * as hljs from "highlight.js";
@@ -22,10 +25,6 @@
   let visible: boolean = false;
   let ownDatasets: any = null;
   let task: any = null;
-
-  let approve_algorithm_all = false;
-  let review_output = true;
-  let stream = false;
 
   let data = new TasksReviewRequest();
 
@@ -117,6 +116,8 @@
             {task.review_output}
           {/if}
         </div>
+
+
         <div class="my-5">
           <h4>Algorithm</h4>
           <ul style="list-style:none; padding-left: 0;">
@@ -154,13 +155,17 @@
         hidden={!visible}
         class="col-12 col-md-8 border"
         style="padding-top: 20px;">
+        <h4>{task.algorithm}</h4>
+        {#each task.algorithm_content as alg, i}
+        <h6>{alg.algorithm_name}</h6>
         <pre>
           <code class="python">
-            {task.algorithm_content || 'Algorithm being processed'}
+            {alg.algorithm_content || 'Algorithm being processed'}
           </code>
         </pre>
-        <hr />
-        <h5>{task.algorithm_info}</h5>
+        <h6>{alg.algorithm_info}</h6>
+          <hr />
+        {/each}
       </div>
       <div
         hidden={visible}
@@ -176,22 +181,6 @@
         {#if task.is_owner}
           <div class="col my-2">
             <h4>Permissions</h4>
-            <div class="form-group">
-              <label for="approve_algorithm_all">
-                <input
-                  bind:checked={data.approve_algorithm_all}
-                  id="approve_algorithm_all"
-                  type="checkbox"
-                />
-
-                Approve continous use of dataset with this algorithm.
-
-                <div class="text-muted">
-                  Only grant this permission if you trust {task.author_email} to
-                  always run benevolent algorithms.
-                </div>
-              </label>
-            </div>
 
             <div class="form-group">
               <label for="stream">
@@ -201,6 +190,25 @@
                 <div class="text-muted">
                   The algorithm will automatically be rerun when changes to
                   your dataset are detected.
+              </label>
+            </div>
+
+            <div class="form-group">
+              <label for="approve_algorithm_all">
+                <input
+                  bind:checked={data.approve_algorithm_all}
+                  on:change={() => data.stream = data.stream || data.approve_algorithm_all}
+                  id="approve_algorithm_all"
+                  type="checkbox"
+                />
+
+                Approve general use of dataset by the requester.
+
+                <div class="text-muted">
+                  With this permission the requester can use any of his algorithms on this dataset.
+                  Only grant this permission if you trust {task.author_email} to
+                  always run benevolent algorithms.
+                </div>
               </label>
             </div>
 

@@ -10,6 +10,8 @@ from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
 from surfsara.views import permissions
 from backend.scripts.run_container import RunContainer
+from backend.scripts.ResearchdriveClient import ResearchdriveClient
+from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -23,64 +25,16 @@ class TaskSerializer(serializers.ModelSerializer):
 class Tasks(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
-    # This processes have to move to the taskmanager, so it doesn't slow down the site!
-    @staticmethod
-    def process_algorithm(task, algorithm):
-        download_container = RunContainer(algorithm, "", download_dir=os.getcwd())
-        download_container.create_files()
-        download_container.download_from_rd(data=False)
-        algorithm_content = None
-        algorithm_info = None
-
-        if download_container.temp_algorithm_file:
-            with open(download_container.temp_algorithm_file, "r") as algorithm_file:
-                lines = algorithm_file.readlines()
-                algorithm_content = " ".join(line for line in lines)
-                algorithm_info = Tasks.calculate_algorithm_info(lines)
-
-        download_container.remove_files()
-        task.algorithm_content = algorithm_content
-        task.algorithm_info = algorithm_info
-        task.save()
-
-    @staticmethod
-    def calculate_algorithm_info(lines):
-        imports = []
-        characters = 0
-        newline = 0
-        words = 0
-
-        for line in lines:
-
-            # Retrieve import packages.
-            if "from" in line:
-                imports.append(line.split("from ")[1].split(" ")[0])
-            elif "import" in line:
-                imports.append(line.split("import ")[1].split(" ")[0].strip("\n"))
-
-            # Number of newlines.
-            if "\n" in line:
-                newline += 1
-            characters += len([char for char in line])
-
-            # Calculate words with removed punctuation and newline.
-            stripped_newline = "".join(
-                [char for char in line if char not in string.punctuation]
-            ).strip("\n")
-            words += len(
-                [word for word in stripped_newline.split(" ") if len(word) > 1]
-            )
-        return (
-            f"{characters} chars, {newline} line breaks, {words} words. "
-            + f'Packages: {",".join(imports)}'
-        )
-
-    # This processes have to move to the taskmanager, so it doesn't slow down the site!
-
     def create(self, request):
         data_owner_email = request.data["data_owner"]
-        if not User.objects.filter(email=data_owner_email):
-            return Response({"error": "unknown email"}, status=400)
+        if "@" not in data_owner_email:
+            return Response(
+                {"error": f"Invalid email address '{data_owner_email}'"}, status=400
+            )
+        elif not User.objects.filter(email=data_owner_email):
+            return Response(
+                {"error": f"Unknown email address '{data_owner_email}'"}, status=400
+            )
 
         task = Task(
             state=Task.ANALYZING,
@@ -91,7 +45,9 @@ class Tasks(viewsets.ViewSet):
         )
         task.save()
 
-        self.process_algorithm(task, request.data["algorithm"])
+        task.algorithm_content = AlgorithmProcessor(
+            request.data["algorithm"], request.user.email
+        ).start_processing()
 
         task.state = Task.DATA_REQUESTED
         task.save()
@@ -221,7 +177,7 @@ class Tasks(viewsets.ViewSet):
 
             task_service.start(task)
 
-            if request.data["approve_algorithm_all"]:
+            if request.data["approve_user"]:
                 mail_service.send_mail(
                     mail_files="permission_granted_do",
                     receiver=task.approver_email,
@@ -238,13 +194,16 @@ class Tasks(viewsets.ViewSet):
                     **update,
                 )
 
-                Permission(
-                    algorithm=update["algorithm"],
+                new_perm = Permission(
+                    algorithm="Any algorithm",
                     algorithm_provider=update["author_email"],
                     dataset=update["dataset"],
                     dataset_provider=update["approver_email"],
                     review_output=request.data["review_output"],
-                ).save()
+                    permission_type=Permission.USER_PERMISSION,
+                )
+
+                new_perm.save()
         else:
             result = "rejected"
             task.state = Task.REQUEST_REJECTED
@@ -306,7 +265,6 @@ class Tasks(viewsets.ViewSet):
             id=pk,
             algorithm_provider=request.user.email,
             dataset_provider=request.data["dataset_provider"],
-            algorithm=request.data["algorithm"],
             dataset=request.data["dataset"],
         )
 
@@ -317,7 +275,7 @@ class Tasks(viewsets.ViewSet):
             state=Task.ANALYZING,
             author_email=perm.algorithm_provider,
             approver_email=perm.dataset_provider,
-            algorithm=perm.algorithm,
+            algorithm=request.data["algorithm"],
             dataset=perm.dataset,
             review_output=perm.review_output,
             dataset_desc="",
@@ -325,7 +283,9 @@ class Tasks(viewsets.ViewSet):
         )
         task.save()
 
-        self.process_algorithm(task, request.data["algorithm"])
+        task.algorithm_content = AlgorithmProcessor(
+            request.data["algorithm"], request.user.email
+        ).start_processing()
 
         task_service.start(task)
         task.state = Task.RUNNING

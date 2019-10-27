@@ -60,6 +60,7 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th scope="col">Type</th>
                         <th scope="col">Given by</th>
                         <th scope="col">Given to</th>
                         <th scope="col">Dataset</th>
@@ -72,6 +73,8 @@
                 <tbody>
                     {#each given_permissions as file}
                     <tr>
+                        <td>{file.permission_type}</td>
+
                         <td><b>You</b></td>
                         <td>{file.algorithm_provider}</td>
                         <td>{file.dataset}</td>
@@ -102,6 +105,8 @@
             <table class="table">
                 <thead>
                     <tr>
+                        <th scope="col">Permission type</th>
+
                         <th scope="col">Permission given by</th>
                         <th scope="col">Permission given to</th>
                         <th scope="col">Dataset</th>
@@ -112,6 +117,8 @@
                 <tbody>
                     {#each obtained_permissions as file}
                     <tr>
+                        <td>{file.permission_type}</td>
+
                         <td>{file.dataset_provider}</td>
                         <td><b>You</b></td>
                         <td>{file.dataset}</td>

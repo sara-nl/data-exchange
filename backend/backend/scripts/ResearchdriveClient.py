@@ -141,11 +141,12 @@ class ResearchdriveClient:
         else:
             raise KeyError("The Etag cannot be found in previous versions.")
 
-    def get_shares(self, uid_owner=None):
+    def get_shares(self, uid_owner=None, filename=None):
         """
         Get all shared files and folder. If a uid_owner is given
         it only returns shares this owner.
-        :param uid_owner: Usually an email address, represents a unique id.
+        :param uid_owner: Optional. Usually an email address, represents a unique id.
+        :param filename: Optional. Filter a certain filename.
         :return: A list containing a dictionary with metadata for each
         share.
         """
@@ -159,11 +160,13 @@ class ResearchdriveClient:
         self.shares = shares["ocs"]["data"]
 
         if uid_owner:
-            self.filter_shares(uid_owner)
+            self.__filter_shares_owner(uid_owner)
+        if filename:
+            self.__filter_shares_filename(filename)
         return self.shares
 
     def remove_share_by_id(self, share_id):
-        endpoint = f'{ResearchdriveClient.share_api_endpoint}/{share_id}'
+        endpoint = f"{ResearchdriveClient.share_api_endpoint}/{share_id}"
         response = self.__execute_request(endpoint, "DELETE")
         return self.parse_revoke_share_xml(response) == "100"
 
@@ -171,19 +174,20 @@ class ResearchdriveClient:
         shares = self.get_shares()
         share = self.__compare_tag(remote_path, shares, "file_target")
         if share:
-            return self.remove_share_by_id(share['id'])
+            return self.remove_share_by_id(share["id"])
         return True
 
-    def filter_shares(self, uid_owner):
+    def __filter_shares_owner(self, owner):
         """
         Filters and updates shares based on a unique id of the owner.
-        :param uid_owner: Usually an email address, represents a unique id.
+        :param owner: Usually an email address, represents a unique id.
         """
-        filtered = []
-        for share in self.shares:
-            if share["uid_owner"] == uid_owner:
-                filtered.append(share)
-        self.shares = filtered
+        self.shares = [share for share in self.shares if share["uid_owner"] == owner]
+
+    def __filter_shares_filename(self, filename):
+        self.shares = [
+            share for share in self.shares if share["path"] == "/" + filename
+        ]
 
     def __is_recent_etag(self, remote_path, etag):
         """
@@ -225,15 +229,15 @@ class ResearchdriveClient:
     def get_remote_path(self, file_id):
         shares = self.get_shares()
         for share in shares:
-            if str(share['item_source']) == str(file_id):
-                return share['path']
+            if str(share["item_source"]) == str(file_id):
+                return share["path"]
         return False
 
     def get_share_id(self, file_id):
         shares = self.get_shares()
         for share in shares:
-            if str(share['item_source']) == str(file_id):
-                return share['id']
+            if str(share["item_source"]) == str(file_id):
+                return share["id"]
         return False
 
     def get_file_versions(self, remote_path):

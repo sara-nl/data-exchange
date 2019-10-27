@@ -5,14 +5,10 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0021_permission_state'),
-    ]
+    dependencies = [("surfsara", "0021_permission_state")]
 
     operations = [
         migrations.RenameField(
-            model_name='permission',
-            old_name='state',
-            new_name='permission_type',
-        ),
+            model_name="permission", old_name="state", new_name="permission_type"
+        )
     ]

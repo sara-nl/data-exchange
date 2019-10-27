@@ -6,9 +6,8 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('surfsara', '0025_auto_20191027_2232'),
-        ('surfsara', '0021_auto_20191026_1137'),
+        ("surfsara", "0025_auto_20191027_2232"),
+        ("surfsara", "0021_auto_20191026_1137"),
     ]
 
-    operations = [
-    ]
+    operations = []

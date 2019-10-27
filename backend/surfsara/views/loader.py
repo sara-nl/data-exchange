@@ -16,8 +16,10 @@ class GetUserFiles(viewsets.ViewSet):
 
     def list(self, request):
         def as_name_id(share):
-            return {"name": share.get("file_target").strip("/"),
-                    "id": share.get("file_source")}
+            return {
+                "name": share.get("file_target").strip("/"),
+                "id": share.get("file_source"),
+            }
 
         def as_id(share):
             return share.get("file_source")

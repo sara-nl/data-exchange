@@ -5,12 +5,6 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0022_auto_20191027_0952'),
-    ]
+    dependencies = [("surfsara", "0022_auto_20191027_0952")]
 
-    operations = [
-        migrations.DeleteModel(
-            name='UserPermission',
-        ),
-    ]
+    operations = [migrations.DeleteModel(name="UserPermission")]

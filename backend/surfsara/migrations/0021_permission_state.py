@@ -5,14 +5,16 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0020_auto_20191024_1516'),
-    ]
+    dependencies = [("surfsara", "0020_auto_20191024_1516")]
 
     operations = [
         migrations.AddField(
-            model_name='permission',
-            name='state',
-            field=models.CharField(choices=[('user permission', 'user permission')], default='user permission', max_length=255),
-        ),
+            model_name="permission",
+            name="state",
+            field=models.CharField(
+                choices=[("user permission", "user permission")],
+                default="user permission",
+                max_length=255,
+            ),
+        )
     ]

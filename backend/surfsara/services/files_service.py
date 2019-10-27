@@ -1,15 +1,16 @@
-
 from backend.scripts.ResearchdriveClient import ResearchdriveClient
 from functools import reduce
 
 
 class OwnShares:
-    folderRunScript = 'run.py'
+    folderRunScript = "run.py"
     rd_client = ResearchdriveClient()
 
     def __init__(self, user):
         self.user = user
-        self.shares = list(filter(self.belongs_to_requester, self.rd_client.get_shares()))
+        self.shares = list(
+            filter(self.belongs_to_requester, self.rd_client.get_shares())
+        )
         self.reduce_shares()
 
     def return_own_shares(self):
@@ -36,12 +37,14 @@ class OwnShares:
             return acc
 
     def reduce_shares(self):
-        (self.alg_shares, self.data_shares) = reduce(self.reducer, self.shares, ([], []))
+        (self.alg_shares, self.data_shares) = reduce(
+            self.reducer, self.shares, ([], [])
+        )
 
     def get_share_name(self, id):
         for share in self.shares:
 
             if share["id"] == str(id):
-                return share["file_target"].strip('/')
+                return share["file_target"].strip("/")
 
         return id

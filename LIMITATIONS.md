@@ -2,8 +2,13 @@
 
 This is the list of known ~issues~ limitations.
 
-## File sharing
+## Product limitations
+* Algorithm is Python only;
+* Research Drive only;
+* Output is only STDOUT/STDERR;
+* Webdav interface of Research Drive is relatively slow;
 
+## File sharing
 * Maximal level of nested directories in code/data folders is 50;
 * Ignores empty folders in code/data;
 * When a file is shared and later renamed, DataExchange will still see it with

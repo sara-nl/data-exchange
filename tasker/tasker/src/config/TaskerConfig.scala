@@ -5,6 +5,7 @@ import java.net.URI
 import cats.effect.IO
 import clients.webdav.WebdavPath
 import com.github.dockerjava.core.DefaultDockerClientConfig
+import container.Ids
 import dev.profunktor.fs2rabbit.config.declaration.{
   DeclarationExchangeConfig,
   DeclarationQueueConfig
@@ -39,12 +40,12 @@ object TaskerConfig {
   }
 
   object docker {
-    val image = "datex:latest"
+    val image = Ids.ImageId("datex:latest")
     val indexFile = "run.py"
+    val requirementsFile = "requirements.txt"
     val containerCodePath = "/tmp/code"
     val containerDataPath = "/tmp/data"
     val containerOutPath = "/tmp/out"
-    val defaultImage = "python"
     val clientConfig = DefaultDockerClientConfig
       .createDefaultConfigBuilder()
       .withDockerHost("unix:///var/run/docker.sock")

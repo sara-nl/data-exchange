@@ -28,7 +28,7 @@
   let ownDatasets: any = null;
   let task: any = null;
 
-  let approve_algorithm_all = false;
+  let approve_user = false;
   let review_output = true
 
   let data = new TasksReviewRequest();
@@ -51,7 +51,7 @@
   async function review_request(approved: boolean) {
     data.approved = approved;
     data.updated_request = task;
-    data.approve_algorithm_all = approve_user;
+    data.approve_user = approve_user;
     data.review_output = review_output
 
     try {

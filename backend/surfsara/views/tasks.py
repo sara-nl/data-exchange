@@ -218,7 +218,7 @@ class Tasks(viewsets.ViewSet):
 
             task_service.start(task)
 
-            if request.data["approve_algorithm_all"]:
+            if request.data["approve_user"]:
                 mail_service.send_mail(
                     mail_files="permission_granted_do",
                     receiver=task.approver_email,

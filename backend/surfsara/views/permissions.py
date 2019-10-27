@@ -9,7 +9,6 @@ from surfsara.services import mail_service
 from surfsara.services.files_service import OwnShares
 
 
-
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
@@ -54,35 +53,25 @@ class Permissions(viewsets.ViewSet):
 
         alg_shares, _ = OwnShares(str(request.user)).return_own_shares()
 
+        obtained_per_file = {}
+        given_per_file = {}
+
         obtained_permissions = Permission.objects.filter(
             algorithm_provider=request.user.email
         )
-        given_permissions = Permission.objects.filter(
-            dataset_provider=request.user.email
-        )
 
         obtained_permissions = TaskSerializer(obtained_permissions, many=True).data
-        obtained_per_file = {}
+
         for perm in obtained_permissions:
-            if perm["algorithm"] in obtained_per_file:
-                obtained_per_file[perm["algorithm"]].append(perm)
+            if perm["permission_type"] == Permission.USER_PERMISSION:
+                for algorithm in alg_shares:
+                    add_per_file(
+                        algorithm["file_target"].strip("/"), obtained_per_file, perm
+                    )
             else:
-                obtained_per_file[perm["algorithm"]] = [perm]
+                add_per_file(perm["algorithm"], obtained_per_file, perm)
 
-        given_permissions = TaskSerializer(given_permissions, many=True).data
-        given_per_file = {}
-        for perm in given_permissions:
-            if perm["algorithm"] in given_per_file:
-                given_per_file[perm["algorithm"]].append(perm)
-            else:
-                given_per_file[perm["algorithm"]] = [perm]
-
-        return Response(
-            {
-                "obtained_permissions": obtained_per_file,
-                "given_permissions": given_per_file,
-            }
-        )
+        return Response({"obtained_permissions": obtained_per_file})
 
     @action(
         detail=True,
@@ -109,3 +98,10 @@ class Permissions(viewsets.ViewSet):
         )
 
         return self.list(request)
+
+
+def add_per_file(item, per_file_dict, perm):
+    if item in per_file_dict:
+        per_file_dict[item].append(perm)
+    else:
+        per_file_dict[item] = [perm]

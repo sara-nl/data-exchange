@@ -15,6 +15,13 @@ class GetUserFiles(viewsets.ViewSet):
     rd_client = ResearchdriveClient()
 
     def list(self, request):
+        def as_name_id(share):
+            return {"name": share.get("file_target").strip("/"),
+                    "id": share.get("file_source")}
+
+        def as_id(share):
+            return share.get("file_source")
+
         alg_shares, data_shares = OwnShares(str(request.user)).return_own_shares()
 
         return Response(

@@ -306,7 +306,6 @@ class Tasks(viewsets.ViewSet):
             id=pk,
             algorithm_provider=request.user.email,
             dataset_provider=request.data["dataset_provider"],
-            algorithm=request.data["algorithm"],
             dataset=request.data["dataset"],
         )
 
@@ -317,7 +316,7 @@ class Tasks(viewsets.ViewSet):
             state=Task.ANALYZING,
             author_email=perm.algorithm_provider,
             approver_email=perm.dataset_provider,
-            algorithm=perm.algorithm,
+            algorithm=request.data["algorithm"],
             dataset=perm.dataset,
             review_output=perm.review_output,
             dataset_desc="",

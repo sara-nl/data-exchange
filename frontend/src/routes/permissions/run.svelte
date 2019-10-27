@@ -40,6 +40,8 @@
 
     let totalPermission =
       obtainedPermissions[data.algorithm_file][permission];
+    totalPermission.algorithm = data.algorithm_file
+
     requesting = true;
 
     try {
@@ -109,7 +111,7 @@
                   <option disabled value="">Select permission</option>
 
                   {#each obtainedPermissions[data.algorithm_file] as file, i}
-                    <option value={i}>{file.dataset}/{file.algorithm}</option>
+                    <option value={i}>{file.dataset}/{data.algorithm_file}</option>
                   {/each}
                 </select>
               {/if}
@@ -143,7 +145,7 @@
             <h5>Dataset</h5>
             {obtainedPermissions[data.algorithm_file][permission].dataset}
             <h5>Algorithm</h5>
-            {obtainedPermissions[data.algorithm_file][permission].algorithm}
+            {data.algorithm_file}
           </div>
           <div class="my-3">
             <h5>Permission type</h5>

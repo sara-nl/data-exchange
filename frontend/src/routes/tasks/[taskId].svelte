@@ -182,7 +182,7 @@
           <div class="col my-2">
             <h4>Permissions</h4>
             <input bind:checked={approve_user} type="checkbox" />
-            Approve use of this dataset by requester
+            Approve general use of this dataset by requester
             <div class="text-muted">
               With this permission the requester can use any of his algorithms on this dataset.
               Only grant this permission if you trust {task.author_email} to

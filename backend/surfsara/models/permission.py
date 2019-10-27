@@ -3,6 +3,9 @@ from django.db import models
 
 class Permission(models.Model):
     USER_PERMISSION = "user permission"
+    STREAM_PERMISSION = "stream permission"
+    NO_PERMISSION = "no permission"
+
 
     algorithm = models.TextField(null=True)
     algorithm_provider = models.TextField()
@@ -16,6 +19,7 @@ class Permission(models.Model):
         max_length=255,
         choices=[
             (USER_PERMISSION, "user permission"),
+            (STREAM_PERMISSION, "stream permission")
         ],
-        default=USER_PERMISSION
+        default=NO_PERMISSION
     )

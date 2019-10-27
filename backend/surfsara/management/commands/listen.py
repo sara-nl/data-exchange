@@ -24,6 +24,77 @@ class ProcessedAlgorithm:
     alg_name: str
 
 
+class Listener:
+    def __init__(self, stdout, stderr, channel):
+        self.stdout = stdout
+        self.stderr = stderr
+        self.channel = channel
+
+    def listen(self):
+        self.stdout.write(f"Starting to listen on queue {self.queue_name}")
+        self.channel.queue_declare(queue=self.queue_name)
+        self.channel.basic_consume(
+            queue=self.queue_name, on_message_callback=self.callback, auto_ack=True
+        )
+
+
+class TaskerDoneListener(Listener):
+    @dataclass
+    @dataclass_json(letter_case=LetterCase.CAMEL)
+    class TaskCompleted:
+        task_id: str
+        state: str
+        output: str
+
+    queue_name = "tasker_done"
+
+    def callback(self, ch, method, properties, body):
+        # Probably it needs to be wrapped in try/except too :-)
+        task_completed = self.TaskCompleted.from_json(body)
+        self.stdout.write(f"Received {task_completed}")
+
+        task = Task.objects.get(pk=task_completed.task_id)
+        task.output = task_completed.output
+
+        if not task.review_output and task_completed.state == "success":
+            task.state = Task.OUTPUT_RELEASED
+        else:
+            task.state = task_completed.state
+        task.save()
+
+        # TODO: Actually show the URL in the email. Currently, we can't really know
+        # what domain we're hosting on. Should probably get this from an environment
+        # variable, configured in the docker-compose.yml (or Django's settings.py)
+        mail_service.send_mail(
+            mail_files="finished_running",
+            receiver=task.approver_email,
+            subject="Task output is ready for approval",
+        )
+
+        self.stdout.write(f"Successfully updated task {task_completed.task_id}")
+
+
+class AnalyzeListener(Listener):
+    @dataclass
+    @dataclass_json(letter_case=LetterCase.CAMEL)
+    class Command:
+        task_id: str
+
+    queue_name = "analyze"
+
+    def callback(self, ch, method, properties, body):
+        command = self.Command.from_json(body)
+        self.stdout.write(f"Received {Command}")
+
+        task = Task.objects.get(pk=Command.task_id)
+
+        proces = AlgorithmProcessor(Command.alg_name,
+                                    task.author_email).start_processing()
+
+        task.algorithm_content = proces.files
+        task.save()
+
+
 class Command(BaseCommand):
     help = "Starts listening for finished task"
 
@@ -40,67 +111,23 @@ class Command(BaseCommand):
         )
         self.channel = self.connection.channel()
 
+    def listen_analyze(self):
+        queue_name = "analyze"
+
+        def callback(ch, method, properties, body):
+            pass
+
+        self.channel.queue_declare(queue=queue_name)
+        self.channel.basic_consume(
+            queue=queue_name, on_message_callback=callback, auto_ack=True
+        )
+
     def handle(self, *args, **options):
         self.stdout.write(
             self.style.SUCCESS("Starting task results listener. To exit press CTRL+C")
         )
 
-        queue_name = "tasker_done"
-        algorithm_queue_name = "algorithm_processed"
-
-        def callback(channel, method, properties, body):
-            # This is also the place, where we may want to trigger the output approval
-            # flow, like sending an email to the reviewer and so on. Right now I just
-            # store task as completed in DB
-
-            self.stdout.write(f"Received {body, properties, method, channel}")
-            # Probably it needs to be wrapped in try/except too :-)
-            task_completed = TaskCompleted.from_json(body)
-            self.stdout.write(f"Received {task_completed}")
-
-            task = Task.objects.get(pk=task_completed.task_id)
-            task.output = task_completed.output
-
-            if not task.review_output and task_completed.state == "success":
-                task.state = Task.OUTPUT_RELEASED
-            else:
-                task.state = task_completed.state
-            task.save()
-
-            # TODO: Actually show the URL in the email. Currently, we can't really know
-            # what domain we're hosting on. Should probably get this from an environment
-            # variable, configured in the docker-compose.yml (or Django's settings.py)
-            mail_service.send_mail(
-                mail_files="finished_running",
-                receiver=task.approver_email,
-                subject="Task output is ready for approval",
-            )
-
-            self.stdout.write(f"Successfully updated task {task_completed.task_id}")
-
-        def alg_process_callback(ch, method, properties, body):
-            print(" CALLBACKASDKASDKASLDKAS EWTWEGASARHGwrwhgwrw")
-
-            # Receiving message
-            processed_algorithm = ProcessedAlgorithm.from_json(body)
-            self.stdout.write(f"Received {processed_algorithm}")
-
-            # Loading
-            task = Task.objects.get(pk=processed_algorithm.task_id)
-
-            # Processing
-            proces = AlgorithmProcessor(processed_algorithm.alg_name,
-                                        task.author_email).start_processing()
-
-            # Saving
-            task.algorithm_content = proces.files
-            task.save()
-            self.stdout.write(f"Successfully parsed algorithms from {processed_algorithm.task_id}")
-
-        self.channel.queue_declare(queue=queue_name)
-
-        self.channel.basic_consume(
-            queue=queue_name, on_message_callback=callback, auto_ack=True
-        )
+        TaskerDoneListener(self.stdout, self.stderr, self.channel).listen()
+        AnalyzeListener(self.stdout, self.stderr, self.channel).listen()
 
         self.channel.start_consuming()

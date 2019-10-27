@@ -3,8 +3,8 @@
     import RemoveShare from "../api/shares";
     import Spinner from "../components/Spinner.svelte";
 
-    let own_algorithms: any[] = [];
-    let own_datasets: any[] = [];
+    let own_algorithms: any[] | null = null;
+    let own_datasets: any[] | null = null;
     let data = {}
 
     async function updateUserFiles(){
@@ -30,8 +30,13 @@
     }
 
     function quickUpdate(fileId: string) {
-        own_datasets = removeFromList(own_datasets, fileId);
-        own_algorithms = removeFromList(own_algorithms, fileId);
+        if (own_datasets !== null) {
+            own_datasets = removeFromList(own_datasets, fileId);
+        }
+
+        if (own_algorithms !== null) {
+            own_algorithms = removeFromList(own_algorithms, fileId);
+        }
     }
 
     async function revokeFileShare(fileId: string){

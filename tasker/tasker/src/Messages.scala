@@ -8,16 +8,15 @@ object Messages {
   object Done {
     def success(taskId: String,
                 output: String,
-                containerOutput: ContainerOutput) =
+                containerOutput: AlgorithmOutput) =
       Done(taskId, "success", output, containerOutput)
     def error(taskId: String,
               output: String,
-              containerOutput: ContainerOutput) =
+              containerOutput: AlgorithmOutput) =
       Done(taskId, "error", output, containerOutput)
   }
 
-  case class ContainerOutput(
-                             /**
+  case class AlgorithmOutput( /**
                                * Standard output produced by the user Python script
                                */
                              stdout: String,
@@ -46,6 +45,6 @@ object Messages {
                   /**
                     * An object, which contains different types of container output
                     */
-                  containerOutput: ContainerOutput)
+                  containerOutput: AlgorithmOutput)
 
 }

@@ -76,8 +76,14 @@ class Tasks(viewsets.ViewSet):
 
     def create(self, request):
         data_owner_email = request.data["data_owner"]
-        if not User.objects.filter(email=data_owner_email):
-            return Response({"error": "unknown email"}, status=400)
+        if "@" not in data_owner_email:
+            return Response(
+                {"error": f"Invalid email address '{data_owner_email}'"}, status=400
+            )
+        elif not User.objects.filter(email=data_owner_email):
+            return Response(
+                {"error": f"Unknown email address '{data_owner_email}'"}, status=400
+            )
 
         task = Task(
             state=Task.ANALYZING,
@@ -241,7 +247,7 @@ class Tasks(viewsets.ViewSet):
                     dataset=update["dataset"],
                     dataset_provider=update["approver_email"],
                     review_output=request.data["review_output"],
-                    permission_type=Permission.USER_PERMISSION
+                    permission_type=Permission.USER_PERMISSION,
                 )
 
                 new_perm.save()

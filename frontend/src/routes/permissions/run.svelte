@@ -146,6 +146,8 @@
             {obtainedPermissions[data.algorithm_file][permission].algorithm}
           </div>
           <div class="my-3">
+            <h5>Permission type</h5>
+            {obtainedPermissions[data.algorithm_file][permission].permission_type}
             <h5>Review output</h5>
             {obtainedPermissions[data.algorithm_file][permission].review_output}
           </div>

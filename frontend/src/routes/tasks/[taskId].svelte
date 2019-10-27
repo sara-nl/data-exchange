@@ -19,6 +19,8 @@
     error: "danger"
   };
 
+
+  let approve_user: boolean = false;
   let visible: boolean = false;
   let ownDatasets: any = null;
   let task: any = null;
@@ -46,7 +48,7 @@
   async function review_request(approved: boolean) {
     data.approved = approved;
     data.updated_request = task;
-    data.approve_algorithm_all = approve_algorithm_all;
+    data.approve_algorithm_all = approve_user;
     data.review_output = review_output
 
     try {
@@ -115,6 +117,8 @@
             {task.review_output}
           {/if}
         </div>
+
+
         <div class="my-5">
           <h4>Algorithm</h4>
           <ul style="list-style:none; padding-left: 0;">
@@ -174,9 +178,10 @@
         {#if task.is_owner}
           <div class="col my-2">
             <h4>Permissions</h4>
-            <input bind:checked={approve_algorithm_all} type="checkbox" />
-            Approve continous use of dataset with this algorithm.
+            <input bind:checked={approve_user} type="checkbox" />
+            Approve use of this dataset by requester
             <div class="text-muted">
+              With this permission the requester can use any of his algorithms on this dataset.
               Only grant this permission if you trust {task.author_email} to
               always run benevolent algorithms.
             </div>

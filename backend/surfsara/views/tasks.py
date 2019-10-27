@@ -235,13 +235,16 @@ class Tasks(viewsets.ViewSet):
                     **update,
                 )
 
-                Permission(
-                    algorithm=update["algorithm"],
+                new_perm = Permission(
+                    algorithm="Any algorithm",
                     algorithm_provider=update["author_email"],
                     dataset=update["dataset"],
                     dataset_provider=update["approver_email"],
                     review_output=request.data["review_output"],
-                ).save()
+                    permission_type=Permission.USER_PERMISSION
+                )
+
+                new_perm.save()
         else:
             result = "rejected"
             task.state = Task.REQUEST_REJECTED

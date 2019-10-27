@@ -6,6 +6,8 @@ from rest_framework.response import Response
 
 from surfsara.models import Permission, User
 from surfsara.services import mail_service
+from surfsara.services.files_service import OwnShares
+
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -49,6 +51,9 @@ class Permissions(viewsets.ViewSet):
         """
         Returns list permissions per file in dict
         """
+
+        alg_shares, _ = OwnShares(str(request.user)).return_own_shares()
+
         obtained_permissions = Permission.objects.filter(
             algorithm_provider=request.user.email
         )

@@ -27,7 +27,7 @@
   let task: any = null;
 
   let approve_algorithm_all = false;
-  let review_output = true
+  let review_output = true;
 
   let data = new TasksReviewRequest();
 
@@ -50,7 +50,7 @@
     data.approved = approved;
     data.updated_request = task;
     data.approve_algorithm_all = approve_algorithm_all;
-    data.review_output = review_output
+    data.review_output = review_output;
 
     try {
       if (approved) {
@@ -155,13 +155,17 @@
         hidden={!visible}
         class="col-12 col-md-8 border"
         style="padding-top: 20px;">
+        <h4>{task.algorithm}</h4>
+        {#each task.algorithm_content as alg, i}
+        <h6>{alg.algorithm_name}</h6>
         <pre>
           <code class="python">
-            {task.algorithm_content || 'Algorithm being processed'}
+            {alg.algorithm_content || 'Algorithm being processed'}
           </code>
         </pre>
-        <hr />
-        <h5>{task.algorithm_info}</h5>
+        <h6>{alg.algorithm_info}</h6>
+          <hr />
+        {/each}
       </div>
       <div
         hidden={visible}

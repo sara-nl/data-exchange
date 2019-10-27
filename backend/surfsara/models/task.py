@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.postgres.fields import JSONField
 
 
 class Task(models.Model):
@@ -30,7 +31,7 @@ class Task(models.Model):
     author_email = models.EmailField()
     approver_email = models.EmailField()
     algorithm = models.TextField()
-    algorithm_content = models.TextField(default="No algorithm")
+    algorithm_content = JSONField(default=dict)
     algorithm_info = models.TextField(default="")
     dataset = models.TextField()
     dataset_desc = models.TextField()

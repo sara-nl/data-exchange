@@ -59,7 +59,6 @@ class AlgorithmProcessor:
             algorithm_content = " ".join(line for line in lines)
             algorithm_info = self.calculate_algorithm_info(lines)
 
-        print(original_name, algorithm_info, algorithm_content)
         self.files.append(
             {
                 "algorithm_name": original_name,
@@ -67,9 +66,6 @@ class AlgorithmProcessor:
                 "algorithm_info": algorithm_info
             }
         )
-
-        print(self.files)
-
         os.remove(tempname)
 
     @staticmethod

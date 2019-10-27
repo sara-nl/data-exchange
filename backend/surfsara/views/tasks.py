@@ -38,7 +38,6 @@ class Tasks(viewsets.ViewSet):
 
         task.algorithm_content = AlgorithmProcessor(request.data["algorithm"],
                                                     request.user.email).start_processing()
-        # self.process_algorithm(task, request.data["algorithm"])
 
         task.state = Task.DATA_REQUESTED
         task.save()
@@ -271,7 +270,8 @@ class Tasks(viewsets.ViewSet):
         )
         task.save()
 
-        self.process_algorithm(task, request.data["algorithm"])
+        task.algorithm_content = AlgorithmProcessor(request.data["algorithm"],
+                                                    request.user.email).start_processing()
 
         task_service.start(task)
         task.state = Task.RUNNING

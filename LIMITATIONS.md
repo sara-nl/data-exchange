@@ -10,6 +10,7 @@ This is the list of known ~issues~ limitations.
 * A shared algorithm is file or a folder with one layer depth
 (so a folder containing only files. If it contains more folders,
 they will not be used/shown)
+* Changes to code or data files are detected, but no diff interface was implemented
 
 ## File sharing
 * Maximal level of nested directories in code/data folders is 50;

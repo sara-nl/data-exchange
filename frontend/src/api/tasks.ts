@@ -19,8 +19,9 @@ export class TasksReviewRequest {
     public approved: boolean = false;
     public released: boolean = false;
 
-    public approve_algorithm_all: boolean = false;
+    public approve_user: boolean = false;
     public review_output: boolean = true;
+    public stream: boolean = false;
 }
 
 export class TaskRetrieveRequest {

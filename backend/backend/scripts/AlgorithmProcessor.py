@@ -63,7 +63,7 @@ class AlgorithmProcessor:
             {
                 "algorithm_name": original_name,
                 "algorithm_content": algorithm_content,
-                "algorithm_info": algorithm_info
+                "algorithm_info": algorithm_info,
             }
         )
 

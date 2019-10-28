@@ -87,7 +87,6 @@ class AnalyzeListener(Listener):
         self.stdout.write(f"Received {command}")
 
         task = Task.objects.get(pk=command.task_id)
-        task.state = Task.ANALYZING
         task.save()
 
         processor = AlgorithmProcessor(task.algorithm,

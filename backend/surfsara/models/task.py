@@ -1,5 +1,6 @@
-from django.db import models
 from django.contrib.postgres.fields import JSONField
+from django.db import models
+from surfsara.models.permission import Permission
 
 
 class Task(models.Model):
@@ -28,8 +29,8 @@ class Task(models.Model):
             (RELEASE_REJECTED, "Release Rejected"),
         ],
     )
-    author_email = models.TextField()
-    approver_email = models.TextField()
+    author_email = models.EmailField()
+    approver_email = models.EmailField()
     algorithm = models.TextField()
     algorithm_content = JSONField(default=dict)
     algorithm_info = models.TextField(default="")
@@ -37,4 +38,5 @@ class Task(models.Model):
     dataset_desc = models.TextField()
     output = models.TextField(null=True)
     review_output = models.BooleanField(default=True)
+    permission = models.ForeignKey(Permission, null=True, on_delete=models.SET_NULL)
     registered_on = models.DateTimeField(auto_now_add=True)

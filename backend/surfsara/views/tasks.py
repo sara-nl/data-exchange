@@ -8,12 +8,15 @@ import string
 
 from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
+from surfsara.views import permissions
 from backend.scripts.run_container import RunContainer
 from backend.scripts.ResearchdriveClient import ResearchdriveClient
 from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 
 
 class TaskSerializer(serializers.ModelSerializer):
+    permission = permissions.PermissionSerializer(many=False, read_only=True)
+
     class Meta:
         model = Task
         fields = "__all__"
@@ -24,8 +27,14 @@ class Tasks(viewsets.ViewSet):
 
     def create(self, request):
         data_owner_email = request.data["data_owner"]
-        if not User.objects.filter(email=data_owner_email):
-            return Response({"error": "unknown email"}, status=400)
+        if "@" not in data_owner_email:
+            return Response(
+                {"error": f"Invalid email address '{data_owner_email}'"}, status=400
+            )
+        elif not User.objects.filter(email=data_owner_email):
+            return Response(
+                {"error": f"Unknown email address '{data_owner_email}'"}, status=400
+            )
 
         task = Task(
             state=Task.ANALYZING,
@@ -35,10 +44,8 @@ class Tasks(viewsets.ViewSet):
             dataset_desc=request.data["dataset_desc"],
         )
         task.save()
-
         task_service.analyze(task)
-
-        task.state = Task.DATA_REQUESTED
+        task.state = Task.ANALYZING
         task.save()
 
         mail_service.send_mail(
@@ -166,7 +173,7 @@ class Tasks(viewsets.ViewSet):
 
             task_service.analyze(task)
 
-            if request.data["approve_algorithm_all"]:
+            if request.data["approve_user"] or request.data["stream"]:
                 mail_service.send_mail(
                     mail_files="permission_granted_do",
                     receiver=task.approver_email,
@@ -183,13 +190,23 @@ class Tasks(viewsets.ViewSet):
                     **update,
                 )
 
-                Permission(
-                    algorithm=update["algorithm"],
+                if request.data["approve_user"]:
+                    permission_type = Permission.USER_PERMISSION
+                elif request.data["stream"]:
+                    permission_type = Permission.STREAM_PERMISSION
+                else:
+                    raise AssertionError("Invalid state - this should never be reached")
+
+                new_perm = Permission(
+                    algorithm="Any algorithm",
                     algorithm_provider=update["author_email"],
                     dataset=update["dataset"],
                     dataset_provider=update["approver_email"],
                     review_output=request.data["review_output"],
-                ).save()
+                    permission_type=permission_type,
+                )
+
+                new_perm.save()
         else:
             result = "rejected"
             task.state = Task.REQUEST_REJECTED
@@ -251,7 +268,6 @@ class Tasks(viewsets.ViewSet):
             id=pk,
             algorithm_provider=request.user.email,
             dataset_provider=request.data["dataset_provider"],
-            algorithm=request.data["algorithm"],
             dataset=request.data["dataset"],
         )
 
@@ -262,13 +278,13 @@ class Tasks(viewsets.ViewSet):
             state=Task.ANALYZING,
             author_email=perm.algorithm_provider,
             approver_email=perm.dataset_provider,
-            algorithm=perm.algorithm,
+            algorithm=request.data["algorithm"],
             dataset=perm.dataset,
             review_output=perm.review_output,
             dataset_desc="",
+            permission=perm,
         )
         task.save()
-
         task_service.analyze(task)
         task_service.start(task)
 

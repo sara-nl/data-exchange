@@ -166,7 +166,7 @@ class ResearchdriveClient:
         return self.shares
 
     def remove_share_by_id(self, share_id):
-        endpoint = f'{ResearchdriveClient.share_api_endpoint}/{share_id}'
+        endpoint = f"{ResearchdriveClient.share_api_endpoint}/{share_id}"
         response = self.__execute_request(endpoint, "DELETE")
         return self.parse_revoke_share_xml(response) == "100"
 
@@ -174,7 +174,7 @@ class ResearchdriveClient:
         shares = self.get_shares()
         share = self.__compare_tag(remote_path, shares, "file_target")
         if share:
-            return self.remove_share_by_id(share['id'])
+            return self.remove_share_by_id(share["id"])
         return True
 
     def __filter_shares_owner(self, owner):
@@ -185,7 +185,9 @@ class ResearchdriveClient:
         self.shares = [share for share in self.shares if share["uid_owner"] == owner]
 
     def __filter_shares_filename(self, filename):
-        self.shares = [share for share in self.shares if share['path'] == '/' + filename]
+        self.shares = [
+            share for share in self.shares if share["path"] == "/" + filename
+        ]
 
     def __is_recent_etag(self, remote_path, etag):
         """
@@ -227,15 +229,15 @@ class ResearchdriveClient:
     def get_remote_path(self, file_id):
         shares = self.get_shares()
         for share in shares:
-            if str(share['item_source']) == str(file_id):
-                return share['path']
+            if str(share["item_source"]) == str(file_id):
+                return share["path"]
         return False
 
     def get_share_id(self, file_id):
         shares = self.get_shares()
         for share in shares:
-            if str(share['item_source']) == str(file_id):
-                return share['id']
+            if str(share["item_source"]) == str(file_id):
+                return share["id"]
         return False
 
     def get_file_versions(self, remote_path):

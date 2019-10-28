@@ -6,14 +6,12 @@ from django.db import migrations
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0019_auto_20191020_1338'),
-    ]
+    dependencies = [("surfsara", "0019_auto_20191020_1338")]
 
     operations = [
         migrations.AlterField(
-            model_name='task',
-            name='algorithm_content',
+            model_name="task",
+            name="algorithm_content",
             field=django.contrib.postgres.fields.jsonb.JSONField(),
-        ),
+        )
     ]

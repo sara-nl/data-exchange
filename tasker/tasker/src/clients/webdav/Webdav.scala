@@ -6,6 +6,7 @@ import java.nio.file.{Files, Path, Paths}
 import cats.effect.{IO, Resource}
 import com.github.sardine.SardineFactory
 import config.TaskerConfig
+import container.ContainerEnv.Artifact
 import fs2.Pipe
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
@@ -18,21 +19,24 @@ object Webdav {
     TaskerConfig.webdav.password
   )
 
-  val downloadFilesPipe: Pipe[IO, (WebdavPath, Path), Unit] = { msgStream =>
-    for {
-      paths <- msgStream
-      (webdavRoot, localRoot) = paths
-      _ <- Webdav.findAll(webdavRoot).evalMap {
-        case (remotePath, isResource) =>
-          val localPath =
-            Paths.get(localRoot.toString, remotePath.userPath.get.toString)
-          for {
-            logger <- Slf4jLogger.create[IO]
-            _ <- logger.info(s"Copying remote file ${remotePath.toString} to local: ${localPath.toString}")
-            _ <- isResource.use(Webdav.copyStreamToLocalFile(_, localPath))
-          } yield ()
-      }
-    } yield ()
+  private val downloadFilesPipe: Pipe[IO, (WebdavPath, Path), Unit] = {
+    msgStream =>
+      for {
+        paths <- msgStream
+        (webdavRoot, localRoot) = paths
+        _ <- Webdav.findAll(webdavRoot).evalMap {
+          case (remotePath, isResource) =>
+            val localPath =
+              Paths.get(localRoot.toString, remotePath.userPath.get.toString)
+            for {
+              logger <- Slf4jLogger.create[IO]
+              _ <- logger.info(
+                s"Copying remote file ${remotePath.toString} to local: ${localPath.toString}"
+              )
+              _ <- isResource.use(Webdav.copyStreamToLocalFile(_, localPath))
+            } yield ()
+        }
+      } yield ()
   }
 
   def findAll(
@@ -59,6 +63,16 @@ object Webdav {
       )
 
   }
+
+  /**
+    * Downloads artifacts into their locations on the host.
+    */
+  def downloadToHost(map: Map[WebdavPath, Artifact]): IO[Unit] =
+    fs2.Stream
+      .emits(map.view.mapValues(_.hostHome).toList)
+      .through(Webdav.downloadFilesPipe)
+      .compile
+      .drain
 
   private def copyStreamToLocalFile(is: InputStream,
                                     localPath: Path): IO[Unit] = IO {

@@ -76,7 +76,7 @@ class TaskerDoneListener(Listener):
 
 class AnalyzeListener(Listener):
     @dataclass
-    @dataclass_json(letter_case=LetterCase.CAMEL)
+    @dataclass_json
     class Command:
         task_id: str
 
@@ -84,14 +84,13 @@ class AnalyzeListener(Listener):
 
     def callback(self, ch, method, properties, body):
         command = self.Command.from_json(body)
-        self.stdout.write(f"Received {Command}")
+        self.stdout.write(f"Received {command}")
 
-        task = Task.objects.get(pk=Command.task_id)
+        task = Task.objects.get(pk=command.task_id)
 
-        proces = AlgorithmProcessor(Command.alg_name,
-                                    task.author_email).start_processing()
-
-        task.algorithm_content = proces.files
+        processor = AlgorithmProcessor(task.algorithm,
+                                       task.author_email)
+        task.algorithm_content = processor.start_processing()
         task.save()
 
 
@@ -115,12 +114,11 @@ class Command(BaseCommand):
         queue_name = "analyze"
 
         def callback(ch, method, properties, body):
-            pass
 
-        self.channel.queue_declare(queue=queue_name)
-        self.channel.basic_consume(
-            queue=queue_name, on_message_callback=callback, auto_ack=True
-        )
+            self.channel.queue_declare(queue=queue_name)
+            self.channel.basic_consume(
+                queue=queue_name, on_message_callback=callback, auto_ack=True
+            )
 
     def handle(self, *args, **options):
         self.stdout.write(

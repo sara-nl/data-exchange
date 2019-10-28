@@ -31,7 +31,6 @@ def __connect():
             ),
         )
     )
-    print("Trying to connect")
     channel = connection.channel()
     return connection, channel
 
@@ -58,10 +57,8 @@ def start(task: Task):
 
 def analyze(task: Task):
     connection, channel = __connect()
-    print("Connection made")
 
     command = AnalyzeListener.Command(task_id=str(task.id))
-    print("Fun!")
     channel.basic_publish(
         exchange='',
         routing_key=AnalyzeListener.queue_name,

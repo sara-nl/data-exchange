@@ -20,7 +20,6 @@ export class TasksReviewRequest {
     public released: boolean = false;
 
     public approve_user: boolean = false;
-    public approve_algorithm_all: boolean = false;
     public review_output: boolean = true;
     public stream: boolean = false;
 }

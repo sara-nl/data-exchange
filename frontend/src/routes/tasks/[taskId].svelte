@@ -184,7 +184,13 @@
 
             <div class="form-group">
               <label for="stream">
-                <input bind:checked={data.stream} id="stream" type="checkbox" />
+                <input
+                  bind:checked={data.stream}
+                  disabled={data.approve_user}
+                  id="stream"
+                  type="checkbox"
+                />
+
                 Automatically run this algorithm on data changes.
 
                 <div class="text-muted">
@@ -194,20 +200,23 @@
             </div>
 
             <div class="form-group">
-              <label for="approve_algorithm_all">
+              <label for="approve_user">
                 <input
-                  bind:checked={data.approve_algorithm_all}
-                  on:change={() => data.stream = data.stream || data.approve_algorithm_all}
-                  id="approve_algorithm_all"
+                  bind:checked={data.approve_user}
+                  on:change={() => data.stream = data.stream || data.approve_user}
+                  id="approve_user"
                   type="checkbox"
                 />
 
                 Approve general use of dataset by the requester.
 
                 <div class="text-muted">
-                  With this permission the requester can use any of his algorithms on this dataset.
-                  Only grant this permission if you trust {task.author_email} to
-                  always run benevolent algorithms.
+                  With this permission the requester can use any of his algorithms on this
+                  dataset. Only grant this permission if you trust {task.author_email} to always
+                  run benevolent algorithms.
+                </div>
+                <div class="text-danger">
+                  This option implies the above option.
                 </div>
               </label>
             </div>

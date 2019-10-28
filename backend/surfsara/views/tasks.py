@@ -177,7 +177,7 @@ class Tasks(viewsets.ViewSet):
 
             task_service.start(task)
 
-            if request.data["approve_user"]:
+            if request.data["approve_user"] or request.data["stream"]:
                 mail_service.send_mail(
                     mail_files="permission_granted_do",
                     receiver=task.approver_email,
@@ -194,13 +194,20 @@ class Tasks(viewsets.ViewSet):
                     **update,
                 )
 
+                if request.data["approve_user"]:
+                    permission_type = Permission.USER_PERMISSION
+                elif request.data["stream"]:
+                    permission_type = Permission.STREAM_PERMISSION
+                else:
+                    raise AssertionError("Invalid state - this should never be reached")
+
                 new_perm = Permission(
                     algorithm="Any algorithm",
                     algorithm_provider=update["author_email"],
                     dataset=update["dataset"],
                     dataset_provider=update["approver_email"],
                     review_output=request.data["review_output"],
-                    permission_type=Permission.USER_PERMISSION,
+                    permission_type=permission_type,
                 )
 
                 new_perm.save()

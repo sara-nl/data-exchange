@@ -11,9 +11,7 @@ class Permission(models.Model):
     dataset = models.TextField()
     dataset_provider = models.EmailField()
     review_output = models.BooleanField(default=True)
-    stream = models.BooleanField(default=False)
     registered_on = models.DateTimeField(auto_now_add=True)
-    user_permission = models.BooleanField(default=True)
 
     permission_type = models.CharField(
         max_length=255,

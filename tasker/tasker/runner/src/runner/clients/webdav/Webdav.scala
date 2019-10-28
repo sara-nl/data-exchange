@@ -1,12 +1,12 @@
-package clients.webdav
+package runner.clients.webdav
 
 import java.io.InputStream
 import java.nio.file.{Files, Path, Paths}
 
 import cats.effect.{IO, Resource}
 import com.github.sardine.SardineFactory
-import config.TaskerConfig
-import container.ContainerEnv.Artifact
+import runner.config.TaskerConfig
+import runner.container.ContainerEnv.Artifact
 import fs2.Pipe
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 

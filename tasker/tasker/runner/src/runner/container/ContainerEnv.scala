@@ -1,12 +1,12 @@
-package container
+package runner.container
 
 import java.nio.file.{Path, Paths}
 
 import cats.effect.IO
 import com.github.dockerjava.api.model.{AccessMode, Bind, Volume}
-import config.TaskerConfig
-import config.TaskerConfig.docker
-import container.ContainerEnv.{Artifact, Executable, OutputFiles}
+import runner.config.TaskerConfig
+import runner.config.TaskerConfig.docker
+import runner.container.ContainerEnv.{Artifact, Executable, OutputFiles}
 import cats.syntax._
 import cats.implicits._
 

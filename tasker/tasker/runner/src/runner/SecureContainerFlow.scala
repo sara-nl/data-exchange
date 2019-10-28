@@ -1,13 +1,20 @@
-import Messages.{AlgorithmOutput, Done}
+package runner
+
 import cats.effect._
-import clients.webdav.{Webdav, WebdavPath}
 import clients.DockerContainer
-import container.{ContainerCommand, ContainerEnv, ContainerState, LogMessages}
+import clients.webdav.{Webdav, WebdavPath}
+import runner.config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
+import runner.container.{
+  ContainerCommand,
+  ContainerEnv,
+  ContainerState,
+  LogMessages
+}
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.syntax._
-import utils.FilesIO
-import config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
+import runner.Messages.{AlgorithmOutput, Done}
+import runner.utils.FilesIO
 
 import scala.language.postfixOps
 

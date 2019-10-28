@@ -1,11 +1,11 @@
-package config
+package runner.config
 
 import java.net.URI
 
 import cats.effect.IO
-import clients.webdav.WebdavPath
+import runner.clients.webdav.WebdavPath
 import com.github.dockerjava.core.DefaultDockerClientConfig
-import container.Ids
+import runner.container.Ids
 import dev.profunktor.fs2rabbit.config.declaration.{
   DeclarationExchangeConfig,
   DeclarationQueueConfig

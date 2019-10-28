@@ -1,11 +1,13 @@
-import Codecs._
+package runner
+
 import cats.effect.{ExitCode, IO, IOApp, Resource}
-import config.TaskerConfig
-import config.TaskerConfig.queues
+import runner.config.TaskerConfig
+import runner.config.TaskerConfig.queues
 import dev.profunktor.fs2rabbit.interpreter.Fs2Rabbit
 import dev.profunktor.fs2rabbit.model.{AMQPChannel, AmqpMessage}
+import Codecs._
 
-object Tasker extends IOApp {
+object RunnerApp extends IOApp {
 
   def program(client: Fs2Rabbit[IO]): IO[Unit] = {
     val connChannel: Resource[IO, AMQPChannel] = client.createConnectionChannel

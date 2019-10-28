@@ -1,10 +1,10 @@
-package clients.webdav
+package runner.clients.webdav
 
 import java.net.URI
 
-import clients.webdav.WebdavPath.WithToUrl
+import runner.clients.webdav.WebdavPath.WithToUrl
 import com.github.sardine.DavResource
-import config.TaskerConfig
+import runner.config.TaskerConfig
 import javax.ws.rs.core.UriBuilder
 
 object WebdavPath {

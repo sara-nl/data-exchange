@@ -89,8 +89,7 @@ class AnalyzeListener(Listener):
         task = Task.objects.get(pk=command.task_id)
         task.save()
 
-        processor = AlgorithmProcessor(task.algorithm,
-                                       task.author_email)
+        processor = AlgorithmProcessor(task.algorithm, task.author_email)
         task.algorithm_content = processor.start_processing()
         task.state = Task.DATA_REQUESTED
         task.save()

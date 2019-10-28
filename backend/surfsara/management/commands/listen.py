@@ -17,13 +17,6 @@ class TaskCompleted:
     output: str
 
 
-@dataclass
-@dataclass_json(letter_case=LetterCase.CAMEL)
-class ProcessedAlgorithm:
-    task_id: str
-    alg_name: str
-
-
 class Listener:
     def __init__(self, stdout, stderr, channel):
         self.stdout = stdout

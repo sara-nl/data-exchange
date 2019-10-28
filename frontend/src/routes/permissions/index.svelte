@@ -65,7 +65,6 @@
                         <th scope="col">Given to</th>
                         <th scope="col">Dataset</th>
                         <th scope="col">Algorithm</th>
-                        <th scope="col">Type</th>
                         <th scope="col"></th>
                     </tr>
                 </thead>
@@ -74,15 +73,10 @@
                     {#each given_permissions as file}
                     <tr>
                         <td>{file.permission_type}</td>
-
                         <td><b>You</b></td>
                         <td>{file.algorithm_provider}</td>
                         <td>{file.dataset}</td>
                         <td>{file.algorithm}</td>
-                        <td>
-                          <strong>streaming:</strong> {file.stream ? "yes" : "no"}<br>
-                          <strong>review output:</strong> {file.review_output ? "yes" : "no"}
-                        </td>
                         <td>
                             <button class="close" on:click={() => remove_permission(file.id)}>
                                 <span aria-hidden="true">&times;</span>

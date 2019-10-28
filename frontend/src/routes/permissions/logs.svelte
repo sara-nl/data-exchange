@@ -97,7 +97,7 @@
               <th scope="col">Requester</th>
               <th scope="col">Algorithm</th>
               <th scope="col">Dataset</th>
-              <th scope="col">Continuous<br>permission</th>
+              <th scope="col">Permission</th>
               <th scope="col">Registered on</th>
             </thead>
             {#each dataset_tasks[file] as task}
@@ -110,8 +110,7 @@
                   <td>{task.dataset}</td>
                   <td>
                     {#if task.permission}
-                      <strong>streaming:</strong> {task.permission.stream ? "yes" : "no"}<br>
-                      <strong>review output:</strong> {task.permission.review_output ? "yes" : "no"}
+                      <strong>{task.permission.permission_type}</strong>
                     {:else}
                       No
                     {/if}

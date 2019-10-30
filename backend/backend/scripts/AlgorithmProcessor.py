@@ -100,9 +100,9 @@ class AlgorithmProcessor:
 
     def get_etag(self):
         if self.is_folder:
-            return self.rd_client.get_fileid_etag(self.algorithm_name + "/")['etag']
+            return self.rd_client.get_fileid_etag(self.algorithm_name + "/")["etag"]
         else:
-            return self.rd_client.get_fileid_etag(self.algorithm_name)['etag']
+            return self.rd_client.get_fileid_etag(self.algorithm_name)["etag"]
 
 
 def main():

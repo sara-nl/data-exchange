@@ -32,6 +32,7 @@ class Task(models.Model):
     author_email = models.EmailField()
     approver_email = models.EmailField()
     algorithm = models.TextField()
+    algorithm_etag = models.CharField(max_length=32, default="")
     algorithm_content = JSONField(default=dict)
     algorithm_info = models.TextField(default="")
     dataset = models.TextField()

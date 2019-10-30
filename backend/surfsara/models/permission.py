@@ -5,20 +5,20 @@ class Permission(models.Model):
     USER_PERMISSION = "user permission"
     STREAM_PERMISSION = "stream permission"
     NO_PERMISSION = "no permission"
-    ONE_OFF_PERMISSION = "one off permission"
+    ONE_TIME_PERMISSION = "one time permission"
 
     algorithm = models.TextField(null=True)
+    algorithm_etag = models.CharField(max_length=32, default="")
     algorithm_provider = models.EmailField()
     dataset = models.TextField()
     dataset_provider = models.EmailField()
     review_output = models.BooleanField(default=True)
     registered_on = models.DateTimeField(auto_now_add=True)
-    etag = models.CharField(max_length=255)
 
     permission_type = models.CharField(
         max_length=255,
         choices=[
-            (ONE_OFF_PERMISSION, "one off permisson"),
+            (ONE_TIME_PERMISSION, "one time permission"),
             (USER_PERMISSION, "user permission"),
             (STREAM_PERMISSION, "stream permission"),
             (NO_PERMISSION, "no permission"),

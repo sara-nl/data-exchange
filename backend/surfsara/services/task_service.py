@@ -14,12 +14,6 @@ class StartContainer:
     code_path: str
 
 
-@dataclass
-@dataclass_json(letter_case=LetterCase.CAMEL)
-class ProcessesAlgorithm:
-    task_id: str
-
-
 def __connect():
     # TODO: Set up some way of pooling connections instead of
     #       opening a new one every time.

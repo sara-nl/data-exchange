@@ -3,15 +3,10 @@ from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-import os
-import string
 
 from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
 from surfsara.views import permissions
-from backend.scripts.run_container import RunContainer
-from backend.scripts.ResearchdriveClient import ResearchdriveClient
-from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -162,7 +157,7 @@ class Tasks(viewsets.ViewSet):
         update = request.data["updated_request"]
         if request.data["approved"]:
             result = "approved"
-            permission_type = Permission.ONE_OFF_PERMISSION
+            permission_type = Permission.ONE_TIME_PERMISSION
 
             task.dataset = update["dataset"]
             task.review_output = request.data["review_output"]
@@ -196,6 +191,7 @@ class Tasks(viewsets.ViewSet):
             new_perm = Permission(
                 algorithm="Any algorithm",
                 algorithm_provider=update["author_email"],
+                algorithm_etag=task.algorithm_etag,
                 dataset=update["dataset"],
                 dataset_provider=update["approver_email"],
                 review_output=request.data["review_output"],

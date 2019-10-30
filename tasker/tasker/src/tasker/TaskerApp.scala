@@ -1,7 +1,6 @@
 package tasker
 
 import cats.effect.{ExitCode, IO, IOApp}
-import cats.implicits._
 import watcher.WatcherApp
 import runner.RunnerApp
 

@@ -1,15 +1,13 @@
-package runner.clients.webdav
+package tasker.webdav
 
 import java.io.InputStream
 import java.nio.file.{Files, Path, Paths}
 
 import cats.effect.{IO, Resource}
 import com.github.sardine.SardineFactory
-import runner.config.TaskerConfig
-import runner.container.ContainerEnv.Artifact
 import fs2.Pipe
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-
+import tasker.config.TaskerConfig
 import scala.jdk.CollectionConverters._
 
 object Webdav {
@@ -67,9 +65,9 @@ object Webdav {
   /**
     * Downloads artifacts into their locations on the host.
     */
-  def downloadToHost(map: Map[WebdavPath, Artifact]): IO[Unit] =
+  def downloadToHost(map: Map[WebdavPath, Path]): IO[Unit] =
     fs2.Stream
-      .emits(map.view.mapValues(_.hostHome).toList)
+      .emits(map.view.toList)
       .through(Webdav.downloadFilesPipe)
       .compile
       .drain

@@ -9,6 +9,10 @@ object WatcherApp extends IOApp {
   def doRepeatedly(action: IO[Unit]): IO[Unit] =
     action >> IO.sleep(5.seconds) >> IO.suspend(doRepeatedly(action))
 
+  val sendTasksForNewFiles: IO[Unit] = for {
+    datasetPemissions <- DataSetStream.findAllPermissions()
+  } yield ()
+
   override def run(args: List[String]): IO[ExitCode] =
     IO(println("Watcher started")) *>
       doRepeatedly(IO(print("Tick..."))) *>

@@ -1,11 +1,11 @@
 package runner
 
 import cats.effect.{ExitCode, IO, IOApp, Resource}
-import runner.config.TaskerConfig
-import runner.config.TaskerConfig.queues
+import tasker.config.TaskerConfig.queues
 import dev.profunktor.fs2rabbit.interpreter.Fs2Rabbit
 import dev.profunktor.fs2rabbit.model.{AMQPChannel, AmqpMessage}
 import Codecs._
+import tasker.config.TaskerConfig
 
 object RunnerApp extends IOApp {
 

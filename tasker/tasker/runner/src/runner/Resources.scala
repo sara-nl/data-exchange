@@ -5,11 +5,11 @@ import java.util.concurrent.Executors
 
 import cats.effect.{Blocker, ConcurrentEffect, ContextShift, IO, Resource}
 import clients.DockerContainer
-import runner.config.TaskerConfig
 import runner.container.ContainerEnv.Artifact
 import runner.container.Ids.ImageId
-import runner.container.{ContainerCommand, ContainerEnv, ContainerState}
+import runner.container.{ContainerCommand, ContainerEnv, ContainerState, Ids}
 import org.apache.commons.io.FileUtils
+import tasker.config.TaskerConfig
 
 object Resources {
 
@@ -66,7 +66,7 @@ object Resources {
             .startedContainer(
               containerEnv,
               ContainerCommand.installDeps(requirementsTxtContainerPath),
-              TaskerConfig.docker.image
+              Ids.ImageId(TaskerConfig.docker.image)
             )
           containerState <- Resource.liftF(
             DockerContainer.terminalStateIO(containerId)
@@ -82,7 +82,7 @@ object Resources {
         } yield result
       case None =>
         Resource.pure[IO, Either[ContainerState, ImageId]](
-          Right(TaskerConfig.docker.image)
+          Right(Ids.ImageId(TaskerConfig.docker.image))
         )
     }
 

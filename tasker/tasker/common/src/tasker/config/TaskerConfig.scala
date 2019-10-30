@@ -1,11 +1,8 @@
-package runner.config
+package tasker.config
 
 import java.net.URI
 
 import cats.effect.IO
-import runner.clients.webdav.WebdavPath
-import com.github.dockerjava.core.DefaultDockerClientConfig
-import runner.container.Ids
 import dev.profunktor.fs2rabbit.config.declaration.{
   DeclarationExchangeConfig,
   DeclarationQueueConfig
@@ -16,6 +13,7 @@ import dev.profunktor.fs2rabbit.model.{
   QueueName,
   RoutingKey
 }
+import tasker.webdav.WebdavPath
 
 object TaskerConfig {
 
@@ -40,16 +38,12 @@ object TaskerConfig {
   }
 
   object docker {
-    val image = Ids.ImageId("datex:latest")
+    val image = "datex:latest"
     val indexFile = "run.py"
     val requirementsFile = "requirements.txt"
     val containerCodePath = "/tmp/code"
     val containerDataPath = "/tmp/data"
     val containerOutPath = "/tmp/out"
-    val clientConfig = DefaultDockerClientConfig
-      .createDefaultConfigBuilder()
-      .withDockerHost("unix:///var/run/docker.sock")
-      .build();
   }
 
   object queues {

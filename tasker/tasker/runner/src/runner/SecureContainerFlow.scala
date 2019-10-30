@@ -2,8 +2,7 @@ package runner
 
 import cats.effect._
 import clients.DockerContainer
-import clients.webdav.{Webdav, WebdavPath}
-import runner.config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
+import tasker.config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
 import runner.container.{
   ContainerCommand,
   ContainerEnv,
@@ -15,6 +14,7 @@ import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.syntax._
 import runner.Messages.{AlgorithmOutput, Done}
 import runner.utils.FilesIO
+import tasker.webdav.{Webdav, WebdavPath}
 
 import scala.language.postfixOps
 
@@ -39,7 +39,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                 for {
                   state <- DockerContainer.terminalStateIO(containerId)
                   _ <- logger
-                    .info(s"$containerId execution stopped with ${state}")
+                    .info(s"$containerId execution stopped with $state")
                 } yield state
               })
           case Left(containerState) => IO.pure(containerState)
@@ -51,14 +51,14 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
       logger <- Slf4jLogger.create[IO]
       done <- {
         Resources.containerEnv(msg).use { containerEnv =>
-          val artifactsToBeDownloaded = Map(
-            WebdavPath(msg.codePath) -> containerEnv.codeArtifact,
-            WebdavPath(msg.dataPath) -> containerEnv.dataArtifact
+          val toBeDownloaded = Map(
+            WebdavPath(msg.codePath) -> containerEnv.codeArtifact.hostHome,
+            WebdavPath(msg.dataPath) -> containerEnv.dataArtifact.hostHome
           )
 
           for {
             _ <- logger.info(s"Container environment: $containerEnv")
-            _ <- Webdav.downloadToHost(artifactsToBeDownloaded)
+            _ <- Webdav.downloadToHost(toBeDownloaded)
             runAlgorithmCmd <- ContainerCommand.runWithStrace(containerEnv)
             endState <- runAlgorithm(containerEnv, runAlgorithmCmd)
             stdoutContent <- FilesIO

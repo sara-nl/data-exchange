@@ -171,7 +171,7 @@ class Tasks(viewsets.ViewSet):
             task.review_output = request.data["review_output"]
             task.save()
 
-            task_service.analyze(task)
+            task_service.start(task)
 
             if request.data["approve_user"] or request.data["stream"]:
                 mail_service.send_mail(
@@ -287,7 +287,6 @@ class Tasks(viewsets.ViewSet):
         task.save()
         task_service.analyze(task)
         task_service.start(task)
-
         task.state = Task.RUNNING
         task.save()
 

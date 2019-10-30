@@ -5,18 +5,13 @@ from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
 from surfsara.management.commands.listen import AnalyzeListener
 
+
 @dataclass
 @dataclass_json(letter_case=LetterCase.CAMEL)
 class StartContainer:
     task_id: str
     data_path: str
     code_path: str
-
-
-@dataclass
-@dataclass_json(letter_case=LetterCase.CAMEL)
-class ProcessesAlgorithm:
-    task_id: str
 
 
 def __connect():
@@ -60,7 +55,7 @@ def analyze(task: Task):
 
     command = AnalyzeListener.Command(task_id=str(task.id))
     channel.basic_publish(
-        exchange='',
+        exchange="",
         routing_key=AnalyzeListener.queue_name,
         body=command.to_json(),
         properties=PROPERTIES,

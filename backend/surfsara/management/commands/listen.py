@@ -17,13 +17,6 @@ class TaskCompleted:
     output: str
 
 
-@dataclass
-@dataclass_json(letter_case=LetterCase.CAMEL)
-class ProcessedAlgorithm:
-    task_id: str
-    alg_name: str
-
-
 class Listener:
     def __init__(self, stdout, stderr, channel):
         self.stdout = stdout
@@ -89,8 +82,7 @@ class AnalyzeListener(Listener):
         task = Task.objects.get(pk=command.task_id)
         task.save()
 
-        processor = AlgorithmProcessor(task.algorithm,
-                                       task.author_email)
+        processor = AlgorithmProcessor(task.algorithm, task.author_email)
         task.algorithm_content = processor.start_processing()
         task.state = Task.DATA_REQUESTED
         task.save()

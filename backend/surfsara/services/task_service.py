@@ -12,6 +12,7 @@ class StartContainer:
     task_id: str
     data_path: str
     code_path: str
+    code_hash: dict
 
 
 def __connect():
@@ -37,7 +38,8 @@ def start(task: Task):
     connection, channel = __connect()
 
     command = StartContainer(
-        task_id=str(task.id), data_path=task.dataset, code_path=task.algorithm
+        task_id=str(task.id), data_path=task.dataset, code_path=task.algorithm,
+        code_hash={"eTag": task.algorithm_etag},
     )
 
     channel.basic_publish(

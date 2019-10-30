@@ -45,8 +45,6 @@ class Tasks(viewsets.ViewSet):
         )
         task.save()
         task_service.analyze(task)
-        task.state = Task.ANALYZING
-        task.save()
 
         mail_service.send_mail(
             mail_files="data_request",
@@ -138,7 +136,7 @@ class Tasks(viewsets.ViewSet):
         is_owner = task.approver_email == request.user.email
         if (
             task.state != Task.OUTPUT_RELEASED
-            and not (task.state == Task.ERROR and task.review_output == False)
+            and not (task.state == Task.ERROR and task.review_output is False)
             and not is_owner
         ):
             task.output = None
@@ -156,7 +154,6 @@ class Tasks(viewsets.ViewSet):
         Processes review of request made by algorithm provider and reviewed
         by data provider
         """
-
         task = Task.objects.get(pk=pk)
 
         if task.approver_email != request.user.email:
@@ -165,13 +162,13 @@ class Tasks(viewsets.ViewSet):
         update = request.data["updated_request"]
         if request.data["approved"]:
             result = "approved"
+            permission_type = Permission.ONE_OFF_PERMISSION
 
-            task.state = Task.RUNNING
             task.dataset = update["dataset"]
             task.review_output = request.data["review_output"]
-            task.save()
-
             task_service.start(task)
+            task.state = Task.RUNNING
+            task.save()
 
             if request.data["approve_user"] or request.data["stream"]:
                 mail_service.send_mail(
@@ -189,7 +186,6 @@ class Tasks(viewsets.ViewSet):
                     url=f"http://{request.get_host()}/permissions",
                     **update,
                 )
-
                 if request.data["approve_user"]:
                     permission_type = Permission.USER_PERMISSION
                 elif request.data["stream"]:
@@ -197,16 +193,16 @@ class Tasks(viewsets.ViewSet):
                 else:
                     raise AssertionError("Invalid state - this should never be reached")
 
-                new_perm = Permission(
-                    algorithm="Any algorithm",
-                    algorithm_provider=update["author_email"],
-                    dataset=update["dataset"],
-                    dataset_provider=update["approver_email"],
-                    review_output=request.data["review_output"],
-                    permission_type=permission_type,
-                )
-
-                new_perm.save()
+            new_perm = Permission(
+                algorithm="Any algorithm",
+                algorithm_provider=update["author_email"],
+                dataset=update["dataset"],
+                dataset_provider=update["approver_email"],
+                review_output=request.data["review_output"],
+                permission_type=permission_type,
+            )
+            new_perm.save()
+            task.Permission = new_perm
         else:
             result = "rejected"
             task.state = Task.REQUEST_REJECTED

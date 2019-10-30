@@ -92,76 +92,116 @@
 {:else}
   <div class="row">Back</div>
 
-  <div class="row my-5">
-    <div class="col-sm-4">STATE STEP 1</div>
-    <div class="col-sm-4">STATE STEP 2</div>
-    <div class="col-sm-4">STATE STEP 3</div>
+  <div class="row my-5 border border-primary rounded">
+    {#if task.state === 'data_requested'}
+      <div class="col-sm-4 text-center bg-primary text-white">Step 1. Accept algorithm</div>
+      <div class="col-sm-4 text-center">Step 2. Running algorithm</div>
+      <div class="col-sm-4 text-center">Step 3. Release output</div>
+    {/if}
+    {#if task.state === 'running'}
+      <div class="col-sm-4 text-center text-secondary">Step 1. Accept algorithm</div>
+      <div class="col-sm-4 text-center bg-primary text-white">Step 2. Running algorithm</div>
+      <div class="col-sm-4 text-center">Step 3. Release output</div>
+    {/if}
+    {#if task.state === 'success' || (task.state === 'error' && task.review_output) }
+      <div class="col-sm-4 text-center text-secondary">Step 1. Accept algorithm</div>
+      <div class="col-sm-4 text-center text-secondary">Step 2. Running algorithm</div>
+      <div class="col-sm-4 text-center bg-primary text-white">Step 3. Release output</div>
+    {/if}
   </div>
 
-  <div class="row">
-    <div class="col-sm-4">
-      <div class="row mb-2">Email</div>
-      <div class="row mt-1 mb-5">{task.author_email}</div>
+  {#if task.state === 'running'}
+    <div class="Row"> Running animation</div>
+    <Spinner small loading/>
 
-      <div class="row mb-2">Permission Type</div>
-      <div class="row mt-1 mb-5">WIP</div>
+  {:else}
+    <div class="row">
+      <div class="col-sm-4 h-50">
+        <div class="row mb-3 font-weight-bold">Email</div>
+        <div class="row mt-1 mb-5">{task.author_email}</div>
 
-      <div class="row mb-2">Choose dataset</div>
-      <div class="row mt-1 mb-5 pr-5">
-        {#if task.is_owner && task.state === 'data_requested'}
-            {#if ownDatasets === null}
-              <Spinner small />
-            {:else if ownDatasets.length === 0}
-              No datasets available.
-            {:else}
-              <select
-                class="form-control"
-                bind:value={task.dataset}
-                id="data-file">
-                <option value="">Select dataset</option>
+        <div class="row mb-3 font-weight-bold">Permission Type</div>
+        <div class="row mt-1 mb-5">WIP</div>
 
-                {#each ownDatasets as file}
-                  <option value={file.name}>{file.name}</option>
-                {/each}
-              </select>
-            {/if}
-          {:else}{task.dataset || 'No dataset selected'}
+        <div class="row mb-3 font-weight-bold">Choose dataset</div>
+        <div class="row mt-1 mb-5 pr-5">
+          {#if task.is_owner && task.state === 'data_requested'}
+              {#if ownDatasets === null}
+                <Spinner small />
+              {:else if ownDatasets.length === 0}
+                No datasets available.
+              {:else}
+                <select
+                  class="form-control"
+                  bind:value={task.dataset}
+                  id="data-file">
+                  <option value="">Select dataset</option>
+
+                  {#each ownDatasets as file}
+                    <option value={file.name}>{file.name}</option>
+                  {/each}
+                </select>
+              {/if}
+            {:else}{task.dataset || 'No dataset selected'}
+          {/if}
+        </div>
+      </div>
+
+      <div class="col-sm-4 h-50">
+        <div class="row mb-3 font-weight-bold">Algorithm Name</div>
+        <div class="row mt-1 mb-5">{task.algorithm}</div>
+
+        <div class="row mb-3 font-weight-bold">Algorithm Dependencies</div>
+        <div class="row mt-1 mb-5">WIP</div>
+
+        <div class="row mb-3 font-weight-bold">Algorithm Length</div>
+        <div class="row mt-1 mb-5">WIP</div>
+
+        <div class="row mb-3 font-weight-bold">Runtime</div>
+        <div class="row mt-1 mb-5 text-warning">Available at step 3</div>
+      </div>
+
+      <div class="col-sm-4 pl-0 pr-0" style="height:400px;">
+        <div class="row mb-3 font-weight-bold">Algorithm Code</div>
+        <div class="col-12 border pt-2 h-100 overflow-auto">
+          {#each task.algorithm_content as alg, i}
+          <h6>{alg.algorithm_name}</h6>
+          <pre>
+            <code class="python">
+              {alg.algorithm_content || 'Algorithm being processed'}
+            </code>
+          </pre>
+          <h6>{alg.algorithm_info}</h6>
+            <hr />
+          {/each}
+        </div>
+      </div>
+      </div>
+
+      <div class="row">
+        {#if task.state === 'data_requested'}
+          {#if task.is_owner}
+              <button
+                disabled={!task.dataset}
+                class="btn btn-success mr-3"
+                on:click={() => review_request(true)}>
+                Run algorithm on data to see output and go to step 2
+              </button>
+              <button
+                class="btn btn-danger"
+                on:click={() => review_request(false)}>
+                Reject request
+              </button>
+          {:else}
+            <h4>Waiting for the data provider to review the algorithm…</h4>
+          {/if}
         {/if}
       </div>
-    </div>
 
-    <div class="col-sm-4">
-      <div class="row mb-2">Algorithm Name</div>
-      <div class="row mt-1 mb-5">{task.algorithm}</div>
+  {/if}
 
-      <div class="row mb-2">Algorithm Dependencies</div>
-      <div class="row mt-1 mb-5">WIP</div>
+    <div class="row my-5">OLD BELOW</div>
 
-      <div class="row mb-2">Algorithm Length</div>
-      <div class="row mt-1 mb-5">WIP</div>
-
-      <div class="row mb-2">Runtime</div>
-      <div class="row mt-1 mb-5">WIP</div>
-    </div>
-
-    <div class="col-sm-4 pl-0 pr-0">
-      <div class="row mb-2">Algorithm Code</div>
-      <div class="col-12 border pt-2 h-50 overflow-auto">
-        {#each task.algorithm_content as alg, i}
-        <h6>{alg.algorithm_name}</h6>
-        <pre>
-          <code class="python">
-            {alg.algorithm_content || 'Algorithm being processed'}
-          </code>
-        </pre>
-        <h6>{alg.algorithm_info}</h6>
-          <hr />
-        {/each}
-      </div>
-
-    </div>
-
-  </div>
 
   <div class="container">
     <div class="row">

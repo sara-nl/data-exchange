@@ -208,6 +208,7 @@ class Tasks(viewsets.ViewSet):
                     dataset_provider=update["approver_email"],
                     review_output=request.data["review_output"],
                     permission_type=permission_type,
+                    state=Permission.ACTIVE,
                 )
 
                 new_perm.save()

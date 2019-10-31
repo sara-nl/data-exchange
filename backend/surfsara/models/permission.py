@@ -6,6 +6,10 @@ class Permission(models.Model):
     STREAM_PERMISSION = "stream permission"
     NO_PERMISSION = "no permission"
 
+    ACTIVE = "active"
+    REJECTED = "rejected"
+    ABORTED = "aborted"
+
     algorithm = models.TextField(null=True)
     algorithm_provider = models.EmailField()
     dataset = models.TextField()
@@ -22,3 +26,13 @@ class Permission(models.Model):
         ],
         default=NO_PERMISSION,
     )
+    state = models.CharField(
+        max_length=255,
+        choices=[
+            (ACTIVE, "active"),
+            (REJECTED, "rejected"),
+            (ABORTED, "aborted")
+        ],
+    )
+
+    status_description = models.TextField(null=True)

@@ -46,10 +46,10 @@ class Permissions(viewsets.ViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        name="per_file",
+        name="obtained_per_file",
         permission_classes=[IsAuthenticated],
     )
-    def per_file(self, request):
+    def obtained_per_file(self, request):
         """
         Returns list permissions per file in dict
         """
@@ -57,7 +57,6 @@ class Permissions(viewsets.ViewSet):
         alg_shares, _ = OwnShares(str(request.user)).return_own_shares()
 
         obtained_per_file = {}
-        given_per_file = {}
 
         obtained_permissions = Permission.objects.filter(
             algorithm_provider=request.user.email, state=Permission.ACTIVE
@@ -76,6 +75,33 @@ class Permissions(viewsets.ViewSet):
                 add_per_file(perm["algorithm"], obtained_per_file, perm)
 
         return Response({"obtained_permissions": obtained_per_file})
+
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        name="given_per_file",
+        permission_classes=[IsAuthenticated],
+    )
+    def given_per_file(self, request):
+        """
+        Returns list permissions per file in dict
+        """
+
+        given_per_file = {}
+
+        given_permissions = Permission.objects.filter(
+            dataset_provider=request.user.email, state=Permission.ACTIVE
+        )
+
+        given_permissions = PermissionSerializer(
+            given_permissions, many=True
+        ).data
+
+        for perm in given_permissions:
+            add_per_file(perm["dataset"], given_per_file, perm)
+
+        return Response({"given_permissions": given_per_file})
 
     @action(
         detail=True,

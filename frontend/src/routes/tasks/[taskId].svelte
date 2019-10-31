@@ -98,7 +98,7 @@
     <small class="text-{state_color[task.state]}">{task.state}</small>
   </h2>
 
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
       <div class="col">
         <div class="my-5">

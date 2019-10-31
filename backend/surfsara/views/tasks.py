@@ -200,7 +200,8 @@ class Tasks(viewsets.ViewSet):
                 permission_type=permission_type,
             )
             new_perm.save()
-            task.Permission = new_perm
+            task.permission = new_perm
+            task.save()
         else:
             result = "rejected"
             task.state = Task.REQUEST_REJECTED

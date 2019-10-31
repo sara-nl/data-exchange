@@ -122,70 +122,76 @@
 
         </div>
         <div class="row mt-5 w-100">
-          <div class="col-5 mx-4 py-3 rounded-xl background bg-lightgrey">
+          <div class="col-6 mx-5 p-3 rounded-xl background bg-lightgrey">
             <h3>
               <small class="text-muted">Permissions</small>
             </h3>
             {#if givenPermissions !== null && givenPermissions[file.name] !== undefined}
-              <table class="table table-borderless">
-                <thead>
-                  <th class="text-secondary">With</th>
-                  <th class="text-secondary">Algorithm</th>
-                  <th class="text-secondary">Type</th>
-                  <th />
-                </thead>
-                <tbody>
+              <div class="table-wrapper">
+                <table class="table table-borderless">
+                  <thead>
+                    <th class="text-secondary">With</th>
+                    <th class="text-secondary">Algorithm</th>
+                    <th class="text-secondary">Type</th>
+                    <th />
+                  </thead>
+                  <tbody>
 
-                  {#each givenPermissions[file.name] as permission}
-                    <tr>
-                      <td>{permission.algorithm_provider}</td>
-                      <td>{permission.algorithm}</td>
-                      <td>{permission.permission_type}</td>
-                      <td class="text-danger  font-weight-bold">
-                        <a
-                          class="text-danger"
-                          href="#0"
-                          on:click={() => remove_permission(permission.id)}>
-                          Reject Permission
-                        </a>
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
+                    {#each givenPermissions[file.name] as permission}
+                      <tr class="my-1">
+                        <td>{permission.algorithm_provider}</td>
+                        <td>{permission.algorithm}</td>
+                        <td>{permission.permission_type}</td>
+                        <td class="text-danger font-weight-bold">
+                          <a
+                            class="text-danger"
+                            href="#0"
+                            on:click={() => remove_permission(permission.id)}>
+                            Reject Permission
+                          </a>
+                        </td>
+                      </tr>
+                    {/each}
+                  </tbody>
+                </table>
+              </div>
             {:else}No permissions given on this file{/if}
           </div>
-          <div class="col-5 mx-4 py-1 rounded-xl background bg-lightgrey">
+          <div class="col mx-5 p-3 rounded-xl background bg-lightgrey">
             <h3>
               <small class="text-muted">Runs</small>
             </h3>
             {#if dataset_tasks !== null && dataset_tasks[file.name] !== undefined}
-              <table class="table table-borderless">
-                <thead>
-                  <th class="text-secondary">Who</th>
-                  <th class="text-secondary">Passed</th>
-                  <th class="text-secondary">When</th>
-                  <th class="text-secondary">Action</th>
-                </thead>
-                <tbody>
-                  {#each dataset_tasks[file.name] as task}
-                    <tr>
-                      <td>{task.author_email}</td>
-                      {#if task.state == 'data_requested' || task.state == 'running'}
-                        <td class="text-success font-weight-bold">True</td>
-                      {:else}
-                        <td class="text-danger font-weight-bold">False</td>
-                      {/if}
+              <div class="table-wrapper">
+                <table class="table table-borderless">
+                  <thead>
+                    <th class="text-secondary">Who</th>
+                    <th class="text-secondary">Passed</th>
+                    <th class="text-secondary">When</th>
+                    <th class="text-secondary">Action</th>
+                  </thead>
+                  <tbody>
+                    {#each dataset_tasks[file.name] as task}
+                      <tr class="my-1">
+                        <td>{task.author_email}</td>
+                        {#if task.state == 'data_requested' || task.state == 'running'}
+                          <td class="text-success font-weight-bold">True</td>
+                        {:else}
+                          <td class="text-danger font-weight-bold">False</td>
+                        {/if}
 
-                      <td>{dayjs(task.registered_on).format('DD-MM-YYYY')}</td>
-                      <td class="text-primary font-weight-bold">
-                        <a href={`/tasks/${task.id}`}>See log</a>
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
+                        <td>
+                          {dayjs(task.registered_on).format('DD-MM-YYYY')}
+                        </td>
+                        <td class="text-primary font-weight-bold">
+                          <a href={`/tasks/${task.id}`}>See log</a>
+                        </td>
+                      </tr>
+                    {/each}
+                  </tbody>
 
-              </table>
+                </table>
+              </div>
             {:else}No runs done with this file{/if}
           </div>
         </div>

@@ -4,6 +4,7 @@
 
   import { onMount } from "svelte";
   import { stores } from "@sapper/app";
+  import { slide } from "svelte/transition"
   import * as hljs from "highlight.js";
 
   import LoadFiles from "../../api/loader";
@@ -81,6 +82,8 @@
     }
 
   }
+
+  let test: string = "TEststring"
 </script>
 
 <svelte:head>
@@ -112,7 +115,16 @@
 
   {#if task.state === 'running'}
     <div class="Row"> Running animation</div>
-    <Spinner small loading/>
+    <div class="Row"> <Spinner small loading={false} text={"Creating container"}/></div>
+    <div class="Row"> <Spinner small loading={false} text={"Installing dependencies"}/></div>
+    <div class="Row"> <Spinner small loading={true} text={"Downloading data and algorithm to container"}/></div>
+    <div class="Row"> <Spinner small loading={true} text={"Blocking all outside access to container"} /></div>
+    <div class="Row"> <Spinner small loading={true} text={"Verifying algorithm"} /></div>
+    <div class="Row"> <Spinner small loading={true} text={"Running algorithm on data"} /></div>
+    <div class="Row"> <Spinner small loading={true} text={"Saving output"} /></div>
+    <div class="Row"> <Spinner small loading={true} text={"Deleting container including data and algorithm"} /></div>
+    <div class="Row"> <Spinner small loading={true} text={"Wrapping up.."}/></div>
+
 
   {:else}
     <div class="row">

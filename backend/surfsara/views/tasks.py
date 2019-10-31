@@ -158,6 +158,7 @@ class Tasks(viewsets.ViewSet):
         if request.data["approved"]:
             result = "approved"
             permission_type = Permission.ONE_TIME_PERMISSION
+            algorithm_name = task.algorithm
 
             task.dataset = update["dataset"]
             task.review_output = request.data["review_output"]
@@ -183,13 +184,14 @@ class Tasks(viewsets.ViewSet):
                 )
                 if request.data["approve_user"]:
                     permission_type = Permission.USER_PERMISSION
+                    algorithm_name = "Any algorithm"
                 elif request.data["stream"]:
                     permission_type = Permission.STREAM_PERMISSION
                 else:
                     raise AssertionError("Invalid state - this should never be reached")
 
             new_perm = Permission(
-                algorithm="Any algorithm",
+                algorithm=algorithm_name,
                 algorithm_provider=update["author_email"],
                 algorithm_etag=task.algorithm_etag,
                 dataset=update["dataset"],

@@ -21,7 +21,6 @@
   getUserTasks();
   getUserPermissions();
 
-
   async function updateUserFiles() {
     try {
       let { data: response } = await LoadFiles.start();
@@ -48,7 +47,6 @@
       let { data: response } = await Tasks.get_logs();
       dataset_tasks = response.data_tasks;
       datasets = Object.keys(dataset_tasks);
-
     } catch (error) {
       console.log(error.toString());
     }
@@ -104,7 +102,7 @@
     <Spinner />
   {:else}
     {#each own_datasets as file}
-      <div class="row my-5 p-4 rounded-xl background bg-light">
+      <div class="row my-5 p-4">
         <div class="row w-100">
           <div class="col-auto my-auto">
             <span class="fa-stack fa-2x text-primary">
@@ -123,26 +121,17 @@
           </div>
 
         </div>
-        <div class="row w-100 mt-5">
-          <div class="col-6 px-4">
+        <div class="row mt-5 w-100">
+          <div class="col-5 mx-4 py-3 rounded-xl background bg-lightgrey">
             <h3>
               <small class="text-muted">Permissions</small>
             </h3>
-          </div>
-          <div class="col-6 px-4">
-            <h3>
-              <small class="text-muted">Runs</small>
-            </h3>
-          </div>
-        </div>
-        <div class="row w-100">
-          <div class="col-6 px-4">
             {#if givenPermissions !== null && givenPermissions[file.name] !== undefined}
               <table class="table table-borderless">
                 <thead>
-                  <th>With</th>
-                  <th>Algorithm</th>
-                  <th>Permission type</th>
+                  <th class="text-secondary">With</th>
+                  <th class="text-secondary">Algorithm</th>
+                  <th class="text-secondary">Type</th>
                   <th />
                 </thead>
                 <tbody>
@@ -152,8 +141,11 @@
                       <td>{permission.algorithm_provider}</td>
                       <td>{permission.algorithm}</td>
                       <td>{permission.permission_type}</td>
-                      <td class="text-danger">
-                        <a class="text-danger" href="#0" on:click={() => remove_permission(permission.id)}>
+                      <td class="text-danger  font-weight-bold">
+                        <a
+                          class="text-danger"
+                          href="#0"
+                          on:click={() => remove_permission(permission.id)}>
                           Reject Permission
                         </a>
                       </td>
@@ -163,22 +155,30 @@
               </table>
             {:else}No permissions given on this file{/if}
           </div>
-          <div class="col-6 px-4">
+          <div class="col-5 mx-4 py-1 rounded-xl background bg-lightgrey">
+            <h3>
+              <small class="text-muted">Runs</small>
+            </h3>
             {#if dataset_tasks !== null && dataset_tasks[file.name] !== undefined}
               <table class="table table-borderless">
                 <thead>
-                  <th>Who</th>
-                  <th>Passed</th>
-                  <th>When</th>
-                  <th>Action</th>
+                  <th class="text-secondary">Who</th>
+                  <th class="text-secondary">Passed</th>
+                  <th class="text-secondary">When</th>
+                  <th class="text-secondary">Action</th>
                 </thead>
                 <tbody>
                   {#each dataset_tasks[file.name] as task}
                     <tr>
                       <td>{task.author_email}</td>
-                      <td>{task.state}</td>
+                      {#if task.state == 'data_requested' || task.state == 'running'}
+                        <td class="text-success font-weight-bold">True</td>
+                      {:else}
+                        <td class="text-danger font-weight-bold">False</td>
+                      {/if}
+
                       <td>{dayjs(task.registered_on).format('DD-MM-YYYY')}</td>
-                      <td class="text-primary">
+                      <td class="text-primary font-weight-bold">
                         <a href={`/tasks/${task.id}`}>See log</a>
                       </td>
                     </tr>

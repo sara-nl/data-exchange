@@ -47,3 +47,11 @@ code {
 .fa-stack { 
     font-size: 0.8em !important; 
 }
+
+td {
+    font-size: 0.95rem !important;
+}
+
+.bg-lightgrey {
+    background-color:#f7f8f8
+}

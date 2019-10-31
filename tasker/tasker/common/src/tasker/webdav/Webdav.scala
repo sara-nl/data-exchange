@@ -4,10 +4,11 @@ import java.io.InputStream
 import java.nio.file.{Files, Path, Paths}
 
 import cats.effect.{IO, Resource}
-import com.github.sardine.SardineFactory
+import com.github.sardine.{DavResource, SardineFactory}
 import fs2.Pipe
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import tasker.config.TaskerConfig
+
 import scala.jdk.CollectionConverters._
 
 object Webdav {
@@ -35,6 +36,16 @@ object Webdav {
             } yield ()
         }
       } yield ()
+  }
+
+  /**
+    * Lists path contents (single level).
+    */
+  def list(path: WebdavPath): IO[List[DavResource]] = IO {
+    sardine
+      .list(path.toURI.toString)
+      .asScala
+      .toList
   }
 
   def findAll(

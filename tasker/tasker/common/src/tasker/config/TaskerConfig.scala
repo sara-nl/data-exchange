@@ -15,10 +15,16 @@ import dev.profunktor.fs2rabbit.model.{
 }
 import tasker.webdav.WebdavPath
 
+import scala.concurrent.duration._
+
 object TaskerConfig {
 
   import cats.data.NonEmptyList
   import dev.profunktor.fs2rabbit.config.{Fs2RabbitConfig, Fs2RabbitNodeConfig}
+
+  object watcher {
+    val awakeInterval: FiniteDuration = 5.seconds
+  }
 
   object concurrency {
     object implicits {

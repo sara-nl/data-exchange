@@ -15,6 +15,7 @@
         <ul class="nav nav-pills mr-auto" style="border-right: 1px solid rgba(0, 0, 0, .12)">
             <NavItem name="Home" href="/" active={segment === undefined} />
             {#if $token}
+                <NavItem name="Requests" href="/requests" />
                 <NavItem name="My shared files" href="/myfiles" />
 
                 <NavDropdown name="Tasks">

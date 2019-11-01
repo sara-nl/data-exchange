@@ -63,7 +63,7 @@
   <Spinner />
 {:else}
   <div class="container-fluid mt-2">
-  <!-- Not Reviewed Yet Table -->
+    <!-- Not Reviewed Yet Table -->
     <div class="row">
       <div class="col-xl mt-4">
         <h3>
@@ -79,8 +79,8 @@
                 <th scope="col" class="desc_column">Dataset description</th>
                 <th class="normal_column" scope="col">Algorithm Name</th>
                 <th class="normal_column" scope="col">When</th>
-                <th class="normal_column" scope="col">Action</th>
                 <th class="normal_column" scope="col" />
+                <th class="normal_column" scope="col">Action</th>
               </tr>
             </thead>
 
@@ -108,6 +108,7 @@
                   <td class="bg-lightgrey normal_column">
                     {dayjs(file.registered_on).format('DD-MM-YYYY')}
                   </td>
+                  <td class="bg-lightgrey rounded-xlr normal_column" />
                   <td class="bg-lightgrey normal_column">
                     <button
                       class="btn btn-primary rounded-xl font-weight-bold"
@@ -116,7 +117,6 @@
                       <div class="px-4">Review</div>
                     </button>
                   </td>
-                  <td class="bg-lightgrey rounded-xlr normal_column" />
 
                 </tr>
               {:else}
@@ -177,6 +177,10 @@
                     {dayjs(file.registered_on).format('DD-MM-YYYY')}
                   </td>
                   <td class="bg-lightgrey normal_column rounded-xlr">
+                    <span class="fa-stack fa-2x text-primary">
+                      <i class="fas fa-circle fa-stack-2x" />
+                      <i class="fas fa-file fa-stack-1x fa-inverse" />
+                    </span>
                     {file.dataset}
                   </td>
                   <td class="bg-lightgrey rounded-xlr normal_column">

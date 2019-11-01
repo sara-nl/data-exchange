@@ -1,0 +1,10 @@
+pipelines:
+  default:
+    - step:
+        image: python:3-alpine
+        caches:
+          - pip
+        script:
+          - apk add -U gcc musl-dev
+          - pip install black
+          - black --check backend/backend backend/surfsara

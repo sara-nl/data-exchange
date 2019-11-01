@@ -1,0 +1,9 @@
+pipelines:
+  default:
+    - step:
+        image: python:3-alpine
+        caches:
+          - pip
+        script:
+          - pip install black
+          - black --check backend/{backend,surfsara}

@@ -7,4 +7,4 @@ pipelines:
         script:
           - apk add -U gcc musl-dev
           - pip install black
-          - black --check backend/{backend,surfsara}
+          - black --check backend/backend backend/surfsara

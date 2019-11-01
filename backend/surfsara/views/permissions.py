@@ -10,6 +10,7 @@ from surfsara.services.files_service import OwnShares
 
 import datetime
 
+
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
@@ -92,7 +93,7 @@ class Permissions(viewsets.ViewSet):
             Permission, pk=pk, dataset_provider=request.user.email
         )
         permission.state = Permission.REJECTED
-        permission.status_description=datetime.datetime.now()
+        permission.status_description = datetime.datetime.now()
 
         permission.save()
 

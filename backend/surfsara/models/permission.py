@@ -28,11 +28,7 @@ class Permission(models.Model):
     )
     state = models.CharField(
         max_length=255,
-        choices=[
-            (ACTIVE, "active"),
-            (REJECTED, "rejected"),
-            (ABORTED, "aborted")
-        ],
+        choices=[(ACTIVE, "active"), (REJECTED, "rejected"), (ABORTED, "aborted")],
     )
 
     status_description = models.TextField(null=True)

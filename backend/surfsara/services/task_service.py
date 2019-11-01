@@ -38,7 +38,9 @@ def start(task: Task):
     connection, channel = __connect()
 
     command = StartContainer(
-        task_id=str(task.id), data_path=task.dataset, code_path=task.algorithm,
+        task_id=str(task.id),
+        data_path=task.dataset,
+        code_path=task.algorithm,
         code_hash={"eTag": task.algorithm_etag},
     )
 

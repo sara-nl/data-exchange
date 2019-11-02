@@ -150,15 +150,15 @@
 
   {#if task.state === 'running'}
     <div class="col-sm-12 bg-primary text-white rounded"> Running algorithm</div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[0]} text={"Creating container"}/></div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[1]} text={"Installing dependencies"}/></div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[2]} text={"Downloading data and algorithm to container"}/></div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[3]} text={"Blocking all outside access to container"} /></div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[4]} text={"Verifying algorithm"} /></div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[5]} text={"Running algorithm on data"} /></div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[6]} text={"Saving output"} /></div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[7]} text={"Deleting container including data and algorithm"} /></div>
-    <div class="Row ml-2"> <Spinner small loading={statusList[8]} text={"Wrapping up.."}/></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[0]} text="Creating container"/></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[1]} text="Installing dependencies"/></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[2]} text="Downloading data and algorithm to container"/></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[3]} text="Blocking all outside access to container" /></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[4]} text="Verifying algorithm" /></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[5]} text="Running algorithm on data" /></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[6]} text="Saving output" /></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[7]} text="Deleting container including data and algorithm" /></div>
+    <div class="Row ml-2"> <Spinner small loading={statusList[8]} text="Wrapping up.."/></div>
 
 
   {:else}
@@ -209,9 +209,13 @@
 
         <div class="row mb-3 font-weight-bold">Algorithm Dependencies</div>
         <div class="row mt-1 mb-5">
-          {#each task.algorithm_info.algorithm_dependencies as dependency}
-            <div class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">{dependency}</div>
-          {/each}
+          {#if task.algorithm_info.algorithm_dependencies}
+            {#each task.algorithm_info.algorithm_dependencies as dependency}
+              <div class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">{dependency}</div>
+            {/each}
+          {:else}
+            N/A
+          {/if}
         </div>
 
         <div class="row mb-3 font-weight-bold">Algorithm Length</div>
@@ -235,9 +239,6 @@
           <div class="col-12 border pt-2 h-100 overflow-auto">
             <pre>{task.output || 'No output (yet)…'}</pre>
           </div>
-
-
-
         {:else}
           <div class="row mb-3 font-weight-bold">Algorithm Code</div>
           <div class="col-12 border pt-2 h-100 overflow-auto">

@@ -52,7 +52,7 @@ module.exports = {
                 'process.env.NODE_ENV': JSON.stringify(mode)
             }),
         ].filter(Boolean),
-        devtool: dev && 'cheap-module-eval-source-map'
+        devtool: dev && 'eval-source-map'
     }),
 
     server: smpServer.wrap({

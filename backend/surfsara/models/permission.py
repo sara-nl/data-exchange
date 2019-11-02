@@ -5,8 +5,10 @@ class Permission(models.Model):
     USER_PERMISSION = "user permission"
     STREAM_PERMISSION = "stream permission"
     NO_PERMISSION = "no permission"
+    ONE_TIME_PERMISSION = "one time permission"
 
     algorithm = models.TextField(null=True)
+    algorithm_etag = models.CharField(max_length=32, default="")
     algorithm_provider = models.EmailField()
     dataset = models.TextField()
     dataset_provider = models.EmailField()
@@ -16,6 +18,7 @@ class Permission(models.Model):
     permission_type = models.CharField(
         max_length=255,
         choices=[
+            (ONE_TIME_PERMISSION, "one time permission"),
             (USER_PERMISSION, "user permission"),
             (STREAM_PERMISSION, "stream permission"),
             (NO_PERMISSION, "no permission"),

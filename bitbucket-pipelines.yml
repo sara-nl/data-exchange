@@ -2,6 +2,7 @@ pipelines:
   default:
     - parallel:
       - step:
+          name: Lint backend
           image: python:3-alpine
           caches:
             - pip
@@ -11,6 +12,7 @@ pipelines:
             - black --check backend/backend backend/surfsara
 
       - step:
+          name: Build frontend
           image: node:12-alpine
           caches:
             - node

@@ -187,15 +187,16 @@
                 No datasets available.
               {:else}
                 <select
-                  class="form-control"
+                  class="form-control bg-primary text-white rounded custom-select mr-sm-2"
                   bind:value={task.dataset}
                   id="data-file">
                   <option value="">Select dataset</option>
 
                   {#each ownDatasets as file}
-                    <option value={file.name}>{file.name}</option>
+                    <option class="bg-secondary" value={file.name}>{file.name}</option>
                   {/each}
                 </select>
+
               {/if}
             {:else}{task.dataset || 'No dataset selected'}
           {/if}

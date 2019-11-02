@@ -14,5 +14,5 @@ class Migration(migrations.Migration):
             model_name="task",
             name="algorithm_info",
             field=django.contrib.postgres.fields.jsonb.JSONField(default=dict),
-        )
+        ),
     ]

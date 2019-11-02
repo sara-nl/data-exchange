@@ -86,7 +86,7 @@ class AnalyzeListener(Listener):
         task.algorithm_content = processor.start_processing()
         task.algorithm_info = processor.calculate_algorithm_total()
         task.algorithm_etag = processor.get_etag()
-        self.stdout.write(f'Etag found: {task.algorithm_etag}')
+        self.stdout.write(f"Etag found: {task.algorithm_etag}")
         task.state = Task.DATA_REQUESTED
         task.save()
 

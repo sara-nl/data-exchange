@@ -5,23 +5,18 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0029_auto_20191030_1629'),
-    ]
+    dependencies = [("surfsara", "0029_auto_20191030_1629")]
 
     operations = [
-        migrations.RemoveField(
-            model_name='permission',
-            name='etag',
+        migrations.RemoveField(model_name="permission", name="etag"),
+        migrations.AddField(
+            model_name="permission",
+            name="algorithm_etag",
+            field=models.CharField(default="", max_length=32),
         ),
         migrations.AddField(
-            model_name='permission',
-            name='algorithm_etag',
-            field=models.CharField(default='', max_length=32),
-        ),
-        migrations.AddField(
-            model_name='task',
-            name='algorithm_etag',
-            field=models.CharField(default='', max_length=32),
+            model_name="task",
+            name="algorithm_etag",
+            field=models.CharField(default="", max_length=32),
         ),
     ]

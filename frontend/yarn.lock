@@ -705,6 +705,23 @@
   resolved "https://registry.yarnpkg.com/@types/highlight.js/-/highlight.js-9.12.3.tgz#b672cfaac25cbbc634a0fd92c515f66faa18dbca"
   integrity sha512-pGF/zvYOACZ/gLGWdQH8zSwteQS1epp68yRcVLJMgUck/MjEn/FBYmPub9pXT8C1e4a8YZfHo1CKyV8q1vKUnQ==
 
+"@types/node@*":
+  version "12.12.5"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-12.12.5.tgz#66103d2eddc543d44a04394abb7be52506d7f290"
+  integrity sha512-KEjODidV4XYUlJBF3XdjSH5FWoMCtO0utnhtdLf1AgeuZLOrRbvmU/gaRCVg7ZaQDjVf3l84egiY0mRNe5xE4A==
+
+"@types/pug@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@types/pug/-/pug-2.0.4.tgz#8772fcd0418e3cd2cc171555d73007415051f4b2"
+  integrity sha1-h3L80EGOPNLMFxVV1zAHQVBR9LI=
+
+"@types/sass@^1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@types/sass/-/sass-1.16.0.tgz#b41ac1c17fa68ffb57d43e2360486ef526b3d57d"
+  integrity sha512-2XZovu4NwcqmtZtsBR5XYLw18T8cBCnU2USFHTnYLLHz9fkhnoEMoDsqShJIOFsFhn5aJHjweiUUdTrDGujegA==
+  dependencies:
+    "@types/node" "*"
+
 "@webassemblyjs/ast@1.8.5":
   version "1.8.5"
   resolved "https://registry.yarnpkg.com/@webassemblyjs/ast/-/ast-1.8.5.tgz#51b1c5fe6576a34953bf4b253df9f0d490d9e359"
@@ -4499,10 +4516,12 @@ svelte-loader@^2.9.0:
     svelte-dev-helper "^1.1.9"
 
 svelte-preprocess@^3.1.1:
-  version "3.1.2"
-  resolved "https://registry.yarnpkg.com/svelte-preprocess/-/svelte-preprocess-3.1.2.tgz#5fd226b3e6a5a47ea2c58241b2937e200b7a3487"
-  integrity sha512-OfTuQ6X4X0wCs27rU8IS6EvHD/VYJsiMfI+GPWixCyk4sDcm/k1RTJ3Nn0EJJSXFDRY2KKggKJM6dpaIoLtF3Q==
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/svelte-preprocess/-/svelte-preprocess-3.2.2.tgz#bb27737f544ea9d7cf90f9d834d7eb26c4f78123"
+  integrity sha512-uGC8xOvJbwon2d6CRS/wkaqRCzAWxsCiGlvIUjK7I/16Vs9GZzQQRn9m3rrZs1RLXItdLzcz0bXrbWi7/d8Bhw==
   dependencies:
+    "@types/pug" "^2.0.4"
+    "@types/sass" "^1.16.0"
     detect-indent "^6.0.0"
     strip-indent "^2.0.0"
 

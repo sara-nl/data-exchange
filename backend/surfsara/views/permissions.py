@@ -10,6 +10,7 @@ from surfsara.services.files_service import OwnShares
 
 import datetime
 
+
 class PermissionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Permission
@@ -76,7 +77,6 @@ class Permissions(viewsets.ViewSet):
 
         return Response({"obtained_permissions": obtained_per_file})
 
-
     @action(
         detail=False,
         methods=["GET"],
@@ -94,9 +94,7 @@ class Permissions(viewsets.ViewSet):
             dataset_provider=request.user.email, state=Permission.ACTIVE
         )
 
-        given_permissions = PermissionSerializer(
-            given_permissions, many=True
-        ).data
+        given_permissions = PermissionSerializer(given_permissions, many=True).data
 
         for perm in given_permissions:
             add_per_file(perm["dataset"], given_per_file, perm)
@@ -118,7 +116,7 @@ class Permissions(viewsets.ViewSet):
             Permission, pk=pk, dataset_provider=request.user.email
         )
         permission.state = Permission.REJECTED
-        permission.status_description=datetime.datetime.now()
+        permission.status_description = datetime.datetime.now()
 
         permission.save()
 

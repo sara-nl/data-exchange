@@ -15,7 +15,12 @@ class ViewShares(viewsets.ViewSet):
         rd_client = ResearchdriveClient()
         return Response({"output": rd_client.get_shares()})
 
-    @action(detail=True, methods=["DELETE"], name="remove", permission_classes=[IsAuthenticated])
+    @action(
+        detail=True,
+        methods=["DELETE"],
+        name="remove",
+        permission_classes=[IsAuthenticated],
+    )
     def remove(self, request, pk=None):
         rd_client = ResearchdriveClient()
         if rd_client.remove_share_by_id(rd_client.get_share_id(pk)):

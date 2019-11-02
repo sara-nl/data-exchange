@@ -4,7 +4,6 @@
 
   import { onMount } from "svelte";
   import { stores } from "@sapper/app";
-  import { slide } from "svelte/transition"
   import * as hljs from "highlight.js";
 
   import LoadFiles from "../../api/loader";
@@ -26,6 +25,8 @@
   let visible: boolean = false;
   let ownDatasets: any = null;
   let task: any = null;
+  let statusList: Array<boolean> = [false, true, true, true, true,
+                                    true, true, true, true];
 
   let data = new TasksReviewRequest();
 
@@ -34,6 +35,36 @@
     hljs.initHighlighting();
     await load_dataset();
   });
+
+  function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms *  1000));
+  }
+
+  async function background_processes(second_part: boolean) {
+    let from: number = 0;
+    let to: number = 5;
+    let speed: number = 1;
+
+    if (second_part) {
+      from = 5;
+      to = 8;
+      speed = 3;
+    }
+
+    for (let i = from; i < to; i++) {
+      let seconds: number = Math.floor(Math.random() * speed + 1);
+      await sleep(seconds);
+      statusList[i] = false;
+
+      if (i === 7) {
+        if (task.state === 'running') {
+          await sleep(10);
+        }
+        await load_algorithm();
+
+      }
+    }
+  }
 
   async function load_algorithm() {
     const { data } = await Tasks.retrieve(taskId);
@@ -58,6 +89,7 @@
       if (approved) {
         task.output = "Running the algorithm";
         task.state = "running";
+        await background_processes(false);
       }
 
       let { data: response } = await Tasks.review(taskId, data);
@@ -66,9 +98,11 @@
       if (response.output) {
         task.output = response.output;
       }
+
     } catch (error) {
       console.log(error.toString());
     }
+    await background_processes(true);
   }
 
   async function release_output(released: boolean) {
@@ -83,7 +117,6 @@
 
   }
 
-  let test: string = "TEststring"
 </script>
 
 <svelte:head>
@@ -96,6 +129,9 @@
   <div class="row">Back</div>
 
   <div class="row my-5 border border-primary rounded">
+    {#if task.state === 'analyzing_algorithm'}
+      <div class="col-sm-12 text-center bg-primary text-white">Waiting for the algorithm analysis..</div>
+    {/if}
     {#if task.state === 'data_requested'}
       <div class="col-sm-4 text-center bg-primary text-white">Step 1. Accept algorithm</div>
       <div class="col-sm-4 text-center">Step 2. Running algorithm</div>
@@ -115,15 +151,15 @@
 
   {#if task.state === 'running'}
     <div class="Row"> Running animation</div>
-    <div class="Row"> <Spinner small loading={false} text={"Creating container"}/></div>
-    <div class="Row"> <Spinner small loading={false} text={"Installing dependencies"}/></div>
-    <div class="Row"> <Spinner small loading={true} text={"Downloading data and algorithm to container"}/></div>
-    <div class="Row"> <Spinner small loading={true} text={"Blocking all outside access to container"} /></div>
-    <div class="Row"> <Spinner small loading={true} text={"Verifying algorithm"} /></div>
-    <div class="Row"> <Spinner small loading={true} text={"Running algorithm on data"} /></div>
-    <div class="Row"> <Spinner small loading={true} text={"Saving output"} /></div>
-    <div class="Row"> <Spinner small loading={true} text={"Deleting container including data and algorithm"} /></div>
-    <div class="Row"> <Spinner small loading={true} text={"Wrapping up.."}/></div>
+    <div class="Row"> <Spinner small loading={statusList[0]} text={"Creating container"}/></div>
+    <div class="Row"> <Spinner small loading={statusList[1]} text={"Installing dependencies"}/></div>
+    <div class="Row"> <Spinner small loading={statusList[2]} text={"Downloading data and algorithm to container"}/></div>
+    <div class="Row"> <Spinner small loading={statusList[3]} text={"Blocking all outside access to container"} /></div>
+    <div class="Row"> <Spinner small loading={statusList[4]} text={"Verifying algorithm"} /></div>
+    <div class="Row"> <Spinner small loading={statusList[5]} text={"Running algorithm on data"} /></div>
+    <div class="Row"> <Spinner small loading={statusList[6]} text={"Saving output"} /></div>
+    <div class="Row"> <Spinner small loading={statusList[7]} text={"Deleting container including data and algorithm"} /></div>
+    <div class="Row"> <Spinner small loading={statusList[8]} text={"Wrapping up.."}/></div>
 
 
   {:else}
@@ -135,7 +171,11 @@
         <div class="row mb-3 font-weight-bold">Permission Type</div>
         <div class="row mt-1 mb-5">WIP</div>
 
-        <div class="row mb-3 font-weight-bold">Choose dataset</div>
+        {#if task.state === 'error' || task.state === 'success'}
+          <div class="row mb-3 font-weight-bold">Used dataset</div>
+        {:else}
+          <div class="row mb-3 font-weight-bold">Choose dataset</div>
+        {/if}
         <div class="row mt-1 mb-5 pr-5">
           {#if task.is_owner && task.state === 'data_requested'}
               {#if ownDatasets === null}
@@ -170,23 +210,37 @@
         <div class="row mt-1 mb-5">WIP</div>
 
         <div class="row mb-3 font-weight-bold">Runtime</div>
-        <div class="row mt-1 mb-5 text-warning">Available at step 3</div>
+        {#if task.state === 'error' || task.state === 'success'}
+          <div class="row mt-1 mb-5">WIP</div>
+        {:else}
+          <div class="row mt-1 mb-5 text-warning">Available at step 3</div>
+        {/if}
       </div>
 
       <div class="col-sm-4 pl-0 pr-0" style="height:400px;">
-        <div class="row mb-3 font-weight-bold">Algorithm Code</div>
-        <div class="col-12 border pt-2 h-100 overflow-auto">
-          {#each task.algorithm_content as alg, i}
-          <h6>{alg.algorithm_name}</h6>
-          <pre>
-            <code class="python">
-              {alg.algorithm_content || 'Algorithm being processed'}
-            </code>
-          </pre>
-          <h6>{alg.algorithm_info}</h6>
-            <hr />
-          {/each}
-        </div>
+        {#if task.state === 'error' || task.state === 'success'}
+          <div class="row mb-3 font-weight-bold">Output</div>
+          <div class="col-12 border pt-2 h-100 overflow-auto">
+            <pre>{task.output || 'No output (yet)…'}</pre>
+          </div>
+
+
+
+        {:else}
+          <div class="row mb-3 font-weight-bold">Algorithm Code</div>
+          <div class="col-12 border pt-2 h-100 overflow-auto">
+            {#each task.algorithm_content as alg, i}
+            <h6>{alg.algorithm_name}</h6>
+            <pre>
+              <code class="python">
+                {alg.algorithm_content || 'Algorithm being processed'}
+              </code>
+            </pre>
+            <h6>{alg.algorithm_info}</h6>
+              <hr />
+            {/each}
+          </div>
+        {/if}
       </div>
       </div>
 
@@ -206,6 +260,19 @@
               </button>
           {:else}
             <h4>Waiting for the data provider to review the algorithm…</h4>
+          {/if}
+        {/if}
+
+        {#if task.state === 'success' || (task.state === 'error' && task.review_output) }
+          {#if task.is_owner}
+            <button class="btn btn-danger mr-3" on:click={() => release_output(false)}>
+              Reject request
+            </button>
+            <button class="btn btn-default text-success" on:click={() => release_output(true)}>
+              Release Output
+            </button>
+          {:else}
+            <h4>Waiting for the data provider to review the output…</h4>
           {/if}
         {/if}
       </div>

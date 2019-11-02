@@ -9,9 +9,10 @@ class Migration(migrations.Migration):
     dependencies = [("surfsara", "0019_auto_20191020_1338")]
 
     operations = [
-        migrations.AlterField(
+        migrations.RemoveField(model_name="task", name="algorithm_content"),
+        migrations.AddField(
             model_name="task",
             name="algorithm_content",
-            field=django.contrib.postgres.fields.jsonb.JSONField(),
-        )
+            field=django.contrib.postgres.fields.jsonb.JSONField(default=dict),
+        ),
     ]

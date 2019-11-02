@@ -7,6 +7,7 @@
 
   import RemoveShare from "../api/shares";
   import Spinner from "../components/Spinner.svelte";
+  import File from "../components/File.svelte";
 
   let own_datasets: any[] | null = null;
   let data = {};
@@ -104,13 +105,7 @@
     {#each own_datasets as file}
       <div class="row my-5 p-4">
         <div class="row w-100">
-          <div class="col-auto my-auto">
-            <span class="fa-stack fa-2x text-primary">
-              <i class="fas fa-circle fa-stack-2x" />
-              <i class="fas fa-file fa-stack-1x fa-inverse" />
-            </span>
-            {file.name}
-          </div>
+          <File name={file.name} />
           <div class="col">
             <button
               class="btn btn-danger rounded-xl"

@@ -24,7 +24,7 @@
   async function getUserPermissions() {
     try {
       let { data: response } = await Permissions.get_obtained_per_file();
-      obtainedPermissions = response.obtained_permissions;
+      obtainedPermissions = response;
       algorithms = Object.keys(obtainedPermissions);
     } catch (error) {
       console.log(error.toString());
@@ -39,7 +39,7 @@
     }
 
     let totalPermission =
-      obtainedPermissions[data.algorithm_file][permission];
+      obtainedPermissions[data.algorithm_file].permissions[permission];
     totalPermission.algorithm = data.algorithm_file
 
     requesting = true;
@@ -99,7 +99,7 @@
               <h3 class="display-6">Permissions</h3>
               {#if !data.algorithm_file}
                 Select algorithm first.
-              {:else if !obtainedPermissions[data.algorithm_file]}
+              {:else if !obtainedPermissions[data.algorithm_file].permissions}
                 No permissions.
               {:else}
                 <select
@@ -110,7 +110,7 @@
                 >
                   <option disabled value="">Select permission</option>
 
-                  {#each obtainedPermissions[data.algorithm_file] as file, i}
+                  {#each obtainedPermissions[data.algorithm_file].permissions as file, i}
                     <option value={i}>{file.dataset}/{data.algorithm_file}</option>
                   {/each}
                 </select>
@@ -136,22 +136,22 @@
         {:else}
           <div class="my-3">
             <h5>Permission given by</h5>
-            {obtainedPermissions[data.algorithm_file][permission].dataset_provider}
+            {obtainedPermissions[data.algorithm_file].permissions[permission].dataset_provider}
             <h5>Permission given to</h5>
             <b>You</b>
           </div>
 
           <div class="my-3">
             <h5>Dataset</h5>
-            {obtainedPermissions[data.algorithm_file][permission].dataset}
+            {obtainedPermissions[data.algorithm_file].permissions[permission].dataset}
             <h5>Algorithm</h5>
             {data.algorithm_file}
           </div>
           <div class="my-3">
             <h5>Permission type</h5>
-            {obtainedPermissions[data.algorithm_file][permission].permission_type}
+            {obtainedPermissions[data.algorithm_file].permissions[permission].permission_type}
             <h5>Review output</h5>
-            {obtainedPermissions[data.algorithm_file][permission].review_output}
+            {obtainedPermissions[data.algorithm_file].permissions[permission].review_output}
           </div>
         {/if}
       </div>

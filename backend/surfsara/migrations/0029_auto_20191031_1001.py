@@ -5,20 +5,26 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0028_auto_20191027_2355'),
-    ]
+    dependencies = [("surfsara", "0028_auto_20191027_2355")]
 
     operations = [
         migrations.AddField(
-            model_name='permission',
-            name='state',
-            field=models.CharField(choices=[('active', 'active'), ('rejected', 'rejected'), ('aborted', 'aborted')], default='active', max_length=255),
+            model_name="permission",
+            name="state",
+            field=models.CharField(
+                choices=[
+                    ("active", "active"),
+                    ("rejected", "rejected"),
+                    ("aborted", "aborted"),
+                ],
+                default="active",
+                max_length=255,
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='permission',
-            name='status_description',
+            model_name="permission",
+            name="status_description",
             field=models.TextField(null=True),
         ),
     ]

@@ -204,10 +204,21 @@
         <div class="row mt-1 mb-5">{task.algorithm}</div>
 
         <div class="row mb-3 font-weight-bold">Algorithm Dependencies</div>
-        <div class="row mt-1 mb-5">WIP</div>
+        <div class="row mt-1 mb-5">
+          {#each task.algorithm_info.algorithm_dependencies as dependency}
+            <div class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">{dependency}</div>
+          {/each}
+          <div class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">Veel</div>
+          <div class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">meer</div>
+          <div class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">dependencies</div>
+        </div>
 
         <div class="row mb-3 font-weight-bold">Algorithm Length</div>
-        <div class="row mt-1 mb-5">WIP</div>
+        <div class="row mt-1 mb-5">
+          Newlines: {task.algorithm_info.algorithm_newline},
+          Words: {task.algorithm_info.algorithm_words},
+          Characters: {task.algorithm_info.algorithm_characters}
+        </div>
 
         <div class="row mb-3 font-weight-bold">Runtime</div>
         {#if task.state === 'error' || task.state === 'success'}
@@ -229,14 +240,16 @@
         {:else}
           <div class="row mb-3 font-weight-bold">Algorithm Code</div>
           <div class="col-12 border pt-2 h-100 overflow-auto">
-            {#each task.algorithm_content as alg, i}
+            {#each task.algorithm_content as alg}
             <h6>{alg.algorithm_name}</h6>
             <pre>
               <code class="python">
                 {alg.algorithm_content || 'Algorithm being processed'}
               </code>
             </pre>
-            <h6>{alg.algorithm_info}</h6>
+            <h6>Newlines: {alg.algorithm_newline},
+                Words: {alg.algorithm_words},
+                Characters: {alg.algorithm_characters}</h6>
               <hr />
             {/each}
           </div>

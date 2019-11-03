@@ -1,54 +1,45 @@
 <script lang="ts">
-    export let state: string;
-    let class_;
+    export let state: string = "";
 
-    $: class_ {
+    function class_(): string {
         switch (state) {
-        case "running":
-        case "registered":
-        case "data_requested":
-        case "analyzing_algorithm":
-        case "success":
-        case "error":
-            class_ = "";
-            break;
-
         case "output_released":
-            class_ = "text-success";
-            break;
+            return "text-success";
 
         case "request_rejected":
         case "release_rejected":
-            class_ = "text-danger";
+            return "text-danger";
+
+        default:
+            return "";
         }
     }
 
-    $: state {
+    function state_(): string {
         switch (state) {
         case "running":
-            state = "Running";
-            break;
+            return "Running";
 
         case "registered":
         case "data_requested":
         case "analyzing_algorithm":
-            state = "Requested";
-            break;
+            return "Requested";
 
         case "success":
         case "error":
-            state = "Reviewing";
-            break;
+            return "Reviewing";
 
         case "output_released":
-            state = "Passed";
-            break;
+            return "Passed";
 
         case "request_rejected":
         case "release_rejected":
-            state = "Rejected";
+            return "Rejected";
+
+            default:
+            return state;
         }
     }
 </script>
 
-<span class={class_}>{state}</span>
+<span class={class_()}>{state_()}</span>

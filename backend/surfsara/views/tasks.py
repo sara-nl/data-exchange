@@ -84,6 +84,47 @@ class Tasks(viewsets.ViewSet):
         )
 
     @action(
+        detail=False,
+        methods=["GET"],
+        name="get_data_requests",
+        permission_classes=[IsAuthenticated],
+    )
+    def get_data_requests(self, request):
+        """
+        Gets all requests you made and requests on your data that
+        are in a state to approve something/
+        """
+
+        not_reviewed_yet = Task.objects.filter(
+            Q(approver_email=request.user.email),
+            Q(state=Task.DATA_REQUESTED)
+            | Q(state=Task.SUCCESS, review_output=True)
+            | Q(state=Task.ERROR, review_output=True),
+        ).order_by("-registered_on")
+
+        reviewed = Task.objects.filter(
+            Q(author_email=request.user.email),
+            Q(state=Task.RUNNING)
+            | Q(state=Task.OUTPUT_RELEASED)
+            | Q(state=Task.RELEASE_REJECTED)
+            | Q(state=Task.REQUEST_REJECTED)
+            | Q(state=Task.SUCCESS, review_output=False)
+            | Q(state=Task.ERROR, review_output=False),
+        ).order_by("-registered_on")
+
+        # print(TaskSerializer(reviewed, many=True).data)
+        # for request in not_reviewed_yet:
+        #     if request.state != Task.OUTPUT_RELEASED:
+        #         request.output = None
+
+        return Response(
+            {
+                "not_reviewed_yet": TaskSerializer(not_reviewed_yet, many=True).data,
+                "reviewed": TaskSerializer(reviewed, many=True).data,
+            }
+        )
+
+    @action(
         detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
     )
     def list_logs(self, request):

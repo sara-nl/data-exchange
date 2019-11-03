@@ -1,40 +1,46 @@
 <script>
-    import { token, email } from "../stores";
+    import { token, mode, email } from "../stores";
     import NavItem from "./NavItem";
     import NavDropdown from "./NavDropdown";
 
     export let segment;
 
     $: logout = $email ? `Log out (${$email})` : "Log out";
+    $: modeText = $mode === "data" ? "Data owner" : "Algorithm owner";
+
+    function toggleMode() {
+        mode.set($mode === "data" ? "algorithm" : "data");
+    }
 </script>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="/">Demo</a>
+<style>
+    .mode {
+        margin-left: -5px;
+    }
 
-    <div class="navbar" id="navbarNav">
-        <ul class="nav nav-pills mr-auto" style="border-right: 1px solid rgba(0, 0, 0, .12)">
+    .mode-inner {
+        margin-left: 6px;
+        margin-right: 12px;
+    }
+</style>
+
+<nav class="navbar navbar-light bg-light">
+    <a class="navbar-brand" href="/">DataExchange (Demo)</a>
+
+    <div class="navbar justify-content-start" id="navbarNav">
+        <ul class="nav nav-pills" style="border-right: 1px solid rgba(0, 0, 0, .12)">
             <NavItem name="Home" href="/" active={segment === undefined} />
             {#if $token}
-                <NavItem name="Manage Data" href="/manage_data" />
-
-                <NavItem name="My shared files" href="/myfiles" />
-
-                <NavDropdown name="Tasks">
-                    <NavItem dropdown name="Overview" href="/tasks" />
-                    <NavItem dropdown name="Request permission" href="/tasks/request" />
-                </NavDropdown>
-                <NavDropdown name="Permissions">
-                    <NavItem dropdown name="Permission overview" href="/permissions" />
-                    <NavItem dropdown name="Permission logs" href="/permissions/logs" />
-                    <NavItem dropdown name="Run with permission" href="/permissions/run" />
-
-                </NavDropdown>
+                {#if $mode === "data"}
+                    <NavItem name="Manage Data" href="/manage_data" />
+                {:else}
+                    <NavItem name="Manage Algorithms" href="/manage_algorithms" />
+                {/if}
+                <NavItem name="Requests" href="/tasks" />
             {/if}
-
-            <NavItem name="About" href="/about" active={segment === "about"} />
         </ul>
 
-        <ul class="nav ml-auto">
+        <ul class="nav">
             {#if $token}
                 <NavItem name={logout} href="/logout" />
             {:else}
@@ -42,5 +48,23 @@
                 <NavItem name="Register" href="/register" />
             {/if}
         </ul>
+
+        {#if $token}
+            <form class="form-inline">
+                <span class="mode">
+                    &mdash;
+                    <span class="mode-inner">
+                        {modeText}
+                    </span>
+                </span>
+                <button
+                    class="btn btn-outline-primary"
+                    type="button"
+                    on:click={toggleMode}
+                >
+                    Toggle
+                </button>
+            </form>
+        {/if}
     </div>
 </nav>

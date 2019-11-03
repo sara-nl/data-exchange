@@ -3,13 +3,6 @@
     export let folder: boolean;
 </script>
 
-<style>
-    .file {
-        display: inline-block;
-        margin: 5px 0;
-    }
-</style>
-
 <div class="col-auto file">
     <span class="fa-stack fa-2x text-primary">
       <i class="fas fa-circle fa-stack-2x" />

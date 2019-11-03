@@ -23,6 +23,12 @@
   }
 </script>
 
+<style>
+  .permission {
+    display: inline-block;
+  }
+</style>
+
 <svelte:head>
   <title>Manage Algorithms</title>
 </svelte:head>
@@ -44,11 +50,15 @@
             <h3>
               <small class="text-muted">Permissions</small>
             </h3>
+            <div>
             {#each permissions as permission}
-              <File name={permission.dataset} />
+              <div class="permission my-2">
+                <File name={permission.dataset} />
+              </div>
             {:else}
               No permissions given on this file.
             {/each}
+            </div>
           </div>
 
           <div class="col-1" />
@@ -57,7 +67,7 @@
               <small class="text-muted">Runs</small>
             </h3>
               <div class="table-wrapper">
-                <table class="table table-borderless table-sm">
+                <table class="tasks table table-borderless table-sm">
                   <thead>
                     <th class="text-secondary">Dataset</th>
                     <th class="text-secondary">State</th>

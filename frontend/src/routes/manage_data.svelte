@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goto } from "@sapper/app";
+  import { onMount } from "svelte";
   import dayjs from "dayjs";
   import LoadFiles from "../api/loader";
   import Tasks from "../api/tasks";
@@ -15,12 +15,13 @@
 
   let datasets = {};
   let algorithms = {};
-  let givenPermissions: {};
+  let givenPermissions: {[index: string]:any} = {};
 
-  updateUserFiles();
-
-  getUserTasks();
-  getUserPermissions();
+  onMount(async () => {
+    updateUserFiles();
+    getUserTasks();
+    getUserPermissions();
+  });
 
   async function updateUserFiles() {
     try {
@@ -36,7 +37,7 @@
     try {
       let { data: response } = await Permissions.get_given_per_file();
       givenPermissions = response.given_permissions;
-      algorithms = Object.keys(givenPermissions);
+      datasets = Object.keys(givenPermissions);
     } catch (error) {
       console.log(error.toString());
     }
@@ -47,7 +48,6 @@
     try {
       let { data: response } = await Tasks.get_logs();
       dataset_tasks = response.data_tasks;
-      datasets = Object.keys(dataset_tasks);
     } catch (error) {
       console.log(error.toString());
     }
@@ -55,11 +55,13 @@
     return false;
   }
 
-  async function remove_permission(id: number) {
+  async function remove_permission(id: number, filename: string) {
     event.preventDefault();
     try {
       let { data: response } = await Permissions.remove(id);
-      givenPermissions = response.given_permissions;
+
+      let removed_permission = removeFromList(givenPermissions[filename], String(id));
+      givenPermissions[filename] = removed_permission;
     } catch (error) {
       console.log(error.toString());
     }
@@ -104,11 +106,11 @@
   {:else}
     {#each own_datasets as file}
       <div class="row my-5 p-4">
-        <div class="row w-100">
+        <div class="row">
           <File name={file.name} />
           <div class="col">
             <button
-              class="btn btn-danger rounded-xl"
+              class="btn btn-danger rounded-xl font-weight-bold"
               on:click={() => revokeFileShare(file.id)}>
               <div class="px-4">Withdraw Data</div>
             </button>
@@ -125,15 +127,15 @@
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
-                    <th class="text-secondary">With</th>
-                    <th class="text-secondary">Algorithm</th>
-                    <th class="text-secondary">Type</th>
+                    <th >With</th>
+                    <th >Algorithm</th>
+                    <th >Type</th>
                     <th />
                   </thead>
                   <tbody>
 
                     {#each givenPermissions[file.name] as permission}
-                      <tr class="my-1">
+                      <tr id={permission['id']} class="my-1">
                         <td>{permission.algorithm_provider}</td>
                         <td>{permission.algorithm}</td>
                         <td>{permission.permission_type}</td>
@@ -141,7 +143,7 @@
                           <a
                             class="text-danger"
                             href="#0"
-                            on:click={() => remove_permission(permission.id)}>
+                            on:click={() => remove_permission(permission.id, file.name)}>
                             Reject Permission
                           </a>
                         </td>
@@ -160,19 +162,19 @@
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
-                    <th class="text-secondary">Who</th>
-                    <th class="text-secondary">Passed</th>
-                    <th class="text-secondary">When</th>
-                    <th class="text-secondary">Action</th>
+                    <th >Who</th>
+                    <th >Passed</th>
+                    <th >When</th>
+                    <th >Action</th>
                   </thead>
                   <tbody>
                     {#each dataset_tasks[file.name] as task}
                       <tr class="my-1">
                         <td>{task.author_email}</td>
-                        {#if task.state == 'data_requested' || task.state == 'running'}
-                          <td class="text-success font-weight-bold">True</td>
+                        {#if task.state === 'data_requested' || task.state === 'running'}
+                          <td class="text-success font-weight-bold">False</td>
                         {:else}
-                          <td class="text-danger font-weight-bold">False</td>
+                          <td class="text-danger font-weight-bold">True</td>
                         {/if}
 
                         <td>

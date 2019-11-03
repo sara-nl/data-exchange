@@ -297,7 +297,7 @@
     <div class="row my-5">OLD BELOW</div>
 
 
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
       <div class="col">
         <div class="my-5">

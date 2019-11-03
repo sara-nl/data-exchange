@@ -9,6 +9,11 @@
     let obtained_permissions: [any] | null = null
     let given_permissions: [any] | null = null
 
+    let state_color = {
+        "rejected": "danger",
+        "active": "success"
+    };
+
     getUserPermissions()
 
     async function getUserPermissions(){
@@ -53,7 +58,7 @@
 {#if obtained_permissions === null || given_permissions === null}
 <Spinner />
 {:else}
-<div class="container">
+<div class="container-fluid">
     <div class="row">
         <div class="col-md">
             <h2><small class="text-muted">Given Permissions</small></h2>
@@ -65,6 +70,7 @@
                         <th scope="col">Given to</th>
                         <th scope="col">Dataset</th>
                         <th scope="col">Algorithm</th>
+                        <th scope="col">Permission state</th>
                         <th scope="col"></th>
                     </tr>
                 </thead>
@@ -77,6 +83,7 @@
                         <td>{file.algorithm_provider}</td>
                         <td>{file.dataset}</td>
                         <td>{file.algorithm}</td>
+                        <td class="text-{state_color[file.state]}">{file.state}</td>
                         <td>
                             <button class="close" on:click={() => remove_permission(file.id)}>
                                 <span aria-hidden="true">&times;</span>
@@ -99,12 +106,13 @@
             <table class="table">
                 <thead>
                     <tr>
-                        <th scope="col">Permission type</th>
-
-                        <th scope="col">Permission given by</th>
-                        <th scope="col">Permission given to</th>
+                        <th scope="col">Type</th>
+                        <th scope="col">Given by</th>
+                        <th scope="col">Given to</th>
                         <th scope="col">Dataset</th>
                         <th scope="col">Algorithm</th>
+                        <th scope="col">Permission state</th>
+                        <th scope="col"></th>
                     </tr>
                 </thead>
 
@@ -112,12 +120,11 @@
                     {#each obtained_permissions as file}
                     <tr>
                         <td>{file.permission_type}</td>
-
                         <td>{file.dataset_provider}</td>
                         <td><b>You</b></td>
                         <td>{file.dataset}</td>
                         <td>{file.algorithm}</td>
-                        <td></td>
+                        <td class="text-{state_color[file.state]}">{file.state}</td>
                     </tr>
                     {:else}
                     <tr>

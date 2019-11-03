@@ -62,7 +62,7 @@
 {#if to_approve_requests === null || own_requests === null}
 <Spinner />
 {:else}
-<div class="container">
+<div class="container-fluid">
     <div class="row">
         <div class="col-xl">
             <h2><small class="text-muted">Your requests</small></h2>

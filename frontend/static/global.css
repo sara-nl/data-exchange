@@ -1,6 +1,8 @@
+@import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap');
+
 body {
     margin: 0;
-    font-family: Roboto, -apple-system, BlinkMacSystemFont, Segoe UI, Oxygen, Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+    font-family: 'Source Sans Pro', sans-serif;
     font-size: 14px;
     line-height: 1.5;
     color: #333;
@@ -35,6 +37,89 @@ code {
     }
 }
 
+/* REDESIGN CSS */
 .custom-select {
     background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='white' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E") !important
+}
+
+.rounded-xl {
+    border-radius: .6rem !important
+}
+
+
+.fa-stack {
+    font-size: 0.8em !important;
+}
+
+
+.bg-lightgrey {
+    background-color:#f7f8f8
+}
+
+.table-wrapper {
+  max-height: 25em;
+  overflow: auto;
+}
+
+.table-wrapper-xl {
+  max-height: 30em;
+  overflow: auto;
+}
+
+.rounded-xll {
+  border-top-left-radius: .6rem !important;
+  border-bottom-left-radius: .6rem !important;
+
+  padding-left: 2em !important;
+}
+
+.rounded-xlr {
+  border-top-right-radius: .6rem !important;
+  border-bottom-right-radius: .6rem !important;
+
+  padding-right: 2em !important;
+}
+
+th {
+  color: #51585e !important;
+  font-size: .95rem !important;
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+
+  padding-bottom: 0.0!important
+}
+
+td {
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
+}
+
+td {
+  font-size: 0.95rem !important;
+}
+
+.desc_column {
+  min-width: 12em;
+  max-width: 12em;
+
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.normal_column {
+  min-width: 7em;
+  max-width: 7em;
+
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+.small_column {
+  min-width: 6em;
+  max-width: 6em;
+
+  overflow: hidden;
+  word-wrap: break-word;
 }

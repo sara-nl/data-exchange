@@ -7,6 +7,10 @@ class Permission(models.Model):
     NO_PERMISSION = "no permission"
     ONE_TIME_PERMISSION = "one time permission"
 
+    ACTIVE = "active"
+    REJECTED = "rejected"
+    ABORTED = "aborted"
+
     algorithm = models.TextField(null=True)
     algorithm_etag = models.CharField(max_length=32, default="")
     algorithm_provider = models.EmailField()
@@ -25,3 +29,9 @@ class Permission(models.Model):
         ],
         default=NO_PERMISSION,
     )
+    state = models.CharField(
+        max_length=255,
+        choices=[(ACTIVE, "active"), (REJECTED, "rejected"), (ABORTED, "aborted")],
+    )
+
+    status_description = models.TextField(null=True)

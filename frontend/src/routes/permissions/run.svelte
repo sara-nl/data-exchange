@@ -23,7 +23,7 @@
 
   async function getUserPermissions() {
     try {
-      let { data: response } = await Permissions.get_per_file();
+      let { data: response } = await Permissions.get_obtained_per_file();
       obtainedPermissions = response.obtained_permissions;
       algorithms = Object.keys(obtainedPermissions);
     } catch (error) {
@@ -68,7 +68,7 @@
 {#if obtainedPermissions === null}
   <Spinner />
 {:else}
-  <div class="container">
+  <div class="container-fluid">
     <div class="row">
       <div class="col-md-4">
         <form>

@@ -33,7 +33,7 @@
 </h2>
 <br>
 
-<div class="container">
+<div class="container-fluid">
     <div class="row">
         <div class="col ym-5">
             <h3>Where to start?</h3>

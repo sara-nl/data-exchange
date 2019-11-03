@@ -105,7 +105,7 @@
   {:else}
     {#each own_datasets as file}
       <div class="row my-5 p-4">
-        <div class="row w-100">
+        <div class="row">
           <div class="col-auto my-auto">
             <span class="fa-stack fa-2x text-primary">
               <i class="fas fa-circle fa-stack-2x" />
@@ -115,7 +115,7 @@
           </div>
           <div class="col">
             <button
-              class="btn btn-danger rounded-xl"
+              class="btn btn-danger rounded-xl font-weight-bold"
               on:click={() => revokeFileShare(file.id)}>
               <div class="px-4">Withdraw Data</div>
             </button>
@@ -132,9 +132,9 @@
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
-                    <th class="text-secondary">With</th>
-                    <th class="text-secondary">Algorithm</th>
-                    <th class="text-secondary">Type</th>
+                    <th >With</th>
+                    <th >Algorithm</th>
+                    <th >Type</th>
                     <th />
                   </thead>
                   <tbody>
@@ -167,10 +167,10 @@
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
-                    <th class="text-secondary">Who</th>
-                    <th class="text-secondary">Passed</th>
-                    <th class="text-secondary">When</th>
-                    <th class="text-secondary">Action</th>
+                    <th >Who</th>
+                    <th >Passed</th>
+                    <th >When</th>
+                    <th >Action</th>
                   </thead>
                   <tbody>
                     {#each dataset_tasks[file.name] as task}

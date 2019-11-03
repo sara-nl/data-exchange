@@ -48,9 +48,6 @@ code {
     font-size: 0.8em !important; 
 }
 
-td {
-    font-size: 0.95rem !important;
-}
 
 .bg-lightgrey {
     background-color:#f7f8f8
@@ -60,3 +57,66 @@ td {
     max-height: 25em;
     overflow: auto;
   }
+
+.table-wrapper-xl {
+    max-height: 30em;
+    overflow: auto;
+  }
+  
+.rounded-xll {
+    border-top-left-radius: .6rem !important;
+    border-bottom-left-radius: .6rem !important;
+
+    padding-left: 2em !important;
+}
+
+.rounded-xlr {
+    border-top-right-radius: .6rem !important;
+    border-bottom-right-radius: .6rem !important;
+    
+    padding-right: 2em !important;
+}
+
+th {
+    color: #51585e !important;
+    font-size: .95rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    
+    padding-bottom: 0.0!important
+}
+
+td {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    padding-top: 1rem !important;
+    padding-bottom: 1rem !important;
+}
+
+td {
+    font-size: 0.95rem !important;
+}
+.desc_column {
+    min-width: 12em;
+    max-width: 12em;
+
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.normal_column {
+    min-width: 7em;
+    max-width: 7em;
+
+    overflow: hidden;
+    word-wrap: break-word;
+}
+
+.small_column {
+    min-width: 6em;
+    max-width: 6em;
+
+    overflow: hidden;
+    word-wrap: break-word;
+}
+

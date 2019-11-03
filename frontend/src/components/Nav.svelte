@@ -16,6 +16,7 @@
             <NavItem name="Home" href="/" active={segment === undefined} />
             {#if $token}
                 <NavItem name="Manage Data" href="/manage_data" />
+                <NavItem name="Requests" href="/requests" />
 
                 <NavItem name="My shared files" href="/myfiles" />
 

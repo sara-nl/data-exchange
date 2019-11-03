@@ -25,9 +25,6 @@ class AlgorithmProcessor:
             return True
         return False
 
-    def update_database(self):
-        return
-
     def start_processing(self):
         if self.is_folder:
             for file in self.rd_client.list(self.algorithm_name):
@@ -66,6 +63,7 @@ class AlgorithmProcessor:
                 "algorithm_info": algorithm_info,
             }
         )
+
         os.remove(tempname)
 
     @staticmethod
@@ -100,11 +98,14 @@ class AlgorithmProcessor:
             + f'Packages: {", ".join(imports)}'
         )
 
+    def get_etag(self):
+        if self.is_folder:
+            return self.rd_client.get_fileid_etag(self.algorithm_name + "/")["etag"]
+        else:
+            return self.rd_client.get_fileid_etag(self.algorithm_name)["etag"]
+
 
 def main():
-    # a = AlgorithmProcessor("INT_30", "sander@wearebit.com")
-    # a.start_processing()
-
     return
 
 

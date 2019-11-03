@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { goto } from "@sapper/app";
+  import { onMount } from "svelte";
   import dayjs from "dayjs";
   import LoadFiles from "../api/loader";
   import Tasks from "../api/tasks";
@@ -14,12 +14,13 @@
 
   let datasets = {};
   let algorithms = {};
-  let givenPermissions: {};
+  let givenPermissions: {[index: string]:any} = {};
 
-  updateUserFiles();
-
-  getUserTasks();
-  getUserPermissions();
+  onMount(async () => {
+    updateUserFiles();
+    getUserTasks();
+    getUserPermissions();
+  });
 
   async function updateUserFiles() {
     try {
@@ -35,7 +36,7 @@
     try {
       let { data: response } = await Permissions.get_given_per_file();
       givenPermissions = response.given_permissions;
-      algorithms = Object.keys(givenPermissions);
+      datasets = Object.keys(givenPermissions);
     } catch (error) {
       console.log(error.toString());
     }
@@ -46,7 +47,6 @@
     try {
       let { data: response } = await Tasks.get_logs();
       dataset_tasks = response.data_tasks;
-      datasets = Object.keys(dataset_tasks);
     } catch (error) {
       console.log(error.toString());
     }
@@ -54,11 +54,13 @@
     return false;
   }
 
-  async function remove_permission(id: number) {
+  async function remove_permission(id: number, filename: string) {
     event.preventDefault();
     try {
       let { data: response } = await Permissions.remove(id);
-      givenPermissions = response.given_permissions;
+
+      let removed_permission = removeFromList(givenPermissions[filename], String(id));
+      givenPermissions[filename] = removed_permission;
     } catch (error) {
       console.log(error.toString());
     }
@@ -138,7 +140,7 @@
                   <tbody>
 
                     {#each givenPermissions[file.name] as permission}
-                      <tr class="my-1">
+                      <tr id={permission['id']} class="my-1">
                         <td>{permission.algorithm_provider}</td>
                         <td>{permission.algorithm}</td>
                         <td>{permission.permission_type}</td>
@@ -146,7 +148,7 @@
                           <a
                             class="text-danger"
                             href="#0"
-                            on:click={() => remove_permission(permission.id)}>
+                            on:click={() => remove_permission(permission.id, file.name)}>
                             Reject Permission
                           </a>
                         </td>
@@ -174,10 +176,10 @@
                     {#each dataset_tasks[file.name] as task}
                       <tr class="my-1">
                         <td>{task.author_email}</td>
-                        {#if task.state == 'data_requested' || task.state == 'running'}
-                          <td class="text-success font-weight-bold">True</td>
+                        {#if task.state === 'data_requested' || task.state === 'running'}
+                          <td class="text-success font-weight-bold">False</td>
                         {:else}
-                          <td class="text-danger font-weight-bold">False</td>
+                          <td class="text-danger font-weight-bold">True</td>
                         {/if}
 
                         <td>

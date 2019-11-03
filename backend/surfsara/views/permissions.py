@@ -128,6 +128,7 @@ class Permissions(viewsets.ViewSet):
             url=f"http://{request.get_host()}/permissions",
         )
 
+        
         return self.list(request)
 
 

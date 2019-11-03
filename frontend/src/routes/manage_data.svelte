@@ -10,8 +10,8 @@
   import File from "../components/File.svelte";
 
   let own_datasets: any[] | null = null;
-  let data = {};
-  let dataset_tasks: {};
+  let data: any = null;
+  let dataset_tasks: any = null;
 
   let datasets = {};
   let algorithms = {};

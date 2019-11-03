@@ -72,10 +72,10 @@
 {#if to_approve_requests === null || own_requests === null}
 <Spinner />
 {:else}
-<div class="container">
+<div class="container-fluid">
     {#if $mode === "data"}
         <div class="row">
-            <div class="col">
+            <div class="col-xl">
                 <h2><small class="text-muted">Requests to review</small></h2>
                 <table class="table" class:table-hover={to_approve_requests.length > 0}>
                     <thead>

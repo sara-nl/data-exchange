@@ -34,7 +34,7 @@ class Task(models.Model):
     algorithm = models.TextField()
     algorithm_etag = models.CharField(max_length=32, default="")
     algorithm_content = JSONField(default=dict)
-    algorithm_info = models.TextField(default="")
+    algorithm_info = JSONField(default=dict)
     dataset = models.TextField()
     dataset_desc = models.TextField()
     output = models.TextField(null=True)

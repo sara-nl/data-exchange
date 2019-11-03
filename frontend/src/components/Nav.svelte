@@ -24,10 +24,10 @@
     }
 </style>
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
+<nav class="navbar navbar-light bg-light">
     <a class="navbar-brand" href="/">DataExchange (Demo)</a>
 
-    <div class="navbar ml-auto" id="navbarNav">
+    <div class="navbar justify-content-start" id="navbarNav">
         <ul class="nav nav-pills" style="border-right: 1px solid rgba(0, 0, 0, .12)">
             <NavItem name="Home" href="/" active={segment === undefined} />
             {#if $token}

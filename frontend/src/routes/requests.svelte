@@ -44,12 +44,6 @@
   }
 </script>
 
-<style>
-  .table-hover tbody tr {
-    cursor: pointer;
-  }
-</style>
-
 <svelte:head>
   <title>Requests</title>
   <link

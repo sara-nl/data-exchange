@@ -1,3 +1,4 @@
+from collections import defaultdict
 from django.db.models import Q
 from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
@@ -127,8 +128,8 @@ class Tasks(viewsets.ViewSet):
         detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
     )
     def list_logs(self, request):
-        data_tasks_per_file = {}
-        algorithm_tasks_per_file = {}
+        data_tasks_per_file = defaultdict(list)
+        algorithm_tasks_per_file = defaultdict(list)
 
         algorithm_tasks = Task.objects.filter(author_email=request.user.email).order_by(
             "-registered_on"
@@ -144,17 +145,11 @@ class Tasks(viewsets.ViewSet):
 
         data_tasks = TaskSerializer(data_tasks, many=True).data
         for perm in data_tasks:
-            if perm["dataset"] in data_tasks_per_file:
-                data_tasks_per_file[perm["dataset"]].append(perm)
-            else:
-                data_tasks_per_file[perm["dataset"]] = [perm]
+            data_tasks_per_file[perm["dataset"]].append(perm)
 
         algorithm_tasks = TaskSerializer(algorithm_tasks, many=True).data
         for perm in algorithm_tasks:
-            if perm["algorithm"] in algorithm_tasks_per_file:
-                algorithm_tasks_per_file[perm["algorithm"]].append(perm)
-            else:
-                algorithm_tasks_per_file[perm["algorithm"]] = [perm]
+            algorithm_tasks_per_file[perm["algorithm"]].append(perm)
 
         return Response(
             {

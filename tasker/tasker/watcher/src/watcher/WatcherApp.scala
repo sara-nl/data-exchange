@@ -2,57 +2,53 @@ package watcher
 
 import cats.effect.{ExitCode, IO, IOApp}
 import cats.implicits._
-import dev.profunktor.fs2rabbit.interpreter.Fs2Rabbit
 import dev.profunktor.fs2rabbit.model.{AmqpMessage, AmqpProperties}
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import tasker.concurrency.ConcurrencyResources
+import io.circe.generic.auto._
+import io.circe.syntax._
 import tasker.config.TaskerConfig
 import tasker.config.TaskerConfig.queues
 import tasker.queue.Messages
-import io.circe.generic.auto._
-import io.circe.syntax._
+import tasker.queue.QueueResources.rabbitClientResource
 
 object WatcherApp extends IOApp {
 
   private val logger = Slf4jLogger.getLogger[IO]
 
-  // TODO: extract into config
   private val xa = Transactor.fromDriverManager[IO](
     "org.postgresql.Driver",
-    "jdbc:postgresql://localhost:5433/surfsara",
-    "surfsara",
-    ""
+    TaskerConfig.watcher.jdbcUrl,
+    TaskerConfig.watcher.dbUser,
+    TaskerConfig.watcher.dbPassword
   )
 
-  // TODO: move into tasker.concurrency
-  private val publisherResource = for {
-    rabbit <- ConcurrencyResources.blocker.evalMap { blocker =>
-      Fs2Rabbit[IO](TaskerConfig.rabbitConfig, blocker)
-    }
-    publisher <- rabbit.createConnectionChannel.evalMap { implicit channel =>
-      for {
-        _ <- rabbit.declareQueue(queues.todo.config)
-        _ <- rabbit.declareExchange(queues.todo.exchangeConfig)
-        _ <- rabbit.bindQueue(
-          queues.todo.config.queueName,
-          queues.todo.exchangeConfig.exchangeName,
-          queues.todo.routingKey
-        )
-        publisher <- {
-          import tasker.queue.Codecs.messageEncoder
-          rabbit.createPublisher[AmqpMessage[String]](
+  private val todoPublisherResource =
+    for {
+      rabbit <- rabbitClientResource
+      publisher <- rabbit.createConnectionChannel.evalMap { implicit channel =>
+        for {
+          _ <- rabbit.declareQueue(queues.todo.config)
+          _ <- rabbit.declareExchange(queues.todo.exchangeConfig)
+          _ <- rabbit.bindQueue(
+            queues.todo.config.queueName,
             queues.todo.exchangeConfig.exchangeName,
             queues.todo.routingKey
           )
-        }
-      } yield publisher
-    }
-  } yield publisher
+          publisher <- {
+            import tasker.queue.Codecs.messageEncoder
+            rabbit.createPublisher[AmqpMessage[String]](
+              queues.todo.exchangeConfig.exchangeName,
+              queues.todo.routingKey
+            )
+          }
+        } yield publisher
+      }
+    } yield publisher
 
   override def run(args: List[String]): IO[ExitCode] =
     logger.info("Watcher started") *>
-      publisherResource.use { implicit publisher =>
+      todoPublisherResource.use { implicit publisher =>
         fs2.Stream
           .awakeEvery[IO](TaskerConfig.watcher.awakeInterval)
           .through(_.flatMap { _ =>

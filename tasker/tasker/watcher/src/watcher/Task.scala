@@ -1,14 +1,8 @@
 package watcher
 
-import doobie.util.update.Update0
+import cats.effect._
 import doobie._
 import doobie.implicits._
-import doobie.util.ExecutionContexts
-import cats._
-import cats.implicits._
-import cats.data._
-import cats.effect._
-import cats.implicits._
 
 object Task {
 

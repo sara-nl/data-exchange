@@ -57,7 +57,7 @@ object Messages {
                     */
                   taskId: String,
                   /**
-                    * "success" | "error"
+                    * "success" | "error" | "rejected"
                     */
                   state: String,
                   /**

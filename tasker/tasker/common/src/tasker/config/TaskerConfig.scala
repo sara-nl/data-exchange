@@ -24,6 +24,9 @@ object TaskerConfig {
 
   object watcher {
     val awakeInterval: FiniteDuration = 5.seconds
+    val jdbcUrl = "jdbc:postgresql://localhost:5433/surfsara"
+    val dbUser = "surfsara"
+    val dbPassword = "surfsara"
   }
 
   object concurrency {

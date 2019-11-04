@@ -18,7 +18,7 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="watcher" level="debug" additivity="false">
+    <logger name="watcher" level="info" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 </configuration>

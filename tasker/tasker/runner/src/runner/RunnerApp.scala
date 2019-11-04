@@ -2,16 +2,20 @@ package runner
 
 import cats.effect.{ExitCode, IO, IOApp}
 import dev.profunktor.fs2rabbit.model.AmqpMessage
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import tasker.config.TaskerConfig.queues
 import tasker.queue.Codecs._
 import tasker.queue.QueueResources
 
 object RunnerApp extends IOApp {
 
-  override def run(args: List[String]): IO[ExitCode] = {
+  private val logger = Slf4jLogger.getLogger[IO]
+
+  override def run(args: List[String]): IO[ExitCode] =
     QueueResources.rabbitClientResource.use { rabbit =>
       rabbit.createConnectionChannel.use { implicit channel =>
         for {
+          _ <- logger.info("Runner started")
           _ <- rabbit.declareQueue(queues.todo.config)
           _ <- rabbit.declareExchange(queues.todo.exchangeConfig)
           _ <- rabbit.bindQueue(
@@ -37,5 +41,4 @@ object RunnerApp extends IOApp {
         } yield ExitCode.Success
       }
     }
-  }
 }

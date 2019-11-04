@@ -59,6 +59,8 @@ object WatcherApp extends IOApp {
               .evalTap {
                 case (newDataset, permission) =>
                   for {
+                    _ <- logger
+                      .info(s"Processing new dataset ${newDataset.userPath}")
                     taskId <- Task.insert(xa)(
                       permission,
                       newDataset.userPath.getOrElse("/")

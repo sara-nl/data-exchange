@@ -1,9 +1,13 @@
 <script lang="ts">
+    declare var $mode: string;
+
     import { goto, stores } from "@sapper/app";
+    import { onMount } from "svelte";
 
     import LoadFiles from "../../api/loader";
     import Tasks from "../../api/tasks";
     import Spinner from "../../components/Spinner.svelte";
+    import { token, mode } from "../../stores";
 
     let state_color = {
         "request_rejected": "danger",
@@ -17,13 +21,19 @@
     let to_approve_requests: [any] | null = null
     let own_requests: [any] | null = null
 
+    // This fixes $mode not working.
+    // I haven't got the faintest of clues.
+    mode;
+
     let data = {
         data_file: "",
         updated_request: {},
         approved: false
     }
 
-    getUserTasks()
+    onMount(async () => {
+        await getUserTasks();
+    });
 
     async function getUserTasks(){
         try {
@@ -62,74 +72,77 @@
 {#if to_approve_requests === null || own_requests === null}
 <Spinner />
 {:else}
-<div class="container">
-    <div class="row">
-        <div class="col-xl">
-            <h2><small class="text-muted">Your requests</small></h2>
-            <table class="table" class:table-hover={own_requests.length > 0}>
-                <thead>
-                    <tr>
-                        <th scope="col">State</th>
-                        <th scope="col">Dataset owner</th>
-                        <th scope="col">Dataset description</th>
-                        <th scope="col">Algorithm</th>
-                        <th scope="col">Dataset</th>
-                    </tr>
-                </thead>
+<div class="container-fluid">
+    {#if $mode === "data"}
+        <div class="row">
+            <div class="col-xl">
+                <h2><small class="text-muted">Requests to review</small></h2>
+                <table class="table" class:table-hover={to_approve_requests.length > 0}>
+                    <thead>
+                        <tr>
+                            <th scope="col">State</th>
+                            <th scope="col">Requester</th>
+                            <th scope="col">Dataset description</th>
+                            <th scope="col">Algorithm</th>
+                            <th scope="col">Dataset</th>
+                        </tr>
+                    </thead>
 
-                <tbody>
-                    {#each own_requests as file}
-                    <tr
-                        class={`table-${state_color[file.state]}`}
-                        on:click={() => goto(`/tasks/${file.id}`)}
-                    >
-                        <td>{file.state}</td>
-                        <td>{file.approver_email}</td>
-                        <td>{file.dataset_desc}</td>
-                        <td>{file.algorithm}</td>
-                        <td>{file.dataset}</td>
-                    </tr>
-                    {:else}
-                    <tr>
-                        <td colspan="6" class="text-center">You have no active requests</td>
-                    </tr>
-                    {/each}
-                </tbody>
-                <br>
-            </table>
+                    <tbody>
+                        {#each to_approve_requests as file}
+                        <tr on:click={() => goto(`/tasks/${file.id}`)}>
+                            <td>{file.state}</td>
+                            <td>{file.author_email}</td>
+                            <td>{file.dataset_desc}</td>
+                            <td>{file.algorithm}</td>
+                            <td>{file.dataset}</td>
+                        </tr>
+                        {:else}
+                        <tr>
+                            <td colspan="6" class="text-center">You have no requests to review</td>
+                        </tr>
+                        {/each}
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
-    <div class="row">
-        <div class="col">
-            <h2><small class="text-muted">Requests to review</small></h2>
-            <table class="table" class:table-hover={to_approve_requests.length > 0}>
-                <thead>
-                    <tr>
-                        <th scope="col">State</th>
-                        <th scope="col">Requester</th>
-                        <th scope="col">Dataset description</th>
-                        <th scope="col">Algorithm</th>
-                        <th scope="col">Dataset</th>
-                    </tr>
-                </thead>
+    {:else}
+        <div class="row">
+            <div class="col-xl">
+                <h2><small class="text-muted">Your requests</small></h2>
+                <table class="table" class:table-hover={own_requests.length > 0}>
+                    <thead>
+                        <tr>
+                            <th scope="col">State</th>
+                            <th scope="col">Dataset owner</th>
+                            <th scope="col">Dataset description</th>
+                            <th scope="col">Algorithm</th>
+                            <th scope="col">Dataset</th>
+                        </tr>
+                    </thead>
 
-                <tbody>
-                    {#each to_approve_requests as file}
-                    <tr on:click={() => goto(`/tasks/${file.id}`)}>
-                        <td>{file.state}</td>
-                        <td>{file.author_email}</td>
-                        <td>{file.dataset_desc}</td>
-                        <td>{file.algorithm}</td>
-                        <td>{file.dataset}</td>
-                    </tr>
-                    {:else}
-                    <tr>
-                        <td colspan="6" class="text-center">You have no requests to review</td>
-                    </tr>
-                    {/each}
-                </tbody>
-            </table>
+                    <tbody>
+                        {#each own_requests as file}
+                        <tr
+                            class={`table-${state_color[file.state]}`}
+                            on:click={() => goto(`/tasks/${file.id}`)}
+                        >
+                            <td>{file.state}</td>
+                            <td>{file.approver_email}</td>
+                            <td>{file.dataset_desc}</td>
+                            <td>{file.algorithm}</td>
+                            <td>{file.dataset}</td>
+                        </tr>
+                        {:else}
+                        <tr>
+                            <td colspan="6" class="text-center">You have no active requests</td>
+                        </tr>
+                        {/each}
+                    </tbody>
+                    <br>
+                </table>
+            </div>
         </div>
-    </div>
+    {/if}
 </div>
 {/if}

@@ -53,7 +53,7 @@
     <small class="text-muted">with one of your algorithms</small>
 </h2>
 
-<div class="container">
+<div class="container-fluid">
     <br>
 
     <div class="row">

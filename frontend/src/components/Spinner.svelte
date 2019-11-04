@@ -68,13 +68,20 @@
 
 <script lang="ts">
     export let small: boolean = false;
+    export let loading: boolean = true;
+    export let text: string = 'Loading...';
+    let completed : string = 'Completed:';
 </script>
 
 <div class="spinner">
     <div class="loader" class:small={small}>
-        <svg class="circular" viewBox="25 25 50 50">
-            <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
-        </svg>
-        <span>Loading...</span>
+        {#if loading}
+            <svg class="circular" viewBox="25 25 50 50">
+                <circle class="path" cx="50" cy="50" r="20" fill="none" stroke-width="2" stroke-miterlimit="10"/>
+            </svg>
+            <span class="ml-3">{text}</span>
+        {:else}
+            <span class="text-success mr-2 mt-2 mb-2">{completed}</span><span>  {text}</span>
+        {/if}
     </div>
 </div>

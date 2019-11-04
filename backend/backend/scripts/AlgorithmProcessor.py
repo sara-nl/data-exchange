@@ -13,6 +13,7 @@ class AlgorithmProcessor:
         self.is_folder = self.is_folder()
         self.threads = []
         self.files = []
+        self.all_files = {}
 
     def is_folder(self):
         """
@@ -25,8 +26,20 @@ class AlgorithmProcessor:
             return True
         return False
 
-    def update_database(self):
-        return
+    def calculate_algorithm_total(self):
+        characters, newline, words, dependencies = 0, 0, 0, []
+        for algorithm in self.files:
+            characters += algorithm["algorithm_characters"]
+            newline += algorithm["algorithm_newline"]
+            words += algorithm["algorithm_words"]
+            dependencies = dependencies + algorithm["algorithm_dependencies"]
+        self.all_files = {
+            "algorithm_dependencies": dependencies,
+            "algorithm_newline": newline,
+            "algorithm_words": words,
+            "algorithm_characters": characters,
+        }
+        return self.all_files
 
     def start_processing(self):
         if self.is_folder:
@@ -57,15 +70,19 @@ class AlgorithmProcessor:
         with open(os.path.join(os.getcwd(), tempname), "r") as algorithm_file:
             lines = algorithm_file.readlines()
             algorithm_content = " ".join(line for line in lines)
-            algorithm_info = self.calculate_algorithm_info(lines)
+            characters, newline, words, imports = self.calculate_algorithm_info(lines)
 
         self.files.append(
             {
                 "algorithm_name": original_name,
                 "algorithm_content": algorithm_content,
-                "algorithm_info": algorithm_info,
+                "algorithm_dependencies": imports,
+                "algorithm_newline": newline,
+                "algorithm_words": words,
+                "algorithm_characters": characters,
             }
         )
+
         os.remove(tempname)
 
     @staticmethod
@@ -95,16 +112,17 @@ class AlgorithmProcessor:
             words += len(
                 [word for word in stripped_newline.split(" ") if len(word) > 1]
             )
-        return (
-            f"{characters} chars, {newline} line breaks, {words} words. "
-            + f'Packages: {", ".join(imports)}'
-        )
+
+        return characters, newline, words, imports
+
+    def get_etag(self):
+        if self.is_folder:
+            return self.rd_client.get_fileid_etag(self.algorithm_name + "/")["etag"]
+        else:
+            return self.rd_client.get_fileid_etag(self.algorithm_name)["etag"]
 
 
 def main():
-    # a = AlgorithmProcessor("INT_30", "sander@wearebit.com")
-    # a.start_processing()
-
     return
 
 

@@ -29,3 +29,4 @@ function createWritableStore(key: string, startValue: any) {
 export const fromUrl = writable(null);
 export const token = createWritableStore("token", null);
 export const email = createWritableStore("email", null);
+export const mode = createWritableStore("mode", null);

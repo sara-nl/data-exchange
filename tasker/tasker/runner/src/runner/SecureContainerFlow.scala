@@ -12,8 +12,9 @@ import runner.container.{
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.syntax._
-import runner.Messages.{AlgorithmOutput, Done}
+import tasker.queue.Messages.{AlgorithmOutput, Done}
 import runner.utils.FilesIO
+import tasker.queue.{Codecs, Messages}
 import tasker.webdav.{Webdav, WebdavPath}
 
 import scala.language.postfixOps

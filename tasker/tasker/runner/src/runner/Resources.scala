@@ -10,16 +10,9 @@ import runner.container.Ids.ImageId
 import runner.container.{ContainerCommand, ContainerEnv, ContainerState, Ids}
 import org.apache.commons.io.FileUtils
 import tasker.config.TaskerConfig
+import tasker.queue.Messages
 
 object Resources {
-
-  /**
-    * An execution context that is safe to use for blocking operations wrapped into a Resource
-    */
-  val blockerResource: Resource[IO, Blocker] =
-    Resource
-      .make(IO(Executors.newCachedThreadPool()))(es => IO(es.shutdown()))
-      .map(Blocker.liftExecutorService)
 
   val tempDirResource: Resource[IO, Path] = Resource.make(
     acquire = IO(Files.createTempDirectory("datex_"))

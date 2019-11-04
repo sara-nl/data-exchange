@@ -4,7 +4,8 @@ import cats.effect.{ExitCode, IO, IOApp, Resource}
 import tasker.config.TaskerConfig.queues
 import dev.profunktor.fs2rabbit.interpreter.Fs2Rabbit
 import dev.profunktor.fs2rabbit.model.{AMQPChannel, AmqpMessage}
-import Codecs._
+import tasker.queue.Codecs._
+import tasker.concurrency.ConcurrencyResources
 import tasker.config.TaskerConfig
 
 object RunnerApp extends IOApp {
@@ -40,7 +41,7 @@ object RunnerApp extends IOApp {
   }
 
   override def run(args: List[String]): IO[ExitCode] = {
-    Resources.blockerResource.use { blocker =>
+    ConcurrencyResources.blocker.use { blocker =>
       for {
         client <- Fs2Rabbit[IO](TaskerConfig.rabbitConfig, blocker)
         _ <- program(client)

@@ -1,14 +1,13 @@
 package runner
 
 import java.nio.file.{Files, Path, Paths}
-import java.util.concurrent.Executors
 
-import cats.effect.{Blocker, ConcurrentEffect, ContextShift, IO, Resource}
-import clients.DockerContainer
+import cats.effect.{ConcurrentEffect, ContextShift, IO, Resource}
+import org.apache.commons.io.FileUtils
+import runner.clients.DockerContainer
 import runner.container.ContainerEnv.Artifact
 import runner.container.Ids.ImageId
 import runner.container.{ContainerCommand, ContainerEnv, ContainerState, Ids}
-import org.apache.commons.io.FileUtils
 import tasker.config.TaskerConfig
 import tasker.queue.Messages
 

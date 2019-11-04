@@ -45,5 +45,8 @@ case class WebdavPath(serverUri: URI,
   def change(userPath: String): WebdavPath = copy(userPath = Some(userPath))
 
   def change(resource: DavResource): WebdavPath =
-    copy(userPath = Some(resource.getPath.replace(serverSuffix, "")))
+    copy(
+      userPath =
+        Some(resource.getPath.stripSuffix("/").replace(serverSuffix, ""))
+    )
 }

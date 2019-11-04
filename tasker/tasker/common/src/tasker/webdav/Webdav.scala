@@ -8,15 +8,24 @@ import com.github.sardine.{DavResource, SardineFactory}
 import fs2.Pipe
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import tasker.config.TaskerConfig
+import tasker.queue.Messages.ETag
 
 import scala.jdk.CollectionConverters._
 
 object Webdav {
 
-  val sardine = SardineFactory.begin(
+  private val sardine = SardineFactory.begin(
     TaskerConfig.webdav.username,
     TaskerConfig.webdav.password
   )
+
+  object implicits {
+    implicit class DavResourceWithConversions(val r: DavResource)
+        extends AnyVal {
+      def getSafeETag: ETag =
+        ETag(r.getEtag.stripSuffix("\"").stripPrefix("\""))
+    }
+  }
 
   private val downloadFilesPipe: Pipe[IO, (WebdavPath, Path), Unit] = {
     msgStream =>

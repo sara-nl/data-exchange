@@ -9,10 +9,11 @@ import runner.container.{
   ContainerState,
   LogMessages
 }
+import cats.implicits._
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.syntax._
-import tasker.queue.Messages.{AlgorithmOutput, Done}
+import tasker.queue.Messages.{AlgorithmOutput, Done, ETag, StartContainer}
 import runner.utils.FilesIO
 import tasker.queue.{Codecs, Messages}
 import tasker.webdav.{Webdav, WebdavPath}
@@ -23,12 +24,13 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                           publisher: AmqpMessage[String] => IO[Unit]) {
   import io.circe.generic.auto._
 
+  private val logger = Slf4jLogger.getLogger[IO]
+
   private def runAlgorithm(
     containerEnv: ContainerEnv,
     runAlgorithmCmd: ContainerCommand
   ): IO[ContainerState] =
     for {
-      logger <- Slf4jLogger.create[IO]
       requirementsFileOption <- containerEnv.codeArtifact.requirementsFile
       result <- Resources
         .bakedImageWithDeps(containerEnv, requirementsFileOption)
@@ -47,87 +49,103 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
         }
     } yield result
 
-  private def processMessage(msg: Messages.StartContainer): IO[Done] =
+  private def verifyETag(path: WebdavPath, expectedETag: ETag): IO[Boolean] = {
+    import Webdav.implicits._
     for {
-      logger <- Slf4jLogger.create[IO]
-      done <- {
-        Resources.containerEnv(msg).use { containerEnv =>
-          val toBeDownloaded = Map(
-            WebdavPath(msg.codePath) -> containerEnv.codeArtifact.hostHome,
-            WebdavPath(msg.dataPath) -> containerEnv.dataArtifact.hostHome
-          )
+      resources <- Webdav.list(path)
+      _ <- IO(
+        resources.foreach(r => println(s"${r.getPath} ---> ${r.getEtag}"))
+      )
+      pathOption <- IO.pure(
+        resources.find(resource => WebdavPath(resource) == path)
+      )
+    } yield pathOption.exists(_.getSafeETag == expectedETag)
+  }
 
-          for {
-            _ <- logger.info(s"Container environment: $containerEnv")
-            _ <- Webdav.downloadToHost(toBeDownloaded)
-            runAlgorithmCmd <- ContainerCommand.runWithStrace(containerEnv)
-            endState <- runAlgorithm(containerEnv, runAlgorithmCmd)
-            stdoutContent <- FilesIO
-              .readFileContent(containerEnv.outputArtifact.hostStdoutFilePath)
-              .attempt
-              .map(_.toOption.getOrElse(""))
-            stderrContent <- FilesIO
-              .readFileContent(containerEnv.outputArtifact.hostStderrFilePath)
-              .attempt
-              .map(_.toOption.getOrElse(""))
-            straceContent <- FilesIO
-              .readFileContent(containerEnv.outputArtifact.hostStraceFilePath)
-              .attempt
-              .map(_.toOption.getOrElse(""))
-            _ <- logger.info(
-              LogMessages.largeOutputWithNewlines("STDOUT", stdoutContent)
+  private def processMessage(msg: Messages.StartContainer): IO[Done] = {
+    Resources.containerEnv(msg).use { containerEnv =>
+      val toBeDownloaded = Map(
+        WebdavPath(msg.codePath) -> containerEnv.codeArtifact.hostHome,
+        WebdavPath(msg.dataPath) -> containerEnv.dataArtifact.hostHome
+      )
+
+      for {
+        _ <- logger.debug(s"Container environment: $containerEnv")
+        _ <- Webdav.downloadToHost(toBeDownloaded)
+        runAlgorithmCmd <- ContainerCommand.runWithStrace(containerEnv)
+        endState <- runAlgorithm(containerEnv, runAlgorithmCmd)
+        stdoutContent <- FilesIO
+          .readFileContent(containerEnv.outputArtifact.hostStdoutFilePath)
+          .attempt
+          .map(_.toOption.getOrElse(""))
+        stderrContent <- FilesIO
+          .readFileContent(containerEnv.outputArtifact.hostStderrFilePath)
+          .attempt
+          .map(_.toOption.getOrElse(""))
+        straceContent <- FilesIO
+          .readFileContent(containerEnv.outputArtifact.hostStraceFilePath)
+          .attempt
+          .map(_.toOption.getOrElse(""))
+        _ <- logger
+          .info(LogMessages.largeOutputWithNewlines("STDOUT", stdoutContent))
+        _ <- logger
+          .info(LogMessages.largeOutputWithNewlines("STDERR", stderrContent))
+        _ <- logger
+          .trace(LogMessages.largeOutputWithNewlines("STRACE", straceContent))
+        algorithmOutput = AlgorithmOutput(
+          stdoutContent,
+          stderrContent,
+          straceContent
+        )
+      } yield
+        endState match {
+          case ContainerState.Exited(0, _, output) =>
+            val taskUserOutput =
+              s"Container exited successfully\n$output\n$stdoutContent\n$stderrContent"
+            Messages.Done
+              .success(msg.taskId, taskUserOutput, algorithmOutput)
+          case ContainerState.Exited(x, _, output) =>
+            val taskUserOutput =
+              s"Container exited with an error. Status code: $x\n$output\n$stdoutContent\n$stderrContent"
+            Messages.Done
+              .error(msg.taskId, taskUserOutput, algorithmOutput)
+          case ContainerState.Unknown =>
+            Messages.Done.error(
+              msg.taskId,
+              "Container ended up in an unknown state. Please contact the development team.",
+              algorithmOutput
             )
-            _ <- logger.info(
-              LogMessages.largeOutputWithNewlines("STDERR", stderrContent)
-            )
-            _ <- logger.trace(
-              LogMessages.largeOutputWithNewlines("STRACE", straceContent)
-            )
-            algorithmOutput = AlgorithmOutput(
-              stdoutContent,
-              stderrContent,
-              straceContent
-            )
-          } yield
-            endState match {
-              case ContainerState.Exited(0, _, output) =>
-                val taskUserOutput =
-                  s"Container exited successfully\n$output\n$stdoutContent\n$stderrContent"
-                Messages.Done
-                  .success(msg.taskId, taskUserOutput, algorithmOutput)
-              case ContainerState.Exited(x, _, output) =>
-                val taskUserOutput =
-                  s"Container exited with an error. Status code: $x\n$output\n$stdoutContent\n$stderrContent"
-                Messages.Done
-                  .error(msg.taskId, taskUserOutput, algorithmOutput)
-              case ContainerState.Unknown =>
-                Messages.Done.error(
-                  msg.taskId,
-                  "Container ended up in an unknown state. Please contact the development team.",
-                  algorithmOutput
-                )
-            }
         }
-      }
-    } yield done
+    }
+  }
 
   val flow: fs2.Stream[IO, Unit] =
     consumer
       .through(Codecs.messageDecodePipe)
+      .evalTap(msg => logger.info(s"Processing incoming message $msg"))
       .evalMap {
-        case Right(startContainerCmd) =>
+        case Right(StartContainer(taskId, _, _, None)) =>
+          logger.error(
+            s"Task $taskId is rejected because the incoming message doesn't contain the algorithm hash."
+          )
+        case Right(msg @ StartContainer(taskId, _, codePath, Some(eTag))) =>
           for {
-            doneMsg <- processMessage(startContainerCmd)
-            logger <- Slf4jLogger.create[IO]
-            _ <- logger.info(s"The DONE message is $doneMsg")
+            eTagValid <- verifyETag(WebdavPath(codePath), eTag)
+            doneMsg <- if (eTagValid)
+              processMessage(msg)
+            else
+              Done
+                .rejected(
+                  taskId,
+                  "The algorithm mush have changed since approval. ETag doesn't match."
+                )
+                .pure[IO]
+            _ <- logger.info(s"The state of Done message is ${doneMsg.state}")
             _ <- publisher(
               AmqpMessage(doneMsg.asJson.spaces2, AmqpProperties())
             )
           } yield ()
         case Left(error) =>
-          for {
-            logger <- Slf4jLogger.create[IO]
-            _ <- logger.error(error)("Could not parse incoming message")
-          } yield ()
+          logger.error(error)("Could not parse incoming message")
       }
 }

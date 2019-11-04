@@ -1,5 +1,7 @@
 package tasker.queue
 
+import cats.implicits._
+
 /**
   * Messages used in the DataExchange messaging protocol
   */
@@ -31,11 +33,14 @@ object Messages {
     def success(taskId: String,
                 output: String,
                 containerOutput: AlgorithmOutput) =
-      Done(taskId, "success", output, containerOutput)
+      Done(taskId, "success", output, containerOutput.some)
     def error(taskId: String,
               output: String,
               containerOutput: AlgorithmOutput) =
-      Done(taskId, "error", output, containerOutput)
+      Done(taskId, "error", output, containerOutput.some)
+
+    def rejected(taskId: String, reason: String) =
+      Done(taskId, "rejected", s"Task has been rejected: '$reason'", None)
   }
 
   case class AlgorithmOutput( /**
@@ -67,6 +72,6 @@ object Messages {
                   /**
                     * An object, which contains different types of container output
                     */
-                  containerOutput: AlgorithmOutput)
+                  containerOutput: Option[AlgorithmOutput])
 
 }

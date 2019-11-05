@@ -7,6 +7,11 @@ class Permission(models.Model):
     NO_PERMISSION = "no permission"
     ONE_TIME_PERMISSION = "one time permission"
 
+    PERMISSIONS = ((USER_PERMISSION, "Any algorithm on a Dataset"),
+                   (STREAM_PERMISSION, "Run for all data changes"),
+                   (NO_PERMISSION, "no permission"),
+                   (ONE_TIME_PERMISSION, "Run once"),)
+
     ACTIVE = "active"
     REJECTED = "rejected"
     ABORTED = "aborted"
@@ -21,12 +26,7 @@ class Permission(models.Model):
 
     permission_type = models.CharField(
         max_length=255,
-        choices=[
-            (ONE_TIME_PERMISSION, "one time permission"),
-            (USER_PERMISSION, "user permission"),
-            (STREAM_PERMISSION, "stream permission"),
-            (NO_PERMISSION, "no permission"),
-        ],
+        choices=PERMISSIONS,
         default=NO_PERMISSION,
     )
     state = models.CharField(

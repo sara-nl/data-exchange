@@ -3,6 +3,7 @@
     import { goto } from "@sapper/app";
 
     import LoadFiles from "../../api/loader";
+    import Permissions from "../../api/permissions"
     import Tasks, { TasksStartRequest } from "../../api/tasks";
     import Spinner from "../../components/Spinner.svelte";
     import ErrorMessage from "../../components/ErrorMessage.svelte";
@@ -12,20 +13,28 @@
         "output_rejected": "warning",
         "output_released": "success",
         "running": "info"
-    }
+    };
 
     let algorithm_files = null;
     let data = new TasksStartRequest();
+    let permissions: any = null;
     let requesting = false;
     let showError: any = null;
 
     onMount(async () => {
+        await getPermissions();
         await getUserFiles();
     });
 
     async function getUserFiles(){
         let { data } = await LoadFiles.start();
         algorithm_files = data.output.own_algorithms;
+    }
+
+    async function getPermissions(){
+        let { data } = await Permissions.list_permissions();
+        permissions = data.list_permissions;
+        console.log(permissions)
     }
 
     async function createRequest(event: any) {
@@ -56,19 +65,15 @@
             <div class="row">
                 <div class="col pl-4">Type of permission</div>
                 <div class="col-6">
-                    {#if algorithm_files === null}
+                    {#if permissions === null}
                         <Spinner small />
-                    {:else if algorithm_files.length === 0}
-                        No algorithms available.
                     {:else}
-                        <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
-                                id="algorithm-file"
-                                bind:value={data.algorithm}>
+                        <select class="form-control bg-light text-dark custom-select rounded mr-sm-2">
 
-                            <option disabled value="">Select algorithm</option>
+                            <option disabled value="">Non chosen</option>
 
-                            {#each algorithm_files as file}
-                                <option value={file.name}>{file.name}</option>
+                            {#each permissions as permission}
+                                <option value={permission}>{permission}</option>
                             {/each}
                         </select>
                     {/if}

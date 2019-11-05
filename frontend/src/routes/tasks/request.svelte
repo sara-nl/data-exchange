@@ -48,6 +48,56 @@
 
 <ErrorMessage error={showError} />
 
+<div class="row">
+    <div class="col-6">
+        <!-- Request permission -->
+        <div class="row bg-primary text-white mr-4 rounded">
+            <div class="row px-4 py-4">Request Permission for a dataset</div>
+            <div class="row">
+                <div class="col pl-4">Type of permission</div>
+                <div class="col-6">
+                    {#if algorithm_files === null}
+                        <Spinner small />
+                    {:else if algorithm_files.length === 0}
+                        No algorithms available.
+                    {:else}
+                        <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
+                                id="algorithm-file"
+                                bind:value={data.algorithm}>
+
+                            <option disabled value="">Select algorithm</option>
+
+                            {#each algorithm_files as file}
+                                <option value={file.name}>{file.name}</option>
+                            {/each}
+                        </select>
+                    {/if}
+                </div>
+                <div class="col pr-4">Explain permission</div>
+
+            </div>
+        </div>
+
+        <!-- Running Requests -->
+        <div class="row bg-light mr-4 rounded">
+            <div class="row px-4 py-4">Running Requests</div>
+        </div>
+    </div>
+
+    <!-- Continuous permission runner -->
+    <div class="col-6 bg-light rounded">
+        <div class="row px-4 py-4">Run a algorithm with continuous permission</div>
+    </div>
+
+
+</div>
+
+
+
+
+
+<h4>OLD BELOW </h4>
+
 <h2 class="display-5">
     Request use of a dataset
     <small class="text-muted">with one of your algorithms</small>

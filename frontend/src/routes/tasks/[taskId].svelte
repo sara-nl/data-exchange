@@ -164,7 +164,7 @@
   {:else}
     <div class="row">
       <div class="col-sm-4 h-50">
-        <div class="row mb-3 font-weight-bold">Email</div>
+        <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
         <div class="row mt-1 mb-5">{task.author_email}</div>
 
         <div class="row mb-3 font-weight-bold">Permission Type</div>
@@ -220,17 +220,10 @@
 
         <div class="row mb-3 font-weight-bold">Algorithm Length</div>
         <div class="row mt-1 mb-5">
-          Newlines: {task.algorithm_info.algorithm_newline},
-          Words: {task.algorithm_info.algorithm_words},
-          Characters: {task.algorithm_info.algorithm_characters}
+          Newlines: {task.algorithm_info.algorithm_newline | "N/A"},
+          Words: {task.algorithm_info.algorithm_words | "N/A"},
+          Characters: {task.algorithm_info.algorithm_characters | "N/A"}
         </div>
-
-        <div class="row mb-3 font-weight-bold">Runtime</div>
-        {#if task.state === 'error' || task.state === 'success'}
-          <div class="row mt-1 mb-5">WIP</div>
-        {:else}
-          <div class="row mt-1 mb-5 text-warning">Available at step 3</div>
-        {/if}
       </div>
 
       <div class="col-sm-4 pl-0 pr-0" style="height:400px;">

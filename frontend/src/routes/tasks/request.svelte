@@ -22,6 +22,14 @@
     let requesting = false;
     let showError: any = null;
 
+    let info_user_permission: string = "You request user based permission. If the data owner allows, " +
+                                       "you can always run all your algorithms on the selected dataset.";
+    let info_stream_permission: string = "You request continuous permission. If the data owner allows, " +
+                                         "every change in the selected data (or data folder) will automatically" +
+                                         " start a new run using this algorithm.";
+    let info_run_once: string = "You request one time permission. The selected algorithm will be ran on the " +
+                                "selected datset once.";
+
     onMount(async () => {
         await getPermissions();
         await getUserFiles();
@@ -72,7 +80,7 @@
                         <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
                                 id="permissions"
                                 bind:value={selected_permission}>
-                            <option disabled value="">Non chosen</option>
+                            <option selected="selected" disabled value="">Non chosen</option>
 
                             {#each permissions as permission}
                                 <option value={permission[0]}>{permission[1]}</option>
@@ -80,7 +88,15 @@
                         </select>
                     {/if}
                 </div>
-                <div class="col-4"> Explain permission</div>
+                {#if selected_permission === "one time permission"}
+                    <div class="col-4">{info_run_once}</div>
+                {:else if selected_permission === "stream permission"}
+                    <div class="col-4">{info_stream_permission}</div>
+                {:else if selected_permission === "user permission"}
+                    <div class="col-4">{info_user_permission}</div>
+                {:else}
+                    <div class="col-4"></div>
+                {/if}
             </div>
 
             <div class="row my-3 ml-2 mr-3 w-100 bg-dark">

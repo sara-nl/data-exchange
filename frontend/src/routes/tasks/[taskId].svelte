@@ -111,6 +111,7 @@
     try {
       let { data: response } = await Tasks.release(taskId, data);
       task.state = response.state;
+      load_algorithm()
     } catch (error) {
       console.log(error.toString());
     }
@@ -141,7 +142,8 @@
       <div class="col-sm-4 text-center bg-primary text-white">Step 2. Running algorithm</div>
       <div class="col-sm-4 text-center">Step 3. Release output</div>
     {/if}
-    {#if task.state === 'success' || (task.state === 'error' && task.review_output) }
+    {#if task.state === 'success' || (task.state === 'error' && task.review_output) || task.state === 'output_released'
+    || task.state === 'release_rejected'}
       <div class="col-sm-4 text-center text-secondary">Step 1. Accept algorithm</div>
       <div class="col-sm-4 text-center text-secondary">Step 2. Running algorithm</div>
       <div class="col-sm-4 text-center bg-primary text-white">Step 3. Release output</div>
@@ -166,6 +168,9 @@
       <div class="col-sm-4 h-50">
         <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
         <div class="row mt-1 mb-5">{task.author_email}</div>
+
+        <div class="row mb-3 font-weight-bold">Current state</div>
+        <div class="row mt-1 mb-5 text-{state_color[task.state]}">{task.state}</div>
 
         <div class="row mb-3 font-weight-bold">Permission Type</div>
         {#if task.state === 'error' || task.state === 'success'}
@@ -227,7 +232,8 @@
       </div>
 
       <div class="col-sm-4 pl-0 pr-0" style="height:400px;">
-        {#if task.state === 'error' || task.state === 'success'}
+        {#if task.state === 'error' || task.state === 'success' || task.state === 'output_released'
+        || task.state === 'release_rejected'}
           <div class="row mb-3 font-weight-bold">Output</div>
           <div class="col-12 border pt-2 h-100 overflow-auto">
             <pre>{task.output || 'No output (yet)…'}</pre>

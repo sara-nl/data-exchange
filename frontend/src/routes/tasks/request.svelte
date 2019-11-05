@@ -18,6 +18,7 @@
     let algorithm_files = null;
     let data = new TasksStartRequest();
     let permissions: any = null;
+    let selected_permission: any = null;
     let requesting = false;
     let showError: any = null;
 
@@ -34,7 +35,6 @@
     async function getPermissions(){
         let { data } = await Permissions.list_permissions();
         permissions = data.list_permissions;
-        console.log(permissions)
     }
 
     async function createRequest(event: any) {
@@ -62,25 +62,83 @@
         <!-- Request permission -->
         <div class="row bg-primary text-white mr-4 rounded">
             <div class="row px-4 py-4">Request Permission for a dataset</div>
-            <div class="row">
-                <div class="col pl-4">Type of permission</div>
-                <div class="col-6">
+
+            <div class="row mb-5 ml-2 mr-3 bg-dark w-100">
+                <div class="col-3 pl-2 bg-info">Type of permission</div>
+                <div class="col-5 bg-warning">
                     {#if permissions === null}
                         <Spinner small />
                     {:else}
-                        <select class="form-control bg-light text-dark custom-select rounded mr-sm-2">
-
+                        <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
+                                id="permissions"
+                                bind:value={selected_permission}>
                             <option disabled value="">Non chosen</option>
 
                             {#each permissions as permission}
-                                <option value={permission}>{permission}</option>
+                                <option value={permission[0]}>{permission[1]}</option>
                             {/each}
                         </select>
                     {/if}
                 </div>
-                <div class="col pr-4">Explain permission</div>
-
+                <div class="col-4"> Explain permission</div>
             </div>
+
+            <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                <div class="col-lg-3 pl-2 bg-info">Select algorithm</div>
+                <div class="col-lg-9 bg-warning">
+                    <div class="container">
+                        {#if algorithm_files === null}
+                        <Spinner small />
+                    {:else if algorithm_files.length === 0}
+                        No algorithms available.
+                    {:else}
+                        <select
+                            class="form-control bg-light text-black custom-select rounded mr-sm-2"
+                            id="algorithm-file"
+                            bind:value={data.algorithm}>
+                            <option disabled value="">Select algorithm</option>
+
+                            {#each algorithm_files as file}
+                                <option value={file.name}>{file.name}</option>
+                            {/each}
+                        </select>
+                    {/if}
+                    </div>
+                </div>
+            </div>
+
+            <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                <div class="col-3 pl-2 bg-info">Data owner email</div>
+                <div class="col-9 bg-warning">
+                    <div class="container">
+                        <input class="form-control"
+                            type="text"
+                            id="data_owner">
+                    </div>
+                </div>
+            </div>
+
+            <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                <div class="col-3 pl-2 bg-info">Dataset description</div>
+                <div class="col-9 bg-warning">
+                    <div class="container">
+                        <textarea rows=5
+                                class="form-control"
+                                id="dataset_desc">
+                        </textarea>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                <div class="col-12 bg-white"><input
+                        type="submit"
+                        disabled
+                        class="btn btn-success"
+                        value={requesting ? "Requesting..." : "Request data"} >
+                </div>
+            </div>
+
         </div>
 
         <!-- Running Requests -->

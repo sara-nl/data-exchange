@@ -192,7 +192,7 @@
                 No datasets available.
               {:else}
                 <select
-                  class="form-control bg-primary text-white rounded custom-select mr-sm-2"
+                  class="form-control bg-primary text-white rounded select-white mr-sm-2"
                   bind:value={task.dataset}
                   id="data-file">
                   <option value="">Select dataset</option>

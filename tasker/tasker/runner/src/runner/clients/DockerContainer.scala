@@ -1,12 +1,12 @@
-package clients
+package runner.clients
 
 import cats.effect.{IO, _}
 import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
 import cats.implicits._
-import container.Ids.{ContainerId, ImageId}
-import container.{ContainerCommand, ContainerEnv, ContainerState}
+import runner.container.Ids.{ContainerId, ImageId}
+import runner.container.{ContainerCommand, ContainerEnv, ContainerState}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 import scala.jdk.CollectionConverters._

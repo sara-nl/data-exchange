@@ -16,8 +16,9 @@ Example:
 ```json
   {
     "taskId": "123", 
-    "codePath": "demo1_code",
-    "dataPath": "demo1_data"
+    "codePath": "demo2_code",
+    "dataPath": "demo1_data",
+    "codeHash": { "eTag": "5db6a51baa9e0" }
   }
 ```
 

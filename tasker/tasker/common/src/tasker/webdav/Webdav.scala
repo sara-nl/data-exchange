@@ -1,23 +1,31 @@
-package clients.webdav
+package tasker.webdav
 
 import java.io.InputStream
 import java.nio.file.{Files, Path, Paths}
 
 import cats.effect.{IO, Resource}
-import com.github.sardine.SardineFactory
-import config.TaskerConfig
-import container.ContainerEnv.Artifact
+import com.github.sardine.{DavResource, SardineFactory}
 import fs2.Pipe
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import tasker.config.TaskerConfig
+import tasker.queue.Messages.ETag
 
 import scala.jdk.CollectionConverters._
 
 object Webdav {
 
-  val sardine = SardineFactory.begin(
+  private val sardine = SardineFactory.begin(
     TaskerConfig.webdav.username,
     TaskerConfig.webdav.password
   )
+
+  object implicits {
+    implicit class DavResourceWithConversions(val r: DavResource)
+        extends AnyVal {
+      def getSafeETag: ETag =
+        ETag(r.getEtag.stripSuffix("\"").stripPrefix("\""))
+    }
+  }
 
   private val downloadFilesPipe: Pipe[IO, (WebdavPath, Path), Unit] = {
     msgStream =>
@@ -37,6 +45,16 @@ object Webdav {
             } yield ()
         }
       } yield ()
+  }
+
+  /**
+    * Lists path contents (single level).
+    */
+  def list(path: WebdavPath): IO[List[DavResource]] = IO {
+    sardine
+      .list(path.toURI.toString)
+      .asScala
+      .toList
   }
 
   def findAll(
@@ -67,9 +85,9 @@ object Webdav {
   /**
     * Downloads artifacts into their locations on the host.
     */
-  def downloadToHost(map: Map[WebdavPath, Artifact]): IO[Unit] =
+  def downloadToHost(map: Map[WebdavPath, Path]): IO[Unit] =
     fs2.Stream
-      .emits(map.view.mapValues(_.hostHome).toList)
+      .emits(map.view.toList)
       .through(Webdav.downloadFilesPipe)
       .compile
       .drain

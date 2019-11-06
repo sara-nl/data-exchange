@@ -9,7 +9,9 @@
     $: modeText = $mode === "data" ? "Data owner" : "Algorithm owner";
 
     function toggleMode() {
-        mode.set($mode === "data" ? "algorithm" : "data");
+        let current = $mode;
+        mode.set(current === "data" ? "algorithm" : "data");
+        console.log($mode);
     }
 </script>
 
@@ -36,7 +38,7 @@
                 {:else}
                     <NavItem name="Manage Algorithms" href="/manage_algorithms" />
                 {/if}
-                <NavItem name="Requests" href="/tasks" />
+                <NavItem name="Requests" href="/requests" />
             {/if}
         </ul>
 

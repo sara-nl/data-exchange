@@ -1,6 +1,6 @@
 package watcher
 
-import cats.effect.{ExitCode, IO, IOApp}
+import cats.effect.{ExitCode, IO, IOApp, Timer}
 import cats.implicits._
 import dev.profunktor.fs2rabbit.model.{AmqpMessage, AmqpProperties}
 import doobie.util.transactor.Transactor
@@ -22,6 +22,9 @@ object WatcherApp extends IOApp {
     TaskerConfig.watcher.dbUser,
     TaskerConfig.watcher.dbPassword
   )
+
+  override protected implicit def timer: Timer[IO] =
+    TaskerConfig.concurrency.newTimer("watcher-timer")
 
   private val todoPublisherResource =
     for {
@@ -51,6 +54,7 @@ object WatcherApp extends IOApp {
       todoPublisherResource.use { implicit publisher =>
         fs2.Stream
           .awakeEvery[IO](TaskerConfig.watcher.awakeInterval)
+          .evalTap(_ => logger.debug(s"Fetching eligible permissions from DB"))
           .through(_.flatMap { _ =>
             fs2.Stream
               .evalSeq(Permission.findAllPermissions(xa))

@@ -1,8 +1,9 @@
 package tasker.config
 
 import java.net.URI
+import java.util.concurrent.Executors
 
-import cats.effect.IO
+import cats.effect.{ContextShift, IO, Timer}
 import dev.profunktor.fs2rabbit.config.declaration.{
   DeclarationExchangeConfig,
   DeclarationQueueConfig
@@ -13,8 +14,10 @@ import dev.profunktor.fs2rabbit.model.{
   QueueName,
   RoutingKey
 }
+import io.netty.util.concurrent.DefaultThreadFactory
 import tasker.webdav.WebdavPath
 
+import scala.concurrent.ExecutionContext.fromExecutor
 import scala.concurrent.duration._
 
 object TaskerConfig {
@@ -23,7 +26,7 @@ object TaskerConfig {
   import dev.profunktor.fs2rabbit.config.{Fs2RabbitConfig, Fs2RabbitNodeConfig}
 
   object watcher {
-    val awakeInterval: FiniteDuration = 5.seconds
+    val awakeInterval: FiniteDuration = 30.seconds
     val jdbcUrl = sys.env
       .getOrElse("DB_JDBC_URL", "jdbc:postgresql://localhost:5433/surfsara")
     val dbUser = sys.env.getOrElse("DB_USER", "surfsara")
@@ -31,6 +34,21 @@ object TaskerConfig {
   }
 
   object concurrency {
+
+    def newCachedTPContextShift(label: String) = IO.contextShift(
+      fromExecutor(
+        Executors.newCachedThreadPool(new DefaultThreadFactory(label, true))
+      )
+    )
+
+    def newTimer(label: String): Timer[IO] = IO.timer(
+      fromExecutor(
+        Executors.newFixedThreadPool(
+          3,
+          new DefaultThreadFactory("watcher-timer", true)
+        )
+      )
+    )
     object implicits {
       import scala.concurrent.ExecutionContext.Implicits.global
       implicit val ctxShiftGlobal = IO.contextShift(global)

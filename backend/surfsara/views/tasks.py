@@ -32,14 +32,27 @@ class Tasks(viewsets.ViewSet):
                 {"error": f"Unknown email address '{data_owner_email}'"}, status=400
             )
 
+        # Create permission
+        permission = Permission(
+            permission_type=request.data["permission"],
+            algorithm=request.data["algorithm"],
+            algorithm_provider=request.user.email,
+            dataset_provider=data_owner_email,
+        )
+        permission.save()
+
+        # Create task
         task = Task(
             state=Task.ANALYZING,
             author_email=request.user.email,
             approver_email=data_owner_email,
             algorithm=request.data["algorithm"],
             dataset_desc=request.data["dataset_desc"],
+            permission=permission
         )
         task.save()
+
+        # Analyze algorithm and update the permissions model.
         task_service.analyze(task)
 
         mail_service.send_mail(
@@ -193,16 +206,21 @@ class Tasks(viewsets.ViewSet):
         update = request.data["updated_request"]
         if request.data["approved"]:
             result = "approved"
-            permission_type = Permission.ONE_TIME_PERMISSION
-            algorithm_name = task.algorithm
 
             task.dataset = update["dataset"]
             task.review_output = request.data["review_output"]
+            task.permission.state = Permission.ACTIVE
+            task.permission.save()
+
+            # Start container and run algorithm and dataset together.
             task_service.start(task)
             task.state = Task.RUNNING
             task.save()
 
-            if request.data["approve_user"] or request.data["stream"]:
+            # Send mails.
+            if task.permission.permission_type == Permission.USER_PERMISSION or \
+                    task.permission.permission_type == Permission.STREAM_PERMISSION:
+
                 mail_service.send_mail(
                     mail_files="permission_granted_do",
                     receiver=task.approver_email,
@@ -218,29 +236,12 @@ class Tasks(viewsets.ViewSet):
                     url=f"http://{request.get_host()}/permissions",
                     **update,
                 )
-                if request.data["approve_user"]:
-                    permission_type = Permission.USER_PERMISSION
-                    algorithm_name = "Any algorithm"
-                elif request.data["stream"]:
-                    permission_type = Permission.STREAM_PERMISSION
-                else:
-                    raise AssertionError("Invalid state - this should never be reached")
 
-            new_perm = Permission(
-                algorithm=algorithm_name,
-                algorithm_provider=update["author_email"],
-                algorithm_etag=task.algorithm_etag,
-                dataset=update["dataset"],
-                dataset_provider=update["approver_email"],
-                review_output=request.data["review_output"],
-                permission_type=permission_type,
-            )
-            new_perm.save()
-            task.permission = new_perm
-            task.save()
         else:
             result = "rejected"
             task.state = Task.REQUEST_REJECTED
+            task.permission.state = Permission.REJECTED
+            task.permission.save()
             task.save()
 
         mail_service.send_mail(
@@ -274,6 +275,8 @@ class Tasks(viewsets.ViewSet):
             result = "approved"
         else:
             task.state = Task.RELEASE_REJECTED
+            task.permission.state = Permission.ABORTED
+            task.permission.save()
             result = "rejected"
         task.save()
 

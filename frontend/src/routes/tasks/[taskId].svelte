@@ -169,15 +169,39 @@
         <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
         <div class="row mt-1 mb-5">{task.author_email}</div>
 
-        <div class="row mb-3 font-weight-bold">Current state</div>
+        <div class="row mb-3 font-weight-bold">Task state</div>
         <div class="row mt-1 mb-5 text-{state_color[task.state]}">{task.state}</div>
 
         <div class="row mb-3 font-weight-bold">Permission Type</div>
-        {#if task.state === 'error' || task.state === 'success'}
           <div class="row mt-1 mb-5">{task.permission.permission_type}</div>
-        {:else}
-          <div class="row mt-1 mb-5">{"Not available"}</div>
-        {/if}
+
+        <div class="row mb-3 font-weight-bold">Permission state</div>
+        <div class="row mt-1 mb-5">{task.permission.state}</div>
+
+
+      </div>
+
+      <div class="col-sm-4 h-50">
+        <div class="row mb-3 font-weight-bold">Algorithm Name</div>
+        <div class="row mt-1 mb-5">{task.algorithm}</div>
+
+        <div class="row mb-3 font-weight-bold">Algorithm Dependencies</div>
+        <div class="row mt-1 mb-5">
+          {#if task.algorithm_info.algorithm_dependencies}
+            {#each task.algorithm_info.algorithm_dependencies as dependency}
+              <div class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">{dependency}</div>
+            {/each}
+          {:else}
+            N/A
+          {/if}
+        </div>
+
+        <div class="row mb-3 font-weight-bold">Algorithm Length</div>
+        <div class="row mt-1 mb-5">
+          Newlines: {task.algorithm_info.algorithm_newline | "N/A"},
+          Words: {task.algorithm_info.algorithm_words | "N/A"},
+          Characters: {task.algorithm_info.algorithm_characters | "N/A"}
+        </div>
 
         {#if task.state === 'error' || task.state === 'success'}
           <div class="row mb-3 font-weight-bold">Used dataset</div>
@@ -205,29 +229,6 @@
               {/if}
             {:else}{task.dataset || 'No dataset selected'}
           {/if}
-        </div>
-      </div>
-
-      <div class="col-sm-4 h-50">
-        <div class="row mb-3 font-weight-bold">Algorithm Name</div>
-        <div class="row mt-1 mb-5">{task.algorithm}</div>
-
-        <div class="row mb-3 font-weight-bold">Algorithm Dependencies</div>
-        <div class="row mt-1 mb-5">
-          {#if task.algorithm_info.algorithm_dependencies}
-            {#each task.algorithm_info.algorithm_dependencies as dependency}
-              <div class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">{dependency}</div>
-            {/each}
-          {:else}
-            N/A
-          {/if}
-        </div>
-
-        <div class="row mb-3 font-weight-bold">Algorithm Length</div>
-        <div class="row mt-1 mb-5">
-          Newlines: {task.algorithm_info.algorithm_newline | "N/A"},
-          Words: {task.algorithm_info.algorithm_words | "N/A"},
-          Characters: {task.algorithm_info.algorithm_characters | "N/A"}
         </div>
       </div>
 

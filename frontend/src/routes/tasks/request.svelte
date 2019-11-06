@@ -29,7 +29,8 @@
     };
     let obtainedPermissions: any = null;
     let algorithms: any = null;
-    let permission = "";
+    let selected_algorithm: any = null;
+    let continuous_permission = "";
     let continuous_requesting = false;
 
 
@@ -50,13 +51,15 @@
     });
 
     async function getUserFiles(){
-        let { data } = await LoadFiles.start();
-        algorithm_files = data.output.own_algorithms;
+        LoadFiles.start().then(response => {
+            algorithm_files = response.data.output.own_algorithms;
+        });
     }
 
     async function getPermissions(){
-        let { data } = await Permissions.list_permissions();
-        permissions = data.list_permissions;
+        Permissions.list_permissions().then(response => {
+            permissions = response.data.list_permissions
+        });
     }
 
     async function createRequest(event: any) {
@@ -64,8 +67,9 @@
         event.preventDefault();
 
         try {
-            await Tasks.start(data);
-            goto("/tasks");
+            Tasks.start(data).then( response => {
+                goto("/tasks");
+            });
         } catch (error) {
             requesting = false;
             showError = error.response && error.response.data && error.response.data.error || null;
@@ -73,18 +77,36 @@
     }
 
     async function getUserPermissions() {
-    try {
-      let { data: response } = await Permissions.get_obtained_per_file();
-      obtainedPermissions = response;
-      algorithms = Object.keys(obtainedPermissions);
-      console.log(obtainedPermissions);
-      console.log(continuous_data);
-      console.log(algorithms);
-    } catch (error) {
-      console.log(error.toString());
-    }
+        try {
+          Permissions.get_obtained_per_file().then(permission_response => {
+              obtainedPermissions = permission_response.data;
+              algorithms = Object.keys(obtainedPermissions);
+          });
+        } catch (error) {
+          console.log(error.toString());
+        }
+        return false;
+  }
 
-    return false;
+  async function runWithPermission(event: any) {
+        event.preventDefault();
+        if (obtainedPermissions === null) {
+          return;
+        }
+
+        let totalPermission =
+          obtainedPermissions[selected_algorithm].permissions[continuous_permission];
+        totalPermission.algorithm = selected_algorithm;
+        continuous_requesting = true;
+
+        try {
+          Tasks.start_with_perm(totalPermission.id, totalPermission).then(response => {
+               goto("/tasks");
+          });
+        } catch (error) {
+          console.log(error.toString());
+        }
+        continuous_requesting = false;
   }
 
 
@@ -100,7 +122,7 @@
     <div class="col-6">
         <!-- Request permission -->
         <div class="row bg-primary text-white mr-4 rounded">
-            <form on:submit={createRequest}>
+            <form id="request-permission" on:submit={createRequest}>
                 <div class="row px-4 py-4">Request Permission for a dataset</div>
 
                 <div class="row mb-3 ml-2 mr-3 bg-dark w-100">
@@ -186,7 +208,8 @@
                             disabled={!(data.algorithm && data.data_owner && data.dataset_desc &&
                             data.permission) || requesting}
                             class="btn btn-success"
-                            value={requesting ? "Requesting..." : "Request data"} >
+                            form="request-permission"
+                            value={requesting ? "Requesting..." : "Request"} >
                     </div>
                 </div>
             </form>
@@ -207,31 +230,67 @@
     <div class="col-6 bg-light rounded">
         <div class="row px-4 py-4">Run a algorithm with continuous permission</div>
 
-        <div class="row ml-2 mr-3 w-100 bg-dark">
-                    <div class="col-lg-3 pl-2 bg-info">Select algorithm</div>
-                    <div class="col-lg-9 bg-warning">
-                        <div class="container">
-                            {#if algorithm_files === null}
+        <form id="run-permission" on:submit={runWithPermission}>
+            <div class="row ml-2 mr-3 w-100 bg-dark">
+                <div class="col-lg-3 pl-2 bg-info">Select algorithm</div>
+                <div class="col-lg-9 bg-warning">
+                    <div class="container">
+                        {#if algorithms === null}
                             <Spinner small />
-                        {:else if algorithm_files.length === 0}
+                        {:else if algorithms.length === 0}
                             No algorithms available.
                         {:else}
                             <select
-                                class="form-control bg-light text-black custom-select rounded mr-sm-2"
+                                class="form-control bg-primary text-white rounded select-white mr-sm-2"
                                 id="algorithm-file"
-                                bind:value={data.algorithm}>
-                                <option disabled value="">Select algorithm</option>
+                                bind:value={selected_algorithm}>
+                                <option disabled selected="selected" value="">Select algorithm</option>
 
-                                {#each algorithm_files as file}
-                                    <option value={file.name}>{file.name}</option>
+                                {#each algorithms as algorithm}
+                                    <option value={algorithm}>{algorithm}</option>
                                 {/each}
                             </select>
                         {/if}
-                        </div>
                     </div>
                 </div>
-    </div>
+        </div>
 
+        <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                <div class="col-lg-3 pl-2 bg-info">Select dataset</div>
+                <div class="col-lg-9 bg-warning">
+                    <div class="container">
+                        {#if !selected_algorithm}
+                            Select algorithm first.
+                        {:else if !obtainedPermissions[selected_algorithm].permissions}
+                            No permissions.
+                        {:else}
+                            <select
+                              bind:value={continuous_permission}
+                              class="form-control bg-primary text-white rounded select-white mr-sm-2"
+                              id="data-file"
+                              disabled={!selected_algorithm}>
+                              <option disabled value="">Select permission</option>
+
+                              {#each obtainedPermissions[selected_algorithm].permissions as file, i}
+                                <option value={i}>{file.dataset}/{selected_algorithm}</option>
+                              {/each}
+                            </select>
+                          {/if}
+                    </div>
+                </div>
+        </div>
+        <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+            <div class="col-12 bg-white">
+                <input
+                    type="submit"
+                    disabled={continuous_permission === '' || continuous_requesting}
+                    class="btn btn-success"
+                    form="run-permission"
+                    value={continuous_requesting ? "Requesting..." : "Run"}>
+                </div>
+            </div>
+        </form>
+    </div>
 
 </div>
 

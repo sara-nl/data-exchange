@@ -5,6 +5,7 @@ export class TasksStartRequest {
     public algorithm: string = "";
     public data_owner: string = "";
     public dataset_desc: string = "";
+    public permission: string = "";
 }
 
 export class TasksPermRequest {

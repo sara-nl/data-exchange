@@ -69,92 +69,96 @@
     <div class="col-6">
         <!-- Request permission -->
         <div class="row bg-primary text-white mr-4 rounded">
-            <div class="row px-4 py-4">Request Permission for a dataset</div>
+            <form on:submit={createRequest}>
+                <div class="row px-4 py-4">Request Permission for a dataset</div>
 
-            <div class="row mb-5 ml-2 mr-3 bg-dark w-100">
-                <div class="col-3 pl-2 bg-info">Type of permission</div>
-                <div class="col-5 bg-warning">
-                    {#if permissions === null}
-                        <Spinner small />
+                <div class="row mb-3 ml-2 mr-3 bg-dark w-100">
+                    <div class="col-3 pl-2 bg-info">Type of permission</div>
+                    <div class="col-5 bg-warning">
+                        {#if permissions === null}
+                            <Spinner small />
+                        {:else}
+                            <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
+                                    id="permissions"
+                                    bind:value={data.permission}>
+                                <option selected="selected" disabled value="">Non chosen</option>
+
+                                {#each permissions as permission}
+                                    <option value={permission[0]}>{permission[1]}</option>
+                                {/each}
+                            </select>
+                        {/if}
+                    </div>
+                    {#if selected_permission === "one time permission"}
+                        <div class="col-4">{info_run_once}</div>
+                    {:else if selected_permission === "stream permission"}
+                        <div class="col-4">{info_stream_permission}</div>
+                    {:else if selected_permission === "user permission"}
+                        <div class="col-4">{info_user_permission}</div>
                     {:else}
-                        <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
-                                id="permissions"
-                                bind:value={selected_permission}>
-                            <option selected="selected" disabled value="">Non chosen</option>
-
-                            {#each permissions as permission}
-                                <option value={permission[0]}>{permission[1]}</option>
-                            {/each}
-                        </select>
+                        <div class="col-4"></div>
                     {/if}
                 </div>
-                {#if selected_permission === "one time permission"}
-                    <div class="col-4">{info_run_once}</div>
-                {:else if selected_permission === "stream permission"}
-                    <div class="col-4">{info_stream_permission}</div>
-                {:else if selected_permission === "user permission"}
-                    <div class="col-4">{info_user_permission}</div>
-                {:else}
-                    <div class="col-4"></div>
-                {/if}
-            </div>
 
-            <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                <div class="col-lg-3 pl-2 bg-info">Select algorithm</div>
-                <div class="col-lg-9 bg-warning">
-                    <div class="container">
-                        {#if algorithm_files === null}
-                        <Spinner small />
-                    {:else if algorithm_files.length === 0}
-                        No algorithms available.
-                    {:else}
-                        <select
-                            class="form-control bg-light text-black custom-select rounded mr-sm-2"
-                            id="algorithm-file"
-                            bind:value={data.algorithm}>
-                            <option disabled value="">Select algorithm</option>
+                <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                    <div class="col-lg-3 pl-2 bg-info">Select algorithm</div>
+                    <div class="col-lg-9 bg-warning">
+                        <div class="container">
+                            {#if algorithm_files === null}
+                            <Spinner small />
+                        {:else if algorithm_files.length === 0}
+                            No algorithms available.
+                        {:else}
+                            <select
+                                class="form-control bg-light text-black custom-select rounded mr-sm-2"
+                                id="algorithm-file"
+                                bind:value={data.algorithm}>
+                                <option disabled value="">Select algorithm</option>
 
-                            {#each algorithm_files as file}
-                                <option value={file.name}>{file.name}</option>
-                            {/each}
-                        </select>
-                    {/if}
+                                {#each algorithm_files as file}
+                                    <option value={file.name}>{file.name}</option>
+                                {/each}
+                            </select>
+                        {/if}
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                <div class="col-3 pl-2 bg-info">Data owner email</div>
-                <div class="col-9 bg-warning">
-                    <div class="container">
-                        <input class="form-control"
-                            type="text"
-                            id="data_owner">
+                <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                    <div class="col-3 pl-2 bg-info">Data owner email</div>
+                    <div class="col-9 bg-warning">
+                        <div class="container">
+                            <input class="form-control"
+                                type="text"
+                                id="data_owner"
+                                bind:value={data.data_owner}>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                <div class="col-3 pl-2 bg-info">Dataset description</div>
-                <div class="col-9 bg-warning">
-                    <div class="container">
-                        <textarea rows=5
-                                class="form-control"
-                                id="dataset_desc">
-                        </textarea>
+                <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                    <div class="col-3 pl-2 bg-info">Dataset description</div>
+                    <div class="col-9 bg-warning">
+                        <div class="container">
+                            <textarea rows=5
+                                    class="form-control"
+                                    id="dataset_desc"
+                                    bind:value={data.dataset_desc}>
+                            </textarea>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                <div class="col-12 bg-white"><input
-                        type="submit"
-                        disabled
-                        class="btn btn-success"
-                        value={requesting ? "Requesting..." : "Request data"} >
+                <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
+                    <div class="col-12 bg-white"><input
+                            type="submit"
+                            disabled={!(data.algorithm && data.data_owner && data.dataset_desc &&
+                            data.permission) || requesting}
+                            class="btn btn-success"
+                            value={requesting ? "Requesting..." : "Request data"} >
+                    </div>
                 </div>
-            </div>
-
+            </form>
         </div>
 
         <!-- Running Requests -->

@@ -13,6 +13,7 @@ class Permission(models.Model):
                    (ONE_TIME_PERMISSION, "Run once"),)
 
     ACTIVE = "active"
+    PENDING = "pending"
     REJECTED = "rejected"
     ABORTED = "aborted"
 
@@ -31,7 +32,9 @@ class Permission(models.Model):
     )
     state = models.CharField(
         max_length=255,
-        choices=[(ACTIVE, "active"), (REJECTED, "rejected"), (ABORTED, "aborted")],
+        choices=[(ACTIVE, "active"), (REJECTED, "rejected"), (ABORTED, "aborted"),
+                 (PENDING, "pending")],
+        default=PENDING,
     )
 
     status_description = models.TextField(null=True)

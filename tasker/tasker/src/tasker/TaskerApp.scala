@@ -1,13 +1,10 @@
 package tasker
 
-import java.util.concurrent.Executors
-
-import cats.effect.{ContextShift, ExitCode, IO, IOApp}
+import cats.effect.{ExitCode, IO, IOApp}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import io.netty.util.concurrent.DefaultThreadFactory
-import watcher.WatcherApp
 import runner.RunnerApp
 import tasker.config.TaskerConfig
+import watcher.WatcherApp
 
 object TaskerApp extends IOApp {
 

@@ -8,4 +8,5 @@ RUN \
 RUN mill version
 COPY build.sc .
 COPY tasker ./tasker
+COPY docker ./docker
 RUN mill tasker.assembly

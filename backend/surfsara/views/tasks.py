@@ -210,6 +210,7 @@ class Tasks(viewsets.ViewSet):
             task.dataset = update["dataset"]
             task.review_output = request.data["review_output"]
             task.permission.state = Permission.ACTIVE
+            task.permission.dataset = task.dataset
             task.permission.save()
 
             # Start container and run algorithm and dataset together.

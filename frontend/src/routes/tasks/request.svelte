@@ -43,6 +43,8 @@
                                          " start a new run using this algorithm.";
     let info_run_once: string = "You request one time permission. The selected algorithm will be ran on the " +
                                 "selected datset once.";
+    let info_standard: string = "You have to select a specific permission in order to make a request to a data" +
+                                "owner.";
 
     onMount(async () => {
         await getPermissions();
@@ -93,13 +95,13 @@
 
     async function getRunningTasks() {
         try {
-            Tasks.get_running_requests().then(response => {
-                running_tasks = response.data;
-                console.log(running_tasks);
+            Tasks.get_running_requests().then(task_response => {
+                running_tasks = task_response.data;
             });
         } catch (error) {
             console.log(error.toString());
         }
+        return false
     }
 
 
@@ -140,16 +142,16 @@
             <form id="request-permission" on:submit={createRequest}>
                 <div class="row px-4 py-4">Request Permission for a dataset</div>
 
-                <div class="row mb-3 ml-2 mr-3 bg-dark w-100">
-                    <div class="col-3 pl-2 bg-info">Type of permission</div>
-                    <div class="col-5 bg-warning">
+                <div class="row mb-3 ml-2 mr-3 w-100">
+                    <div class="col-3 pl-2">Type of permission</div>
+                    <div class="col-5">
                         {#if permissions === null}
                             <Spinner small />
                         {:else}
                             <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
                                     id="permissions"
                                     bind:value={data.permission}>
-                                <option selected="selected" disabled value="">Non chosen</option>
+                                <option selected="selected" disabled value="">No permission selected</option>
 
                                 {#each permissions as permission}
                                     <option value={permission[0]}>{permission[1]}</option>
@@ -164,13 +166,13 @@
                     {:else if data.permission === "user permission"}
                         <div class="col-4">{info_user_permission}</div>
                     {:else}
-                        <div class="col-4"></div>
+                        <div class="col-4">{info_standard}</div>
                     {/if}
                 </div>
 
-                <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                    <div class="col-lg-3 pl-2 bg-info">Select algorithm</div>
-                    <div class="col-lg-9 bg-warning">
+                <div class="row my-3 ml-2 mr-3 w-100">
+                    <div class="col-lg-3 pl-2">Select algorithm</div>
+                    <div class="col-lg-9">
                         <div class="container">
                             {#if algorithm_files === null}
                             <Spinner small />
@@ -192,9 +194,9 @@
                     </div>
                 </div>
 
-                <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                    <div class="col-3 pl-2 bg-info">Data owner email</div>
-                    <div class="col-9 bg-warning">
+                <div class="row my-3 ml-2 mr-3 w-100">
+                    <div class="col-3 pl-2">Data owner email</div>
+                    <div class="col-9">
                         <div class="container">
                             <input class="form-control"
                                 type="text"
@@ -204,9 +206,9 @@
                     </div>
                 </div>
 
-                <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                    <div class="col-3 pl-2 bg-info">Dataset description</div>
-                    <div class="col-9 bg-warning">
+                <div class="row my-3 ml-2 mr-3 w-100">
+                    <div class="col-3 pl-2">Dataset description</div>
+                    <div class="col-9">
                         <div class="container">
                             <textarea rows=5
                                     class="form-control"
@@ -217,8 +219,8 @@
                     </div>
                 </div>
 
-                <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                    <div class="col-12 bg-white"><input
+                <div class="row my-3 ml-2 mr-3 w-100">
+                    <div class="col-12"><input
                             type="submit"
                             disabled={!(data.algorithm && data.data_owner && data.dataset_desc &&
                             data.permission) || requesting}
@@ -255,13 +257,13 @@
     </div>
 
     <!-- Continuous permission runner -->
-    <div class="col-6 bg-light rounded">
-        <div class="row px-4 py-4">Run a algorithm with continuous permission</div>
+    <div class="col-6 bg-light h-75 rounded">
+        <div class="row px-4 py-4">Run an algorithm with continuous permission</div>
 
         <form id="run-permission" on:submit={runWithPermission}>
-            <div class="row ml-2 mr-3 w-100 bg-dark">
-                <div class="col-lg-3 pl-2 bg-info">Select algorithm</div>
-                <div class="col-lg-9 bg-warning">
+            <div class="row ml-2 mr-3 w-100">
+                <div class="col-lg-3 pl-2">Select algorithm</div>
+                <div class="col-lg-9">
                     <div class="container">
                         {#if algorithms === null}
                             <Spinner small />
@@ -283,9 +285,9 @@
                 </div>
         </div>
 
-        <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-                <div class="col-lg-3 pl-2 bg-info">Select dataset</div>
-                <div class="col-lg-9 bg-warning">
+        <div class="row my-3 ml-2 mr-3 w-100">
+                <div class="col-lg-3 pl-2">Select dataset</div>
+                <div class="col-lg-9">
                     <div class="container">
                         {#if !selected_algorithm}
                             Select algorithm first.
@@ -307,8 +309,8 @@
                     </div>
                 </div>
         </div>
-        <div class="row my-3 ml-2 mr-3 w-100 bg-dark">
-            <div class="col-12 bg-white">
+        <div class="row my-3 ml-2 mr-3 w-100">
+            <div class="col-12">
                 <input
                     type="submit"
                     disabled={continuous_permission === '' || continuous_requesting}
@@ -320,16 +322,4 @@
         </form>
     </div>
 
-</div>
-
-
-<div class="col border">
-    <h4 class="dispay-1">How a dataset request works:</h4>
-
-    <p><b>1.</b> You select which algorithm you want to run, provide username of dataset owner and describe what dataset you want to use</p>
-    <p><b>2.</b> The dataset owner will review your request and either approve or deny</p>
-    <p><b>3.</b> If approved the algorithm will run and the output shown to the dataset owner</p>
-    <p><b>4.</b> When the dataset owner has approved the output, it will be released to you</p>
-
-    <p>You can follow the status of your request on the datarequest page.</p>
 </div>

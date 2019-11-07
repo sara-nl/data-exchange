@@ -47,7 +47,7 @@ export default class Tasks extends Controller {
         return this.client.get("/tasks/get_data_requests")
     }
 
-    public static async get_running_requests(data: TasksStartRequest): Promise<AxiosResponse> {
+    public static async get_running_requests(): Promise<AxiosResponse> {
         return this.client.get("/tasks/get_running_requests")
     }
 

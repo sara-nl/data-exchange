@@ -64,7 +64,7 @@ class Tasks(viewsets.ViewSet):
             dataset=task.dataset,
         )
 
-        return Response({"owner": True})
+        return Response({"owner": True, "id": task.id})
 
     def list(self, request):
         """
@@ -141,7 +141,7 @@ class Tasks(viewsets.ViewSet):
     def get_pending_requests(self, request):
         """Returns al requests with state 'running' """
         pending_requests = Task.objects.filter(permission__in=Permission.objects.filter(state=Permission.PENDING),
-                                               author_email=request.user.email)
+                                               author_email=request.user.email).order_by("-registered_on")
 
         return Response(TaskSerializer(pending_requests, many=True).data)
 

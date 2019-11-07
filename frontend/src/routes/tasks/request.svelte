@@ -73,7 +73,7 @@
 
         try {
             Tasks.start(data).then( response => {
-                goto("/tasks");
+                getPendingTasks();
             });
         } catch (error) {
             requesting = false;
@@ -118,7 +118,7 @@
 
         try {
           Tasks.start_with_perm(totalPermission.id, totalPermission).then(response => {
-               goto("/tasks");
+               goto("/manage_algorithms")
           });
         } catch (error) {
           console.log(error.toString());

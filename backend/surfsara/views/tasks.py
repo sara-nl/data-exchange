@@ -48,7 +48,7 @@ class Tasks(viewsets.ViewSet):
             approver_email=data_owner_email,
             algorithm=request.data["algorithm"],
             dataset_desc=request.data["dataset_desc"],
-            permission=permission
+            permission=permission,
         )
         task.save()
 
@@ -140,16 +140,15 @@ class Tasks(viewsets.ViewSet):
     )
     def get_pending_requests(self, request):
         """Returns al requests with state 'running' """
-        pending_requests = Task.objects.filter(permission__in=Permission.objects.filter(state=Permission.PENDING),
-                                               author_email=request.user.email).order_by("-registered_on")
+        pending_requests = Task.objects.filter(
+            permission__in=Permission.objects.filter(state=Permission.PENDING),
+            author_email=request.user.email,
+        ).order_by("-registered_on")
 
         return Response(TaskSerializer(pending_requests, many=True).data)
 
     @action(
-        detail=False,
-        methods=["GET"],
-        name="list_logs",
-        permission_classes=[AllowAny]
+        detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
     )
     def list_logs(self, request):
         data_tasks_per_file = defaultdict(list)
@@ -237,8 +236,10 @@ class Tasks(viewsets.ViewSet):
                 task.save()
 
             # Send mails.
-            if task.permission.permission_type == Permission.USER_PERMISSION or \
-                    task.permission.permission_type == Permission.STREAM_PERMISSION:
+            if (
+                task.permission.permission_type == Permission.USER_PERMISSION
+                or task.permission.permission_type == Permission.STREAM_PERMISSION
+            ):
 
                 mail_service.send_mail(
                     mail_files="permission_granted_do",

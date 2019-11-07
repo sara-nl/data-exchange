@@ -5,19 +5,35 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('surfsara', '0034_merge_20191103_1954'),
-    ]
+    dependencies = [("surfsara", "0034_merge_20191103_1954")]
 
     operations = [
         migrations.AlterField(
-            model_name='permission',
-            name='permission_type',
-            field=models.CharField(choices=[('user permission', 'Any algorithm on a Dataset'), ('stream permission', 'Run for all data changes'), ('no permission', 'no permission'), ('one time permission', 'Run once')], default='no permission', max_length=255),
+            model_name="permission",
+            name="permission_type",
+            field=models.CharField(
+                choices=[
+                    ("user permission", "Any algorithm on a Dataset"),
+                    ("stream permission", "Run for all data changes"),
+                    ("no permission", "no permission"),
+                    ("one time permission", "Run once"),
+                ],
+                default="no permission",
+                max_length=255,
+            ),
         ),
         migrations.AlterField(
-            model_name='permission',
-            name='state',
-            field=models.CharField(choices=[('active', 'active'), ('rejected', 'rejected'), ('aborted', 'aborted'), ('pending', 'pending')], default='pending', max_length=255),
+            model_name="permission",
+            name="state",
+            field=models.CharField(
+                choices=[
+                    ("active", "active"),
+                    ("rejected", "rejected"),
+                    ("aborted", "aborted"),
+                    ("pending", "pending"),
+                ],
+                default="pending",
+                max_length=255,
+            ),
         ),
     ]

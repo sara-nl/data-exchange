@@ -11,7 +11,6 @@
     function toggleMode() {
         let current = $mode;
         mode.set(current === "data" ? "algorithm" : "data");
-        console.log($mode);
     }
 </script>
 

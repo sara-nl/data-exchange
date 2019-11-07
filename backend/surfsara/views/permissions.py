@@ -129,8 +129,11 @@ class Permissions(viewsets.ViewSet):
         """
         Returns all unique permissions
         """
-        permissions = [permission for permission in
-                       Permission.PERMISSIONS if permission[0] != Permission.NO_PERMISSION]
+        permissions = [
+            permission
+            for permission in Permission.PERMISSIONS
+            if permission[0] != Permission.NO_PERMISSION
+        ]
         return Response({"list_permissions": permissions})
 
     @action(

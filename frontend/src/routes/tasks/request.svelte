@@ -33,6 +33,8 @@
     let continuous_permission = "";
     let continuous_requesting = false;
 
+    let running_tasks: any = null;
+
 
     let info_user_permission: string = "You request user based permission. If the data owner allows, " +
                                        "you can always run all your algorithms on the selected dataset.";
@@ -48,6 +50,7 @@
 
         // Get continuous user permissions
         await getUserPermissions();
+        await getRunningTasks();
     });
 
     async function getUserFiles(){
@@ -86,9 +89,21 @@
           console.log(error.toString());
         }
         return false;
-  }
+    }
 
-  async function runWithPermission(event: any) {
+    async function getRunningTasks() {
+        try {
+            Tasks.get_running_requests().then(response => {
+                running_tasks = response.data;
+                console.log(running_tasks);
+            });
+        } catch (error) {
+            console.log(error.toString());
+        }
+    }
+
+
+    async function runWithPermission(event: any) {
         event.preventDefault();
         if (obtainedPermissions === null) {
           return;
@@ -223,6 +238,19 @@
                 <div class="col-3 font-weight-bold">Type</div>
                 <div class="col-6 font-weight-bold">Given Description</div>
             </div>
+            {#if running_tasks === null}
+            <div class="row px-4 w-100">
+               Currently there are no requests in the 'running' phase.
+            </div>
+            {:else}
+                {#each running_tasks as run_task}
+                    <div class="row px-4 w-100">
+                        <div class="col-3">{run_task.approver_email}</div>
+                        <div class="col-3">{run_task.permission.permission_type}</div>
+                        <div class="col-6">{run_task.dataset_desc}</div>
+                    </div>
+                {/each}
+            {/if}
         </div>
     </div>
 

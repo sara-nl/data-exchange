@@ -125,11 +125,6 @@ class Tasks(viewsets.ViewSet):
             | Q(state=Task.ERROR, review_output=False),
         ).order_by("-registered_on")
 
-        # print(TaskSerializer(reviewed, many=True).data)
-        # for request in not_reviewed_yet:
-        #     if request.state != Task.OUTPUT_RELEASED:
-        #         request.output = None
-
         return Response(
             {
                 "not_reviewed_yet": TaskSerializer(not_reviewed_yet, many=True).data,
@@ -138,7 +133,25 @@ class Tasks(viewsets.ViewSet):
         )
 
     @action(
-        detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
+        detail=False,
+        methods=["GET"],
+        name="get_running_requests",
+        permission_classes=[IsAuthenticated],
+    )
+    def get_running_requests(self, request):
+        """Returns al requests with state 'running' """
+        print("In running requestwsss", request.user.email)
+        running_tasks = Task.objects.filter(
+            Q(author_email=request.user.email),
+            Q(state=Task.RUNNING))
+
+        return Response(TaskSerializer(running_tasks, many=True).data)
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        name="list_logs",
+        permission_classes=[AllowAny]
     )
     def list_logs(self, request):
         data_tasks_per_file = defaultdict(list)

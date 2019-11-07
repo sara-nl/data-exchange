@@ -12,20 +12,15 @@ import runner.container.{
 import cats.implicits._
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import io.circe
-import io.circe.syntax._
 import tasker.queue.Messages.{AlgorithmOutput, Done, ETag, StartContainer}
 import runner.utils.FilesIO
-import tasker.queue.Messages
+import tasker.queue.{AmqpCodecs, Messages}
 import tasker.webdav.{Webdav, WebdavPath}
 
-import scala.language.postfixOps
-
 class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
-                            Either[circe.Error, Messages.StartContainer]
+                            AmqpCodecs.DecodedMessage[StartContainer]
                           ]],
-                          publisher: String => IO[Unit]) {
-  import io.circe.generic.auto._
+                          publisher: Done => IO[Unit]) {
 
   private val logger = Slf4jLogger.getLogger[IO]
 
@@ -125,13 +120,14 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
   val flow: fs2.Stream[IO, Unit] =
     consumer
       .map(_.payload)
+      .through(AmqpCodecs.filterAndLogErrors(logger))
       .evalTap(msg => logger.info(s"Processing incoming message $msg"))
       .evalMap {
-        case Right(StartContainer(taskId, _, _, None)) =>
+        case StartContainer(taskId, _, _, None) =>
           logger.error(
             s"Task $taskId is rejected because the incoming message doesn't contain the algorithm hash."
           )
-        case Right(msg @ StartContainer(taskId, _, codePath, Some(eTag))) =>
+        case msg @ StartContainer(taskId, _, codePath, Some(eTag)) =>
           for {
             eTagValid <- verifyETag(WebdavPath(codePath), eTag)
             doneMsg <- if (eTagValid)
@@ -144,9 +140,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
                 )
                 .pure[IO]
             _ <- logger.info(s"The state of Done message is ${doneMsg.state}")
-            _ <- publisher(doneMsg.asJson.spaces2)
+            _ <- publisher(doneMsg)
           } yield ()
-        case Left(error) =>
-          logger.error(error)("Could not parse incoming message")
       }
 }

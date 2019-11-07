@@ -1,12 +1,10 @@
 package runner
 
 import cats.effect.{ExitCode, IO, IOApp}
-import dev.profunktor.fs2rabbit.model.AmqpMessage
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import io.circe
-import io.circe.Decoder
 import tasker.config.TaskerConfig.queues
-import tasker.queue.{Codecs, Messages, QueueResources}
+import tasker.queue.Messages.{Done, StartContainer}
+import tasker.queue.{AmqpCodecs, QueueResources}
 
 object RunnerApp extends IOApp {
 
@@ -15,6 +13,8 @@ object RunnerApp extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     QueueResources.rabbitClientResource.use { rabbit =>
       rabbit.createConnectionChannel.use { implicit channel =>
+        import io.circe.generic.auto._
+
         for {
           _ <- logger.info("Runner started")
           _ <- rabbit.declareQueue(queues.todo.config)
@@ -32,14 +32,14 @@ object RunnerApp extends IOApp {
             queues.done.routingKey
           )
           consumer <- rabbit
-            .createAutoAckConsumer[Either[circe.Error,
-                                          Messages.StartContainer]](
-              queues.todo.config.queueName
-            )(channel, Codecs.startContainerDecoder)
-          publisher <- rabbit.createPublisher[String](
+            .createAutoAckConsumer(queues.todo.config.queueName)(
+              channel,
+              AmqpCodecs.decoder[StartContainer]
+            )
+          publisher <- rabbit.createPublisher(
             queues.done.exchangeConfig.exchangeName,
             queues.done.routingKey
-          )(channel, AmqpMessage.stringEncoder[IO])
+          )(channel, AmqpCodecs.encoder[Done])
           _ <- new SecureContainerFlow(consumer, publisher).flow.compile.drain
         } yield ExitCode.Success
       }

@@ -2,14 +2,13 @@ package watcher
 
 import cats.effect.{ExitCode, IO, IOApp, Timer}
 import cats.implicits._
-import dev.profunktor.fs2rabbit.model.{AmqpMessage, AmqpProperties}
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.generic.auto._
-import io.circe.syntax._
 import tasker.config.TaskerConfig
 import tasker.config.TaskerConfig.queues
-import tasker.queue.Messages
+import tasker.queue.Messages.StartContainer
+import tasker.queue.{AmqpCodecs, Messages}
 import tasker.queue.QueueResources.rabbitClientResource
 
 object WatcherApp extends IOApp {
@@ -39,10 +38,10 @@ object WatcherApp extends IOApp {
             queues.todo.routingKey
           )
           publisher <- {
-            rabbit.createPublisher[String](
+            rabbit.createPublisher(
               queues.todo.exchangeConfig.exchangeName,
               queues.todo.routingKey
-            )(channel, AmqpMessage.stringEncoder[IO])
+            )(channel, AmqpCodecs.encoder[StartContainer])
           }
         } yield publisher
       }
@@ -50,7 +49,7 @@ object WatcherApp extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     logger.info("Watcher started") *>
-      todoPublisherResource.use { implicit publisher =>
+      todoPublisherResource.use { publisher =>
         fs2.Stream
           .awakeEvery[IO](TaskerConfig.watcher.awakeInterval)
           .evalTap(_ => logger.debug(s"Fetching eligible permissions from DB"))
@@ -63,23 +62,24 @@ object WatcherApp extends IOApp {
                 case (newDataset, eTag, permission) =>
                   for {
                     _ <- logger
-                      .info(s"Processing new dataset ${newDataset.userPath}")
+                      .info(s"Processing new data set ${newDataset.userPath}")
                     taskId <- Task.insert(xa)(
                       permission,
                       newDataset.userPath.getOrElse("/"),
                       eTag
                     )
                     _ <- logger.info(s"Created a new task in the DB $taskId")
-                    body = Messages.StartContainer(
-                      s"$taskId",
-                      newDataset.userPath.getOrElse("/"),
-                      permission.algorithmPath.userPath.getOrElse("/"),
-                      permission.algorithmETag.map(Messages.ETag.apply)
+                    _ <- publisher(
+                      Messages.StartContainer(
+                        s"$taskId",
+                        newDataset.userPath.getOrElse("/"),
+                        permission.algorithmPath.userPath.getOrElse("/"),
+                        permission.algorithmETag.map(Messages.ETag.apply)
+                      )
                     )
-                    _ <- publisher(body.asJson.spaces2)
                   } yield ()
               }
-              .evalTap(ds => logger.info(s"Processing a new dataset $ds"))
+              .evalTap(ds => logger.info(s"Processing a new data set $ds"))
           })
           .compile
           .drain

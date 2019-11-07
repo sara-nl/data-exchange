@@ -5,7 +5,6 @@ import java.nio.file.{Path, Paths}
 import cats.effect.IO
 import com.github.dockerjava.api.model.{AccessMode, Bind, Volume}
 import runner.container.ContainerEnv.{Artifact, Executable, OutputFiles}
-import cats.syntax._
 import cats.implicits._
 import tasker.config.TaskerConfig
 import tasker.config.TaskerConfig.docker

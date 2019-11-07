@@ -6,6 +6,7 @@ object tasker extends ScalaModule with ScalafmtModule {
 
   object watcher extends ScalaModule with ScalafmtModule {
     override def scalaVersion = tasker.scalaVersion
+    override def scalacOptions = tasker.scalacOptions
     override def ivyDeps = Agg(
       ivy"org.http4s::http4s-dsl:0.21.0-M5",
       ivy"org.http4s::http4s-blaze-client:0.21.0-M5",
@@ -17,11 +18,13 @@ object tasker extends ScalaModule with ScalafmtModule {
 
   object runner extends ScalaModule with ScalafmtModule {
     override def scalaVersion = tasker.scalaVersion
+    override def scalacOptions = tasker.scalacOptions
     override def moduleDeps = Seq(common)
   }
 
   object common extends ScalaModule with ScalafmtModule {
     override def scalaVersion = tasker.scalaVersion
+    override def scalacOptions = tasker.scalacOptions
 
     override def ivyDeps = Agg(
         ivy"com.github.lookfirst:sardine:5.9",
@@ -43,6 +46,7 @@ object tasker extends ScalaModule with ScalafmtModule {
   }
 
   override def scalaVersion = "2.13.1"
+  override def scalacOptions = Seq("-deprecation", "-Xlint", "-Xfatal-warnings")
   override def moduleDeps = Seq(runner, watcher)
   override def forkArgs = Seq("-Djava.io.tmpdir=/tmp/tasker")
 }

@@ -7,15 +7,14 @@
 
   import RemoveShare from "../api/shares";
   import Spinner from "../components/Spinner.svelte";
-  import File from "../components/File.svelte";
 
   let own_datasets: any[] | null = null;
-  let data: any = null;
-  let dataset_tasks: any = null;
+  let data = {};
+  let dataset_tasks: {};
 
   let datasets = {};
   let algorithms = {};
-  let givenPermissions: {[index: string]:any} = {};
+  let givenPermissions: { [index: string]: any } = {};
 
   onMount(async () => {
     updateUserFiles();
@@ -38,6 +37,8 @@
       let { data: response } = await Permissions.get_given_per_file();
       givenPermissions = response.given_permissions;
       datasets = Object.keys(givenPermissions);
+
+      console.log(givenPermissions);
     } catch (error) {
       console.log(error.toString());
     }
@@ -55,13 +56,20 @@
     return false;
   }
 
-  async function remove_permission(id: number, filename: string) {
+  async function remove_permission(id: string, filename: string) {
     event.preventDefault();
     try {
-      let { data: response } = await Permissions.remove(id);
+      let { data: response } = await Permissions.remove(Number(id));
 
-      let removed_permission = removeFromList(givenPermissions[filename], String(id));
-      givenPermissions[filename] = removed_permission;
+      let removed_permission = removeFromList(givenPermissions[filename], id);
+
+      if (removed_permission.length === 0) {
+        delete givenPermissions[filename];
+
+        givenPermissions = givenPermissions;
+      } else {
+        givenPermissions[filename] = removed_permission;
+      }
     } catch (error) {
       console.log(error.toString());
     }
@@ -107,7 +115,13 @@
     {#each own_datasets as file}
       <div class="row my-5 p-4">
         <div class="row">
-          <File name={file.name} />
+          <div class="col-auto my-auto">
+            <span class="fa-stack fa-2x text-primary">
+              <i class="fas fa-circle fa-stack-2x" />
+              <i class="fas fa-file fa-stack-1x fa-inverse" />
+            </span>
+            {file.name}
+          </div>
           <div class="col">
             <button
               class="btn btn-danger rounded-xl font-weight-bold"
@@ -127,9 +141,9 @@
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
-                    <th >With</th>
-                    <th >Algorithm</th>
-                    <th >Type</th>
+                    <th>With</th>
+                    <th>Algorithm</th>
+                    <th>Type</th>
                     <th />
                   </thead>
                   <tbody>
@@ -162,19 +176,19 @@
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
-                    <th >Who</th>
-                    <th >Passed</th>
-                    <th >When</th>
-                    <th >Action</th>
+                    <th>Who</th>
+                    <th>Passed</th>
+                    <th>When</th>
+                    <th>Action</th>
                   </thead>
                   <tbody>
                     {#each dataset_tasks[file.name] as task}
                       <tr class="my-1">
                         <td>{task.author_email}</td>
                         {#if task.state === 'data_requested' || task.state === 'running'}
-                          <td class="text-success font-weight-bold">False</td>
+                          <td class="text-danger font-weight-bold">False</td>
                         {:else}
-                          <td class="text-danger font-weight-bold">True</td>
+                          <td class="text-success font-weight-bold">True</td>
                         {/if}
 
                         <td>

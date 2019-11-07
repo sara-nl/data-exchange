@@ -16,8 +16,9 @@ Example:
 ```json
   {
     "taskId": "123", 
-    "codePath": "demo1_code",
-    "dataPath": "demo1_data"
+    "codePath": "demo2_code",
+    "dataPath": "demo1_data",
+    "codeHash": { "eTag": "5db6a51baa9e0" }
   }
 ```
 
@@ -50,6 +51,7 @@ Example:
 * Install JRE 11;
 * Install Docker;
 * Install and start RabbitMQ docker container;
+* Build and install `datex` docker image: `cd container && ./build.sh`
 * Package: `mill tasker.assembly`;
 * Copy the `out/tasker/assembly/dest/out.jar` wherever need;
 * Run it with `java -Djava.io.tmpdir=/tmp -jar ../out.jar`.

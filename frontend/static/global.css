@@ -108,6 +108,15 @@ td {
   word-wrap: break-word;
 }
 
+.state_column {
+  min-width: 10em;
+  max-width: 10em;
+
+  overflow: hidden;
+  word-wrap: break-word;
+}
+
+
 .normal_column {
   min-width: 7em;
   max-width: 7em;

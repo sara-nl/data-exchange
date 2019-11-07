@@ -1,11 +1,7 @@
 <script lang="ts">
-  import { goto } from "@sapper/app";
   import { onMount } from "svelte";
   import dayjs from "dayjs";
-  import LoadFiles from "../api/loader";
-  import Tasks from "../api/tasks";
   import Permissions from "../api/permissions";
-  import RemoveShare from "../api/shares";
 
   import Spinner from "../components/Spinner.svelte";
   import File from "../components/File.svelte";
@@ -92,7 +88,7 @@
         </div>
       </div>
     {:else}
-      <div>You have shared no datasets</div>
+      <div>You have shared no algorithms</div>
     {/each}
   {/if}
 

@@ -61,13 +61,14 @@ object WatcherApp extends IOApp {
               .evalTap(p => logger.debug(s"Reacting on permission $p"))
               .through(DataSet.newDatasetsPipe)
               .evalTap {
-                case (newDataset, permission) =>
+                case (newDataset, eTag, permission) =>
                   for {
                     _ <- logger
                       .info(s"Processing new dataset ${newDataset.userPath}")
                     taskId <- Task.insert(xa)(
                       permission,
-                      newDataset.userPath.getOrElse("/")
+                      newDataset.userPath.getOrElse("/"),
+                      eTag
                     )
                     _ <- logger.info(s"Created a new task in the DB $taskId")
                     body = Messages.StartContainer(

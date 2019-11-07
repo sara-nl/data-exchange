@@ -5,6 +5,7 @@ import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import tasker.webdav.{Webdav, WebdavPath}
 import cats.implicits._
 import WebdavPath.implicits._
+import tasker.queue.Messages.ETag
 import watcher.Permission.PermissionWithRuns
 
 case class DataSet(path: WebdavPath)
@@ -14,7 +15,7 @@ object DataSet {
   private val logger = Slf4jLogger.getLogger[IO]
 
   val newDatasetsPipe
-    : fs2.Pipe[IO, PermissionWithRuns, (WebdavPath, Permission)] =
+    : fs2.Pipe[IO, PermissionWithRuns, (WebdavPath, ETag, Permission)] =
     _.flatMap {
       case (permission, permissionRuns) =>
         val oldDataSetPaths = permissionRuns.map(_.dataSetPath)
@@ -30,7 +31,16 @@ object DataSet {
               }
               .flatMap {
                 case resources if resources.length > 1 =>
-                  IO(resources.tail.map(WebdavPath.apply))
+                  IO(
+                    resources.tail.map(
+                      resource =>
+                        (
+                          WebdavPath(resource),
+                          ETag(resource.getEtag),
+                          permission
+                      )
+                    )
+                  )
                 case resources if resources.length == 1 =>
                   logger.error(
                     s"Path ${permission.dataSetPath} is either empty or a file and can not be treated as a stream of data sets"
@@ -42,7 +52,6 @@ object DataSet {
               }
           })
           .filter(path => !oldDataSetPaths.contains(path))
-          .filter(_ =!= permission.dataSetPath)
-          .zip(fs2.Stream.constant(permission))
+          .filter(_._1 =!= permission.dataSetPath)
     }
 }

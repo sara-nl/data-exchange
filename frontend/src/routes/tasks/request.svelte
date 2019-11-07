@@ -22,7 +22,7 @@
     let requesting = false;
     let showError: any = null;
 
-    // Vars for running algorithm with continous permission.
+    // Vars for running algorithm with continuous permission.
     let continuous_data = {
         per_file: true,
         algorithm_file: "",
@@ -42,7 +42,7 @@
                                          "every change in the selected data (or data folder) will automatically" +
                                          " start a new run using this algorithm.";
     let info_run_once: string = "You request one time permission. The selected algorithm will be ran on the " +
-                                "selected datset once.";
+                                "selected dataset once.";
     let info_standard: string = "You have to select a specific permission in order to make a request to a data" +
                                 "owner.";
 
@@ -140,7 +140,7 @@
         <!-- Request permission -->
         <div class="row bg-primary text-white mr-4 rounded">
             <form id="request-permission" on:submit={createRequest}>
-                <div class="row px-4 py-4">Request Permission for a dataset</div>
+                <div class="row ml-1 font-weight-bold px-3 py-4">Request Permission for a dataset</div>
 
                 <div class="row mb-3 ml-2 mr-3 w-100">
                     <div class="col-3 pl-2">Type of permission</div>
@@ -234,7 +234,7 @@
 
         <!-- Running Requests -->
         <div class="row bg-light mr-4 rounded pb-5">
-            <div class="row px-4 py-4 font-weight-bold w-100">Running Requests</div>
+            <div class="row ml-1 px-3 py-4 font-weight-bold w-100">Running Requests</div>
             <div class="row px-4 w-100">
                 <div class="col-3 font-weight-bold">Who</div>
                 <div class="col-3 font-weight-bold">Type</div>
@@ -258,7 +258,7 @@
 
     <!-- Continuous permission runner -->
     <div class="col-6 bg-light h-75 rounded">
-        <div class="row px-4 py-4">Run an algorithm with continuous permission</div>
+        <div class="row font-weight-bold px-4 py-4">Run an algorithm with continuous permission</div>
 
         <form id="run-permission" on:submit={runWithPermission}>
             <div class="row ml-2 mr-3 w-100">

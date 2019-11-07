@@ -213,10 +213,16 @@ class Tasks(viewsets.ViewSet):
             task.permission.dataset = task.dataset
             task.permission.save()
 
+            # If the permission is a stream permission, the execution of the dataset gets handled by
+            # the watcher, therefore no call to rabbitMQ is made.
+            if task.permission.permission_type == Permission.STREAM_PERMISSION:
+                task.state = Task.STREAM_PERMISSION_REQUEST
+
             # Start container and run algorithm and dataset together.
-            task_service.start(task)
-            task.state = Task.RUNNING
-            task.save()
+            else:
+                task_service.start(task)
+                task.state = Task.RUNNING
+                task.save()
 
             # Send mails.
             if task.permission.permission_type == Permission.USER_PERMISSION or \

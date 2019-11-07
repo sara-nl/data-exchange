@@ -4,8 +4,7 @@ from surfsara.models.permission import Permission
 
 
 class Task(models.Model):
-    USER_PERMISSION_REQUEST = "user_permission_request"
-    REGISTERED = "registered"
+    USER_PERMISSION_REQUEST = "stream_permission_request"
     DATA_REQUESTED = "data_requested"
     ANALYZING = "analyzing_algorithm"
     RUNNING = "running"
@@ -15,7 +14,7 @@ class Task(models.Model):
     REQUEST_REJECTED = "request_rejected"
     RELEASE_REJECTED = "release_rejected"
 
-    TASK_STATES = ((USER_PERMISSION_REQUEST, "user_permission_request"),
+    TASK_STATES = ((USER_PERMISSION_REQUEST, "stream_permission_request"),
                    (DATA_REQUESTED, "Data Requested"),
                    (RUNNING, "Running"),
                    (ANALYZING, "Analyzing_algorithm"),

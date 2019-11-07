@@ -186,9 +186,9 @@
                       <tr class="my-1">
                         <td>{task.author_email}</td>
                         {#if task.state === 'data_requested' || task.state === 'running'}
-                          <td class="text-success font-weight-bold">False</td>
+                          <td class="text-danger font-weight-bold">False</td>
                         {:else}
-                          <td class="text-danger font-weight-bold">True</td>
+                          <td class="text-success font-weight-bold">True</td>
                         {/if}
 
                         <td>

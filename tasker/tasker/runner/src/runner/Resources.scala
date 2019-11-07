@@ -1,23 +1,17 @@
-import java.nio.file.{Files, Path, Paths}
-import java.util.concurrent.Executors
+package runner
 
-import cats.effect.{Blocker, ConcurrentEffect, ContextShift, IO, Resource}
-import clients.DockerContainer
-import config.TaskerConfig
-import container.ContainerEnv.Artifact
-import container.Ids.ImageId
-import container.{ContainerCommand, ContainerEnv, ContainerState}
+import java.nio.file.{Files, Path, Paths}
+
+import cats.effect.{ConcurrentEffect, IO, Resource}
 import org.apache.commons.io.FileUtils
+import runner.clients.DockerContainer
+import runner.container.ContainerEnv.Artifact
+import runner.container.Ids.ImageId
+import runner.container.{ContainerCommand, ContainerEnv, ContainerState, Ids}
+import tasker.config.TaskerConfig
+import tasker.queue.Messages
 
 object Resources {
-
-  /**
-    * An execution context that is safe to use for blocking operations wrapped into a Resource
-    */
-  val blockerResource: Resource[IO, Blocker] =
-    Resource
-      .make(IO(Executors.newCachedThreadPool()))(es => IO(es.shutdown()))
-      .map(Blocker.liftExecutorService)
 
   val tempDirResource: Resource[IO, Path] = Resource.make(
     acquire = IO(Files.createTempDirectory("datex_"))
@@ -52,11 +46,10 @@ object Resources {
     * Acquire: If necessary - container is created, dependencies installed, image created.
     * Release: If necessary - container and image removed.
     */
-  def bakedImageWithDeps(
-    containerEnv: ContainerEnv,
-    requirementsTxtOption: Option[Path]
-  )(implicit F: ConcurrentEffect[IO],
-    cs: ContextShift[IO]): Resource[IO, Either[ContainerState, ImageId]] =
+  def bakedImageWithDeps(containerEnv: ContainerEnv,
+                         requirementsTxtOption: Option[Path])(
+    implicit F: ConcurrentEffect[IO]
+  ): Resource[IO, Either[ContainerState, ImageId]] =
     requirementsTxtOption match {
       case Some(requirementsTxtContainerPath) =>
         for {
@@ -64,7 +57,7 @@ object Resources {
             .startedContainer(
               containerEnv,
               ContainerCommand.installDeps(requirementsTxtContainerPath),
-              TaskerConfig.docker.image
+              Ids.ImageId(TaskerConfig.docker.image)
             )
           containerState <- Resource.liftF(
             DockerContainer.terminalStateIO(containerId)
@@ -80,7 +73,7 @@ object Resources {
         } yield result
       case None =>
         Resource.pure[IO, Either[ContainerState, ImageId]](
-          Right(TaskerConfig.docker.image)
+          Right(Ids.ImageId(TaskerConfig.docker.image))
         )
     }
 

@@ -1,25 +1,23 @@
-package clients
+package runner.clients
 
 import cats.effect.{IO, _}
 import com.github.dockerjava.api.model._
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
 import cats.implicits._
-import container.Ids.{ContainerId, ImageId}
-import container.{ContainerCommand, ContainerEnv, ContainerState}
+import runner.container.Ids.{ContainerId, ImageId}
+import runner.container.{ContainerCommand, ContainerEnv, ContainerState}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 
 import scala.jdk.CollectionConverters._
-import scala.language.postfixOps
 
 object DockerContainer {
 
   private val dockerClient = DockerClientBuilder.getInstance().build()
 
-  def terminalStateIO(containerId: ContainerId)(
-    implicit F: ConcurrentEffect[IO],
-    cs: ContextShift[IO]
-  ): IO[ContainerState] =
+  def terminalStateIO(
+    containerId: ContainerId
+  )(implicit F: ConcurrentEffect[IO]): IO[ContainerState] =
     for {
       lastStatusOption <- lastStatusIO(containerId)
       output <- outputStream(containerId)
@@ -59,7 +57,7 @@ object DockerContainer {
 
   private def outputStream(
     containerId: ContainerId
-  )(implicit F: ConcurrentEffect[IO], cs: ContextShift[IO]): IO[String] = {
+  )(implicit F: ConcurrentEffect[IO]): IO[String] = {
     import fs2.concurrent._
 
     val allLogsCommand =

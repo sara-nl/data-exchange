@@ -52,7 +52,7 @@
 
         // Get continuous user permissions
         await getUserPermissions();
-        await getRunningTasks();
+        await getPendingTasks();
     });
 
     async function getUserFiles(){
@@ -93,9 +93,9 @@
         return false;
     }
 
-    async function getRunningTasks() {
+    async function getPendingTasks() {
         try {
-            Tasks.get_running_requests().then(task_response => {
+            Tasks.get_pending_requests().then(task_response => {
                 running_tasks = task_response.data;
             });
         } catch (error) {
@@ -234,15 +234,15 @@
 
         <!-- Running Requests -->
         <div class="row bg-light mr-4 rounded pb-5">
-            <div class="row ml-1 px-3 py-4 font-weight-bold w-100">Running Requests</div>
+            <div class="row ml-1 px-3 py-4 font-weight-bold w-100">Pending Requests</div>
             <div class="row px-4 w-100">
                 <div class="col-3 font-weight-bold">Who</div>
                 <div class="col-3 font-weight-bold">Type</div>
                 <div class="col-6 font-weight-bold">Given Description</div>
             </div>
-            {#if running_tasks === null}
-            <div class="row px-4 w-100">
-               Currently there are no requests in the 'running' phase.
+            {#if running_tasks === null || running_tasks.length === 0}
+            <div class="row px-4 ml-1 w-100">
+               Currently there are no pending requests.
             </div>
             {:else}
                 {#each running_tasks as run_task}

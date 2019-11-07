@@ -135,17 +135,15 @@ class Tasks(viewsets.ViewSet):
     @action(
         detail=False,
         methods=["GET"],
-        name="get_running_requests",
+        name="get_pending_requests",
         permission_classes=[IsAuthenticated],
     )
-    def get_running_requests(self, request):
+    def get_pending_requests(self, request):
         """Returns al requests with state 'running' """
-        print("In running requestwsss", request.user.email)
-        running_tasks = Task.objects.filter(
-            Q(author_email=request.user.email),
-            Q(state=Task.RUNNING))
+        pending_requests = Task.objects.filter(permission__in=Permission.objects.filter(state=Permission.PENDING),
+                                               author_email=request.user.email)
 
-        return Response(TaskSerializer(running_tasks, many=True).data)
+        return Response(TaskSerializer(pending_requests, many=True).data)
 
     @action(
         detail=False,

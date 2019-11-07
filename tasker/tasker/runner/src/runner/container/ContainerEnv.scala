@@ -53,7 +53,6 @@ object ContainerEnv {
   }
 
   object Artifact {
-    // TODO: make outputPath an option
     def output(hostHome: Path) =
       new Artifact(hostHome, Path.of(docker.containerOutPath), ".")
       with OutputFiles

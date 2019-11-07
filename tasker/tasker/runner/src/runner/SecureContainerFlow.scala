@@ -12,16 +12,19 @@ import runner.container.{
 import cats.implicits._
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import io.circe
 import io.circe.syntax._
 import tasker.queue.Messages.{AlgorithmOutput, Done, ETag, StartContainer}
 import runner.utils.FilesIO
-import tasker.queue.{Codecs, Messages}
+import tasker.queue.Messages
 import tasker.webdav.{Webdav, WebdavPath}
 
 import scala.language.postfixOps
 
-class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
-                          publisher: AmqpMessage[String] => IO[Unit]) {
+class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
+                            Either[circe.Error, Messages.StartContainer]
+                          ]],
+                          publisher: String => IO[Unit]) {
   import io.circe.generic.auto._
 
   private val logger = Slf4jLogger.getLogger[IO]
@@ -121,7 +124,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
 
   val flow: fs2.Stream[IO, Unit] =
     consumer
-      .through(Codecs.messageDecodePipe)
+      .map(_.payload)
       .evalTap(msg => logger.info(s"Processing incoming message $msg"))
       .evalMap {
         case Right(StartContainer(taskId, _, _, None)) =>
@@ -141,9 +144,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[String]],
                 )
                 .pure[IO]
             _ <- logger.info(s"The state of Done message is ${doneMsg.state}")
-            _ <- publisher(
-              AmqpMessage(doneMsg.asJson.spaces2, AmqpProperties())
-            )
+            _ <- publisher(doneMsg.asJson.spaces2)
           } yield ()
         case Left(error) =>
           logger.error(error)("Could not parse incoming message")

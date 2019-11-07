@@ -39,11 +39,10 @@ object WatcherApp extends IOApp {
             queues.todo.routingKey
           )
           publisher <- {
-            import tasker.queue.Codecs.messageEncoder
-            rabbit.createPublisher[AmqpMessage[String]](
+            rabbit.createPublisher[String](
               queues.todo.exchangeConfig.exchangeName,
               queues.todo.routingKey
-            )
+            )(channel, AmqpMessage.stringEncoder[IO])
           }
         } yield publisher
       }
@@ -77,9 +76,7 @@ object WatcherApp extends IOApp {
                       permission.algorithmPath.userPath.getOrElse("/"),
                       permission.algorithmETag.map(Messages.ETag.apply)
                     )
-                    _ <- publisher(
-                      AmqpMessage(body.asJson.spaces2, AmqpProperties())
-                    )
+                    _ <- publisher(body.asJson.spaces2)
                   } yield ()
               }
               .evalTap(ds => logger.info(s"Processing a new dataset $ds"))

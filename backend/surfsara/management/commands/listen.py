@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
 
-from surfsara.models import Task
+from surfsara.models import Task, Permission
 from surfsara.services import mail_service
 from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 
@@ -45,8 +45,17 @@ class TaskerDoneListener(Listener):
         # Probably it needs to be wrapped in try/except too :-)
         task_completed = self.TaskCompleted.from_json(body)
         self.stdout.write(f"Received {task_completed}")
-
         task = Task.objects.get(pk=task_completed.task_id)
+
+
+        if task_completed.state == "rejected":
+            task.permission['state'] = Permission.ABORTED
+            tast.permission['status_description'] = "algorithm changed"
+            task.state = Task.ALGORITHM_CHANGED
+            task.save()
+
+            return
+
         task.output = task_completed.output
 
         if not task.review_output and task_completed.state == "success":

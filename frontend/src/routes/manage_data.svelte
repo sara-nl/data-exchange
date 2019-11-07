@@ -4,6 +4,8 @@
   import LoadFiles from "../api/loader";
   import Tasks from "../api/tasks";
   import Permissions from "../api/permissions";
+    import File from "../components/File.svelte";
+  import State from "../components/State.svelte";
 
   import RemoveShare from "../api/shares";
   import Spinner from "../components/Spinner.svelte";
@@ -185,11 +187,12 @@
                     {#each dataset_tasks[file.name] as task}
                       <tr class="my-1">
                         <td>{task.author_email}</td>
-                        {#if task.state === 'data_requested' || task.state === 'running'}
+                        <!-- {#if task.state === 'data_requested' || task.state === 'running'}
                           <td class="text-danger font-weight-bold">False</td>
                         {:else}
                           <td class="text-success font-weight-bold">True</td>
-                        {/if}
+                        {/if} -->
+                        <td><State state={task.state} /></td>
 
                         <td>
                           {dayjs(task.registered_on).format('DD-MM-YYYY')}

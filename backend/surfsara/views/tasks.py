@@ -217,6 +217,7 @@ class Tasks(viewsets.ViewSet):
             # the watcher, therefore no call to rabbitMQ is made.
             if task.permission.permission_type == Permission.STREAM_PERMISSION:
                 task.state = Task.STREAM_PERMISSION_REQUEST
+                task.save()
 
             # Start container and run algorithm and dataset together.
             else:

@@ -72,12 +72,14 @@
                   </thead>
                   <tbody>
                     {#each tasks as task}
-                      <tr>
-                        <td><File name={task.dataset} /></td>
-                        <td><State state={task.state} /></td>
-                        <td>{dayjs(task.registered_on).format("DD-MM-YYYY")}</td>
-                        <td><a href={`/tasks/${task.id}`}>Details</a></td>
-                      </tr>
+                        {#if task.state !== "stream_permission_request"}
+                        <tr>
+                          <td><File name={task.dataset} /></td>
+                          <td><State state={task.state} /></td>
+                          <td>{dayjs(task.registered_on).format("DD-MM-YYYY")}</td>
+                          <td><a href={`/tasks/${task.id}`}>Details</a></td>
+                        </tr>
+                        {/if}
                     {:else}
                       No tasks for this algorithm.
                     {/each}

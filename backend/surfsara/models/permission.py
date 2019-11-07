@@ -7,10 +7,12 @@ class Permission(models.Model):
     NO_PERMISSION = "no permission"
     ONE_TIME_PERMISSION = "one time permission"
 
-    PERMISSIONS = ((USER_PERMISSION, "Any algorithm on a Dataset"),
-                   (STREAM_PERMISSION, "Run for all data changes"),
-                   (NO_PERMISSION, "no permission"),
-                   (ONE_TIME_PERMISSION, "Run once"),)
+    PERMISSIONS = (
+        (USER_PERMISSION, "Any algorithm on a Dataset"),
+        (STREAM_PERMISSION, "Run for all data changes"),
+        (NO_PERMISSION, "no permission"),
+        (ONE_TIME_PERMISSION, "Run once"),
+    )
 
     ACTIVE = "active"
     PENDING = "pending"
@@ -26,14 +28,16 @@ class Permission(models.Model):
     registered_on = models.DateTimeField(auto_now_add=True)
 
     permission_type = models.CharField(
-        max_length=255,
-        choices=PERMISSIONS,
-        default=NO_PERMISSION,
+        max_length=255, choices=PERMISSIONS, default=NO_PERMISSION
     )
     state = models.CharField(
         max_length=255,
-        choices=[(ACTIVE, "active"), (REJECTED, "rejected"), (ABORTED, "aborted"),
-                 (PENDING, "pending")],
+        choices=[
+            (ACTIVE, "active"),
+            (REJECTED, "rejected"),
+            (ABORTED, "aborted"),
+            (PENDING, "pending"),
+        ],
         default=PENDING,
     )
 

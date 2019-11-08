@@ -129,22 +129,22 @@
 
   <div class="row my-5 border border-primary rounded">
     {#if task.state === 'analyzing_algorithm'}
-      <div class="col-sm-12 text-center bg-primary text-white">Waiting for the algorithm analysis..</div>
+      <div class="col-sm-12 text-center bg-primary text-white p-2">Waiting for the algorithm analysis..</div>
     {/if}
     {#if task.state === 'data_requested'}
-      <div class="col-sm-4 text-center bg-primary text-white">Step 1. Accept algorithm</div>
-      <div class="col-sm-4 text-center">Step 2. Running algorithm</div>
-      <div class="col-sm-4 text-center">Step 3. Release output</div>
+      <div class="col-sm-4 text-center bg-primary text-white p-2 font-weight-bold">Step 1. Accept algorithm</div>
+      <div class="col-sm-4 text-center p-2 font-weight-bold">Step 2. Running algorithm</div>
+      <div class="col-sm-4 text-center p-2 font-weight-bold">Step 3. Release output</div>
     {/if}
     {#if task.state === 'running'}
-      <div class="col-sm-4 text-center text-secondary">Step 1. Accept algorithm</div>
-      <div class="col-sm-4 text-center bg-primary text-white">Step 2. Running algorithm</div>
-      <div class="col-sm-4 text-center">Step 3. Release output</div>
+      <div class="col-sm-4 text-center text-secondary p-2 font-weight-bold">Step 1. Accept algorithm</div>
+      <div class="col-sm-4 text-center bg-primary text-white p-2 font-weight-bold">Step 2. Running algorithm</div>
+      <div class="col-sm-4 text-center p-2 font-weight-bold">Step 3. Release output</div>
     {/if}
     {#if task.state === 'success' || (task.state === 'error' && task.review_output) }
-      <div class="col-sm-4 text-center text-secondary">Step 1. Accept algorithm</div>
-      <div class="col-sm-4 text-center text-secondary">Step 2. Running algorithm</div>
-      <div class="col-sm-4 text-center bg-primary text-white">Step 3. Release output</div>
+      <div class="col-sm-4 text-center text-secondary p-2 font-weight-bold">Step 1. Accept algorithm</div>
+      <div class="col-sm-4 text-center text-secondary p-2 font-weight-bold">Step 2. Running algorithm</div>
+      <div class="col-sm-4 text-center bg-primary text-white p-2 font-weight-bold">Step 3. Release output</div>
     {/if}
   </div>
 

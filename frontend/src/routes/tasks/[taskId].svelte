@@ -175,10 +175,35 @@
         <div class="row mb-3 font-weight-bold">Permission Type</div>
           <div class="row mt-1 mb-5">{task.permission.permission_type}</div>
 
-        <div class="row mb-3 font-weight-bold">Permission state</div>
-        <div class="row mt-1 mb-5">{task.permission.state}</div>
+{#if task.state === 'error' || task.state === 'success'}
+          <div class="row mb-3 font-weight-bold">Used dataset</div>
+        {:else}
+          <div class="row mb-3 font-weight-bold text-primary">Choose dataset</div>
+        {/if}
+        <div class="row mt-1 mb-5 pr-5">
+          {#if task.is_owner && task.state === 'data_requested'}
+              {#if ownDatasets === null}
+                <Spinner small />
+              {:else if ownDatasets.length === 0}
+                <div class="font-weight-bold">
+                No datasets available.
+                </div>
+              {:else}
+                <select
+                  class="form-control bg-primary text-white rounded select-white mr-sm-2"
+                  bind:value={task.dataset}
+                  id="data-file">
+                  <option value="">Select dataset</option>
 
+                  {#each ownDatasets as file}
+                    <option class="bg-secondary" value={file.name}>{file.name}</option>
+                  {/each}
+                </select>
 
+              {/if}
+            {:else}{task.dataset || 'No dataset selected'}
+          {/if}
+        </div>
       </div>
 
       <div class="col-sm-4 h-50">
@@ -203,33 +228,7 @@
           Characters: {task.algorithm_info.algorithm_characters | "N/A"}
         </div>
 
-        {#if task.state === 'error' || task.state === 'success'}
-          <div class="row mb-3 font-weight-bold">Used dataset</div>
-        {:else}
-          <div class="row mb-3 font-weight-bold">Choose dataset</div>
-        {/if}
-        <div class="row mt-1 mb-5 pr-5">
-          {#if task.is_owner && task.state === 'data_requested'}
-              {#if ownDatasets === null}
-                <Spinner small />
-              {:else if ownDatasets.length === 0}
-                No datasets available.
-              {:else}
-                <select
-                  class="form-control bg-primary text-white rounded select-white mr-sm-2"
-                  bind:value={task.dataset}
-                  id="data-file">
-                  <option value="">Select dataset</option>
-
-                  {#each ownDatasets as file}
-                    <option class="bg-secondary" value={file.name}>{file.name}</option>
-                  {/each}
-                </select>
-
-              {/if}
-            {:else}{task.dataset || 'No dataset selected'}
-          {/if}
-        </div>
+        
       </div>
 
       <div class="col-sm-4 pl-0 pr-0" style="height:400px;">

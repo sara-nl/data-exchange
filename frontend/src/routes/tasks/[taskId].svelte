@@ -87,6 +87,22 @@
     }
   }
 
+  function review_permission(approved: boolean) {
+    data = {
+      ...data,
+      approved,
+      updated_request: task
+    };
+
+    try {
+
+      let { data: response } = Tasks.review(taskId, data);
+    } catch (error) {
+      console.log(error.toString());
+    }
+    goto('/requests');
+  }
+
   async function review_request(approved: boolean) {
     data = {
       ...data,
@@ -200,12 +216,12 @@
             <button
               disabled={!task.dataset}
               class="btn btn-success rounded-xl px-4 mr-3"
-              on:click={() => review_request(true)}>
+              on:click={() => review_permission(true)}>
               Give Permission to run any algorithm on dataset
             </button>
             <button
               class="btn btn-danger rounded-xl px-4"
-              on:click={() => review_request(false)}>
+              on:click={() => review_permission(false)}>
               Reject request
             </button>
           {:else}

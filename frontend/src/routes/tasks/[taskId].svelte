@@ -5,6 +5,7 @@
   import { onMount } from "svelte";
   import { goto, stores } from "@sapper/app";
   import * as hljs from "highlight.js";
+  import { mode } from "../../stores";
 
   import LoadFiles from "../../api/loader";
   import Tasks, { TasksReviewRequest } from "../../api/tasks";
@@ -77,8 +78,6 @@
   async function load_algorithm() {
     const { data } = await Tasks.retrieve(taskId);
     task = data;
-
-    console.log(task);
   }
 
   async function load_dataset() {
@@ -133,7 +132,7 @@
 
 {#if task === null}
   <Spinner />
-{:else if task.state === 'data_requested' && task.permission.permission_type === 'stream permission'}
+{:else if task.state === 'data_requested' && task.permission.permission_type === 'user permission'}
   <div class="row my-5 rounded">
     <div class="col-12">
       <button class="btn text-primary" on:click={() => goto(`/requests`)}>
@@ -141,27 +140,81 @@
       </button>
       Back
     </div>
+  </div>
+  <div>
     <div class="col-10 mx-auto my-5">
-      <div class="col-sm-12 py-3 bg-primary text-white rounded-xl">
-        <div class="col mx-auto text-center font-weight-bold">
-          Give permissions to all algorithms on a specific dataset
+      <div class="row my-5 mx-auto rounded-lg text-white bg-primary">
+        <div class="col-sm p-2 mx-auto text-center font-weight-bold">
+          Give permissions to any algorithm on a specific dataset
         </div>
       </div>
       <div class="row px-3">
 
-        <div class="col-4 my-5">
+        <div class="col-4">
+          <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
+          <div class="row mt-1 mb-5">{task.author_email}</div>
 
-          <b>Who</b>
-          <b>Permission type</b>
-
+          <div class="row mb-3 font-weight-bold">Permission Type</div>
+          <div class="row mt-1 mb-5">{task.permission.permission_type}</div>
         </div>
 
-        <div class="col-4 my-5">
-          <b>Choose dataset</b>
+        <div class="col-6">
+
+          <div class="row mb-3 font-weight-bold">
+            <b>Choose dataset</b>
+          </div>
+          <div class="row mt-1 mb-5 pr-5">
+            {#if task.is_owner && task.state === 'data_requested'}
+              {#if ownDatasets === null}
+                <Spinner small />
+              {:else if ownDatasets.length === 0}
+                No datasets available.
+              {:else}
+                <select
+                  class="form-control bg-primary text-white rounded select-white
+                  mr-sm-2"
+                  bind:value={task.dataset}
+                  id="data-file">
+                  <option value="">Select dataset</option>
+
+                  {#each ownDatasets as file}
+                    <option class="bg-secondary" value={file.name}>
+                      {file.name}
+                    </option>
+                  {/each}
+                </select>
+            <h6 class="text-muted pt-2">
+              With this permission the requester can use any of his algorithms
+              on this dataset. Only grant this permission if you trust {task.author_email}
+              to always run benevolent algorithms.
+            </h6>
+              {/if}
+            {:else}{task.dataset || 'No dataset selected'}{/if}
+          </div>
+
         </div>
       </div>
-      <div class="col-4-sm-12" />
-
+      <div class="row">
+        {#if task.state === 'data_requested'}
+          {#if task.is_owner && $mode === 'data'}
+            <button
+              disabled={!task.dataset}
+              class="btn btn-success rounded-xl px-4 mr-3"
+              on:click={() => review_request(true)}>
+              Give Permission to run any algorithm on dataset
+            </button>
+            <button
+              class="btn btn-danger rounded-xl px-4"
+              on:click={() => review_request(false)}>
+              Reject request
+            </button>
+          {:else}
+            <h4>
+              Waiting for the data provider to review the permission request
+            </h4>
+          {/if}
+        {/if}
+      </div>
     </div>
   </div>
 {:else}
@@ -175,36 +228,45 @@
   </div>
   <div class="col-10 mx-auto my-5">
 
-    <div class="row my-5 border border-primary rounded">
+    <div class="row my-5 mx-auto border border-primary rounded">
       {#if task.state === 'analyzing_algorithm'}
-        <div class="col-sm-12 text-center bg-primary text-white">
+        <div class="col-sm-12 text-center bg-primary text-white p-2">
           Waiting for the algorithm analysis..
         </div>
       {/if}
       {#if task.state === 'data_requested'}
-        <div class="col-sm-4 text-center bg-primary text-white">
+        <div
+          class="col-sm-4 text-center bg-primary text-white p-2 font-weight-bold">
           Step 1. Accept algorithm
         </div>
-        <div class="col-sm-4 text-center">Step 2. Running algorithm</div>
-        <div class="col-sm-4 text-center">Step 3. Release output</div>
+        <div class="col-sm-4 text-center p-2 font-weight-bold">
+          Step 2. Running algorithm
+        </div>
+        <div class="col-sm-4 text-center p-2 font-weight-bold">
+          Step 3. Release output
+        </div>
       {/if}
       {#if task.state === 'running'}
-        <div class="col-sm-4 text-center text-secondary">
+        <div class="col-sm-4 text-center text-secondary p-2 font-weight-bold">
           Step 1. Accept algorithm
         </div>
-        <div class="col-sm-4 text-center bg-primary text-white">
+        <div
+          class="col-sm-4 text-center bg-primary text-white p-2 font-weight-bold">
           Step 2. Running algorithm
         </div>
-        <div class="col-sm-4 text-center">Step 3. Release output</div>
+        <div class="col-sm-4 text-center p-2 font-weight-bold">
+          Step 3. Release output
+        </div>
       {/if}
-      {#if task.state === 'success' || (task.state === 'error' && task.review_output) || task.state === 'output_released' || task.state === 'release_rejected'}
-        <div class="col-sm-4 text-center text-secondary">
+      {#if task.state === 'success' || (task.state === 'error' && task.review_output)}
+        <div class="col-sm-4 text-center text-secondary p-2 font-weight-bold">
           Step 1. Accept algorithm
         </div>
-        <div class="col-sm-4 text-center text-secondary">
+        <div class="col-sm-4 text-center text-secondary p-2 font-weight-bold">
           Step 2. Running algorithm
         </div>
-        <div class="col-sm-4 text-center bg-primary text-white">
+        <div
+          class="col-sm-4 text-center bg-primary text-white p-2 font-weight-bold">
           Step 3. Release output
         </div>
       {/if}
@@ -254,7 +316,7 @@
         <Spinner small loading={statusList[8]} text="Wrapping up.." />
       </div>
     {:else}
-      <div class="row">
+      <div class="row mx-auto">
         <div class="col-sm-4 h-50">
           <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
           <div class="row mt-1 mb-5">{task.author_email}</div>
@@ -354,15 +416,15 @@
 
       <div class="row">
         {#if task.state === 'data_requested'}
-          {#if task.is_owner}
+          {#if task.is_owner && $mode === 'data'}
             <button
               disabled={!task.dataset}
-              class="btn btn-success mr-3"
+              class="btn btn-success rounded-xl px-4 mr-3"
               on:click={() => review_request(true)}>
               Run algorithm on data to see output and go to step 2
             </button>
             <button
-              class="btn btn-danger"
+              class="btn btn-danger rounded-xl px-4"
               on:click={() => review_request(false)}>
               Reject request
             </button>
@@ -372,7 +434,7 @@
         {/if}
 
         {#if task.state === 'success' || (task.state === 'error' && task.review_output)}
-          {#if task.is_owner}
+          {#if task.is_owner && $mode === 'data'}
             <button
               class="btn btn-danger mr-3"
               on:click={() => release_output(false)}>

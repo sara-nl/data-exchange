@@ -47,10 +47,9 @@ class TaskerDoneListener(Listener):
         self.stdout.write(f"Received {task_completed}")
         task = Task.objects.get(pk=task_completed.task_id)
 
-
         if task_completed.state == "rejected":
-            task.permission['state'] = Permission.ABORTED
-            tast.permission['status_description'] = "algorithm changed"
+            task.permission["state"] = Permission.ABORTED
+            tast.permission["status_description"] = "algorithm changed"
             task.state = Task.ALGORITHM_CHANGED
             task.save()
 

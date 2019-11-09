@@ -144,7 +144,7 @@
 
         <h5 class="font-weight-bold">Secure container</h5>
         <p>
-          Instead the DataExchange provides secure and networkless third-party
+          Instead the DataExchange provides secure and networkless trusted third-party
           containers in which algorithm and dataset can safely interact. 
           The dataset and algorithm are anonymously downloaded in the secure container when running and removed when running is finished.
           Neither

@@ -80,8 +80,6 @@
             requesting = false;
             showError = error.response && error.response.data && error.response.data.error || null;
         }
-
-        requesting = false;
     }
 
 
@@ -102,6 +100,8 @@
             Tasks.get_pending_requests().then(task_response => {
                 // console.log(task_response.data)
                 running_tasks = task_response.data;
+                requesting = false;
+
             });
         } catch (error) {
             console.log(error.toString());

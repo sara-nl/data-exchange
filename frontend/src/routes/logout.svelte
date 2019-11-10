@@ -5,7 +5,7 @@
 	token.set(null);
 </script>
 
-<div class="container-fluid">
+<div class="container-fluid mx-auto">
     <div class="row">
         <div class="col-xs-12 col-md-6">
             <h1>Logged out successfully</h1>

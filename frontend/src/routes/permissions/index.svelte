@@ -58,7 +58,7 @@
 {#if obtained_permissions === null || given_permissions === null}
 <Spinner />
 {:else}
-<div class="container-fluid">
+<div class="container-fluid mx-auto">
     <div class="row">
         <div class="col-md">
             <h2><small class="text-muted">Given Permissions</small></h2>

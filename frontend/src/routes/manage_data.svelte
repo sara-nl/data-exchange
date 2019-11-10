@@ -4,6 +4,8 @@
   import LoadFiles from "../api/loader";
   import Tasks from "../api/tasks";
   import Permissions from "../api/permissions";
+    import File from "../components/File.svelte";
+  import State from "../components/State.svelte";
 
   import RemoveShare from "../api/shares";
   import Spinner from "../components/Spinner.svelte";
@@ -107,7 +109,7 @@
 
 <h3 class="display-5">Manage shared Files and Folders</h3>
 
-<div class="container-fluid m-2">
+<div class="container-fluid mx-auto m-2">
 
   {#if own_datasets === null}
     <Spinner />
@@ -186,11 +188,12 @@
                     {#if task.state !== "stream_permission_request"}
                       <tr class="my-1">
                         <td>{task.author_email}</td>
-                        {#if task.state === 'data_requested' || task.state === 'running'}
+                        <!-- {#if task.state === 'data_requested' || task.state === 'running'}
                           <td class="text-danger font-weight-bold">False</td>
                         {:else}
                           <td class="text-success font-weight-bold">True</td>
-                        {/if}
+                        {/if} -->
+                        <td><State state={task.state} /></td>
 
                         <td>
                           {dayjs(task.registered_on).format('DD-MM-YYYY')}

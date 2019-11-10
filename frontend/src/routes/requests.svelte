@@ -56,7 +56,7 @@
 {#if not_reviewed_yet === null || reviewed === null}
   <Spinner />
 {:else}
-  <div class="container-fluid mt-2">
+  <div class="container-fluid mx-auto mt-2">
     <!-- Not Reviewed Yet Table -->
     <div class="row">
       <div class="col-xl mt-4">
@@ -72,8 +72,8 @@
                 <th class="normal_column" scope="col">Type</th>
                 <th scope="col" class="desc_column">Dataset description</th>
                 <th class="normal_column" scope="col">Algorithm Name</th>
-                <th class="normal_column" scope="col">When</th>
-                <th class="normal_column" scope="col" />
+                <th class="small_column" scope="col">When</th>
+                <th class="desc_column" scope="col" />
                 <th class="normal_column" scope="col">Action</th>
               </tr>
             </thead>
@@ -142,8 +142,8 @@
 
                 <th scope="col">Dataset description</th>
                 <th class="normal_column" scope="col">Algorithm Name</th>
-                <th class="normal_column" scope="col">When</th>
-                <th class="normal_column" scope="col">
+                <th class="small_column" scope="col">When</th>
+                <th class="desc_column" scope="col">
                   Folder/Algorithm Run on
                 </th>
                 <th class="normal_column" scope="col">Action</th>

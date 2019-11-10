@@ -91,16 +91,17 @@
     data = {
       ...data,
       approved,
+      approve_user: approved,
+
       updated_request: task
     };
 
     try {
-
       let { data: response } = Tasks.review(taskId, data);
     } catch (error) {
       console.log(error.toString());
     }
-    goto('/requests');
+    goto("/requests");
   }
 
   async function review_request(approved: boolean) {
@@ -149,7 +150,7 @@
 {#if task === null}
   <Spinner />
 {:else if task.state === 'data_requested' && task.permission.permission_type === 'user permission'}
-  <div class="row my-5 rounded">
+  <div class="row mx-5 my-5 rounded">
     <div class="col-12">
       <button class="btn text-primary" on:click={() => goto(`/requests`)}>
         <i class="fas fa-arrow-left" />
@@ -172,10 +173,13 @@
 
           <div class="row mb-3 font-weight-bold">Permission Type</div>
           <div class="row mt-1 mb-5">{task.permission.permission_type}</div>
+          <div class="row mb-3 font-weight-bold">
+            <b>Dataset first run with:</b>
+          </div>
+          <div class="row mt-1 mb-5">{task.algorithm}</div>
         </div>
 
         <div class="col-6">
-
           <div class="row mb-3 font-weight-bold">
             <b>Choose dataset</b>
           </div>
@@ -199,11 +203,11 @@
                     </option>
                   {/each}
                 </select>
-            <h6 class="text-muted pt-2">
-              With this permission the requester can use any of his algorithms
-              on this dataset. Only grant this permission if you trust {task.author_email}
-              to always run benevolent algorithms.
-            </h6>
+                <h6 class="text-muted pt-2">
+                  With this permission the requester can use any of his
+                  algorithms on this dataset. Only grant this permission if you
+                  trust {task.author_email} to always run benevolent algorithms.
+                </h6>
               {/if}
             {:else}{task.dataset || 'No dataset selected'}{/if}
           </div>
@@ -234,7 +238,7 @@
     </div>
   </div>
 {:else}
-  <div class="row my-5 rounded">
+  <div class="row mx-5 my-5 rounded">
     <div class="col-12">
       <button class="btn text-primary" on:click={() => goto(`/requests`)}>
         <i class="fas fa-arrow-left" />

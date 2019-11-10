@@ -87,28 +87,28 @@
     }
   }
 
-    function review_permission(approved: boolean) {
+  function review_permission(approved: boolean) {
     data = {
       ...data,
       approved,
+      approve_user: approved,
+
       updated_request: task
     };
 
     try {
-
       let { data: response } = Tasks.review(taskId, data);
     } catch (error) {
       console.log(error.toString());
     }
-    goto('/requests');
+    goto("/requests");
   }
 
   async function review_request(approved: boolean) {
     data = {
       ...data,
       approved,
-      approve_user:approved,
-      updated_request: task,
+      updated_request: task
     };
 
     try {
@@ -176,9 +176,7 @@
           <div class="row mb-3 font-weight-bold">
             <b>Dataset first run with:</b>
           </div>
-          <div class="row mt-1 mb-5">
-            {task.algorithm}
-          </div>
+          <div class="row mt-1 mb-5">{task.algorithm}</div>
         </div>
 
         <div class="col-6">
@@ -205,11 +203,11 @@
                     </option>
                   {/each}
                 </select>
-            <h6 class="text-muted pt-2">
-              With this permission the requester can use any of his algorithms
-              on this dataset. Only grant this permission if you trust {task.author_email}
-              to always run benevolent algorithms.
-            </h6>
+                <h6 class="text-muted pt-2">
+                  With this permission the requester can use any of his
+                  algorithms on this dataset. Only grant this permission if you
+                  trust {task.author_email} to always run benevolent algorithms.
+                </h6>
               {/if}
             {:else}{task.dataset || 'No dataset selected'}{/if}
           </div>

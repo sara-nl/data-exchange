@@ -109,7 +109,7 @@
 
 <h3 class="display-5">Manage shared Files and Folders</h3>
 
-<div class="container-fluid m-2">
+<div class="container-fluid mx-auto m-2">
 
   {#if own_datasets === null}
     <Spinner />

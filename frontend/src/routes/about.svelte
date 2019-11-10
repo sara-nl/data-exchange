@@ -7,7 +7,7 @@
     <small class="text-muted">shared with DataExchange</small>
 </h2>
 
-<div class="container-fluid">
+<div class="container-fluid mx-auto">
     <br>
 
     <div class="row">

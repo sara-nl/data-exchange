@@ -32,7 +32,7 @@
   <small class="text-muted">a SURFsara x Bit concept</small>
 </h2>
 
-<div class="container-fluid">
+<div class="container-fluid mx-auto">
   <div class="row my-5">
     <div class="col my-3 p-4 px-5 bg-lightgrey rounded-xl">
       <h3>Where to start?</h3>

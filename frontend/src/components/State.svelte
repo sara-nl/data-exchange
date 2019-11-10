@@ -10,6 +10,11 @@
         case "release_rejected":
             return "text-danger";
 
+        case "running":
+            return "text-info";
+
+        case "algorithm_changed":
+            return "text-warning"
         default:
             return "";
         }

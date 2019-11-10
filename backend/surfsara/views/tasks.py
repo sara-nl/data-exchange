@@ -214,6 +214,7 @@ class Tasks(viewsets.ViewSet):
             return Response({"output": "Not your file"})
 
         update = request.data["updated_request"]
+
         if request.data["approved"]:
             result = "approved"
 
@@ -256,6 +257,29 @@ class Tasks(viewsets.ViewSet):
                     url=f"http://{request.get_host()}/permissions",
                     **update,
                 )
+
+            if request.data["stream"]:
+                permission_type = Permission.STREAM_PERMISSION
+            elif task.permission.permission_type == Permission.STREAM_PERMISSION:
+                permission_type = Permission.USER_PERMISSION
+                algorithm_name = "Any algorithm"
+            else:
+                permission_type = Permission.ONE_TIME_PERMISSION
+
+            print(permission_type)
+            new_perm = Permission(
+                algorithm=algorithm_name,
+                algorithm_provider=update["author_email"],
+                algorithm_etag=task.algorithm_etag,
+                dataset=update["dataset"],
+                dataset_provider=update["approver_email"],
+                review_output=request.data["review_output"],
+                permission_type=permission_type,
+                state=Permission.ACTIVE,
+            )
+            new_perm.save()
+            task.permission = new_perm
+            task.save()
         else:
             result = "rejected"
             task.state = Task.REQUEST_REJECTED

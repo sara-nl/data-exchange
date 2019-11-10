@@ -72,8 +72,8 @@
                 <th class="normal_column" scope="col">Type</th>
                 <th scope="col" class="desc_column">Dataset description</th>
                 <th class="normal_column" scope="col">Algorithm Name</th>
-                <th class="normal_column" scope="col">When</th>
-                <th class="normal_column" scope="col" />
+                <th class="small_column" scope="col">When</th>
+                <th class="desc_column" scope="col" />
                 <th class="normal_column" scope="col">Action</th>
               </tr>
             </thead>
@@ -142,8 +142,8 @@
 
                 <th scope="col">Dataset description</th>
                 <th class="normal_column" scope="col">Algorithm Name</th>
-                <th class="normal_column" scope="col">When</th>
-                <th class="normal_column" scope="col">
+                <th class="small_column" scope="col">When</th>
+                <th class="desc_column" scope="col">
                   Folder/Algorithm Run on
                 </th>
                 <th class="normal_column" scope="col">Action</th>

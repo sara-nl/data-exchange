@@ -26,7 +26,7 @@
 </style>
 
 <nav class="navbar navbar-light bg-light">
-    <a class="navbar-brand" href="/">DataExchange (Demo)</a>
+    <a class="navbar-brand text-primary font-weight-bold" href="/">DataExchange (Demo)</a>
 
     <div class="navbar justify-content-left" id="navbarNav">
         <ul class="nav nav-pills" style="border-right: 1px solid rgba(0, 0, 0, .12)">

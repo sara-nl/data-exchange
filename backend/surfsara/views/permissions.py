@@ -120,6 +120,23 @@ class Permissions(viewsets.ViewSet):
         return Response({"given_permissions": given_per_file})
 
     @action(
+        detail=False,
+        methods=["GET"],
+        name="list_permissions",
+        permission_classes=[IsAuthenticated],
+    )
+    def list_permissions(self, request):
+        """
+        Returns all unique permissions
+        """
+        permissions = [
+            permission
+            for permission in Permission.PERMISSIONS
+            if permission[0] != Permission.NO_PERMISSION
+        ]
+        return Response({"list_permissions": permissions})
+
+    @action(
         detail=True,
         methods=["POST"],
         name="remove",

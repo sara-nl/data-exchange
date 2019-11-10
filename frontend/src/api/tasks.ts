@@ -5,6 +5,7 @@ export class TasksStartRequest {
     public algorithm: string = "";
     public data_owner: string = "";
     public dataset_desc: string = "";
+    public permission: string = "";
 }
 
 export class TasksPermRequest {
@@ -44,6 +45,10 @@ export default class Tasks extends Controller {
 
     public static async get_data_requests(): Promise<AxiosResponse> {
         return this.client.get("/tasks/get_data_requests")
+    }
+
+    public static async get_pending_requests(): Promise<AxiosResponse> {
+        return this.client.get("/tasks/get_pending_requests")
     }
 
     public static async get_logs(): Promise<AxiosResponse> {

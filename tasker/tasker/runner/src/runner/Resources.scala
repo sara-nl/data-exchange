@@ -2,7 +2,7 @@ package runner
 
 import java.nio.file.{Files, Path, Paths}
 
-import cats.effect.{ConcurrentEffect, ContextShift, IO, Resource}
+import cats.effect.{ConcurrentEffect, IO, Resource}
 import org.apache.commons.io.FileUtils
 import runner.clients.DockerContainer
 import runner.container.ContainerEnv.Artifact
@@ -46,11 +46,10 @@ object Resources {
     * Acquire: If necessary - container is created, dependencies installed, image created.
     * Release: If necessary - container and image removed.
     */
-  def bakedImageWithDeps(
-    containerEnv: ContainerEnv,
-    requirementsTxtOption: Option[Path]
-  )(implicit F: ConcurrentEffect[IO],
-    cs: ContextShift[IO]): Resource[IO, Either[ContainerState, ImageId]] =
+  def bakedImageWithDeps(containerEnv: ContainerEnv,
+                         requirementsTxtOption: Option[Path])(
+    implicit F: ConcurrentEffect[IO]
+  ): Resource[IO, Either[ContainerState, ImageId]] =
     requirementsTxtOption match {
       case Some(requirementsTxtContainerPath) =>
         for {

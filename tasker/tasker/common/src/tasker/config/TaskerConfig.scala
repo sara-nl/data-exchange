@@ -3,7 +3,7 @@ package tasker.config
 import java.net.URI
 import java.util.concurrent.Executors
 
-import cats.effect.{ContextShift, IO, Timer}
+import cats.effect.{IO, Timer}
 import dev.profunktor.fs2rabbit.config.declaration.{
   DeclarationExchangeConfig,
   DeclarationQueueConfig

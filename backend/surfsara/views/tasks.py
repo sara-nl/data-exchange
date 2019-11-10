@@ -32,14 +32,27 @@ class Tasks(viewsets.ViewSet):
                 {"error": f"Unknown email address '{data_owner_email}'"}, status=400
             )
 
+        # Create permission
+        permission = Permission(
+            permission_type=request.data["permission"],
+            algorithm=request.data["algorithm"],
+            algorithm_provider=request.user.email,
+            dataset_provider=data_owner_email,
+        )
+        permission.save()
+
+        # Create task
         task = Task(
             state=Task.ANALYZING,
             author_email=request.user.email,
             approver_email=data_owner_email,
             algorithm=request.data["algorithm"],
             dataset_desc=request.data["dataset_desc"],
+            permission=permission,
         )
         task.save()
+
+        # Analyze algorithm and update the permissions model.
         task_service.analyze(task)
 
         mail_service.send_mail(
@@ -51,7 +64,7 @@ class Tasks(viewsets.ViewSet):
             dataset=task.dataset,
         )
 
-        return Response({"owner": True})
+        return Response({"owner": True, "id": task.id})
 
     def list(self, request):
         """
@@ -112,17 +125,27 @@ class Tasks(viewsets.ViewSet):
             | Q(state=Task.ERROR, review_output=False),
         ).order_by("-registered_on")
 
-        # print(TaskSerializer(reviewed, many=True).data)
-        # for request in not_reviewed_yet:
-        #     if request.state != Task.OUTPUT_RELEASED:
-        #         request.output = None
-
         return Response(
             {
                 "not_reviewed_yet": TaskSerializer(not_reviewed_yet, many=True).data,
                 "reviewed": TaskSerializer(reviewed, many=True).data,
             }
         )
+
+    @action(
+        detail=False,
+        methods=["GET"],
+        name="get_pending_requests",
+        permission_classes=[IsAuthenticated],
+    )
+    def get_pending_requests(self, request):
+        """Returns al requests with state 'running' """
+        pending_requests = Task.objects.filter(
+            permission__in=Permission.objects.filter(state=Permission.PENDING),
+            author_email=request.user.email,
+        ).order_by("-registered_on")
+
+        return Response(TaskSerializer(pending_requests, many=True).data)
 
     @action(
         detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
@@ -193,16 +216,31 @@ class Tasks(viewsets.ViewSet):
         update = request.data["updated_request"]
         if request.data["approved"]:
             result = "approved"
-            permission_type = Permission.ONE_TIME_PERMISSION
-            algorithm_name = task.algorithm
 
             task.dataset = update["dataset"]
             task.review_output = request.data["review_output"]
-            task_service.start(task)
-            task.state = Task.RUNNING
-            task.save()
+            task.permission.state = Permission.ACTIVE
+            task.permission.dataset = task.dataset
+            task.permission.save()
 
-            if request.data["approve_user"] or request.data["stream"]:
+            # If the permission is a stream permission, the execution of the dataset gets handled by
+            # the watcher, therefore no call to rabbitMQ is made.
+            if task.permission.permission_type == Permission.STREAM_PERMISSION:
+                task.state = Task.STREAM_PERMISSION_REQUEST
+                task.save()
+
+            # Start container and run algorithm and dataset together.
+            else:
+                task_service.start(task)
+                task.state = Task.RUNNING
+                task.save()
+
+            # Send mails.
+            if (
+                task.permission.permission_type == Permission.USER_PERMISSION
+                or task.permission.permission_type == Permission.STREAM_PERMISSION
+            ):
+
                 mail_service.send_mail(
                     mail_files="permission_granted_do",
                     receiver=task.approver_email,
@@ -242,6 +280,8 @@ class Tasks(viewsets.ViewSet):
         else:
             result = "rejected"
             task.state = Task.REQUEST_REJECTED
+            task.permission.state = Permission.REJECTED
+            task.permission.save()
             task.save()
 
         mail_service.send_mail(
@@ -275,6 +315,8 @@ class Tasks(viewsets.ViewSet):
             result = "approved"
         else:
             task.state = Task.RELEASE_REJECTED
+            task.permission.state = Permission.ABORTED
+            task.permission.save()
             result = "rejected"
         task.save()
 

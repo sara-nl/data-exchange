@@ -6,6 +6,8 @@ body {
     font-size: 14px;
     line-height: 1.5;
     color: #333;
+
+    font-size: 1.1rem !important;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -38,8 +40,12 @@ code {
 }
 
 /* REDESIGN CSS */
-.custom-select {
-    background-image: url("data:image/svg+xml;charset=utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 5'%3E%3Cpath fill='white' d='M2 0L0 2h4zm0 5L0 3h4z'/%3E%3C/svg%3E") !important
+.select-white {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") no-repeat;
+    background-position-x: 98%;
+    background-position-y: 5px;
 }
 
 .rounded-xl {

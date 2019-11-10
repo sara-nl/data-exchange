@@ -185,6 +185,7 @@
                   </thead>
                   <tbody>
                     {#each dataset_tasks[file.name] as task}
+                    {#if task.state !== "stream_permission_request"}
                       <tr class="my-1">
                         <td>{task.author_email}</td>
                         <!-- {#if task.state === 'data_requested' || task.state === 'running'}
@@ -201,6 +202,7 @@
                           <a href={`/tasks/${task.id}`}>See log</a>
                         </td>
                       </tr>
+                      {/if}
                     {/each}
                   </tbody>
 

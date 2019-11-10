@@ -214,6 +214,7 @@ class Tasks(viewsets.ViewSet):
             return Response({"output": "Not your file"})
 
         update = request.data["updated_request"]
+
         if request.data["approved"]:
             result = "approved"
 
@@ -256,14 +257,17 @@ class Tasks(viewsets.ViewSet):
                     url=f"http://{request.get_host()}/permissions",
                     **update,
                 )
-                if request.data["approve_user"]:
-                    permission_type = Permission.USER_PERMISSION
-                    algorithm_name = "Any algorithm"
-                elif request.data["stream"]:
-                    permission_type = Permission.STREAM_PERMISSION
-                else:
-                    raise AssertionError("Invalid state - this should never be reached")
 
+            if request.data["stream"]:
+                permission_type = Permission.STREAM_PERMISSION
+            elif  task.permission.permission_type == Permission.STREAM_PERMISSION:
+                permission_type = Permission.USER_PERMISSION
+                algorithm_name = "Any algorithm"
+            else: 
+                permission_type = Permission.ONE_TIME_PERMISSION
+            
+
+            print(permission_type)
             new_perm = Permission(
                 algorithm=algorithm_name,
                 algorithm_provider=update["author_email"],

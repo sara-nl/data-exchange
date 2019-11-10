@@ -75,11 +75,15 @@
             Tasks.start(data).then( response => {
                 getPendingTasks();
             });
+
         } catch (error) {
             requesting = false;
             showError = error.response && error.response.data && error.response.data.error || null;
         }
+
+        requesting = false;
     }
+
 
     async function getUserPermissions() {
         try {
@@ -96,6 +100,7 @@
     async function getPendingTasks() {
         try {
             Tasks.get_pending_requests().then(task_response => {
+                // console.log(task_response.data)
                 running_tasks = task_response.data;
             });
         } catch (error) {

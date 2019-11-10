@@ -260,12 +260,11 @@ class Tasks(viewsets.ViewSet):
 
             if request.data["stream"]:
                 permission_type = Permission.STREAM_PERMISSION
-            elif  task.permission.permission_type == Permission.STREAM_PERMISSION:
+            elif task.permission.permission_type == Permission.STREAM_PERMISSION:
                 permission_type = Permission.USER_PERMISSION
                 algorithm_name = "Any algorithm"
-            else: 
+            else:
                 permission_type = Permission.ONE_TIME_PERMISSION
-            
 
             print(permission_type)
             new_perm = Permission(

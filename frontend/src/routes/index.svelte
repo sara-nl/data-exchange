@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { mode } from "../stores";
     import { onMount } from "svelte";
     import LoadFiles from "../api/loader";
     import Spinner from "../components/Spinner.svelte";
@@ -40,21 +41,21 @@
             {#if own_datasets === null || own_algorithms === null}
                 <Spinner />
             {:else}
-                {#if own_algorithms.length == 0 && own_datasets.length == 0}
+                {#if ($mode === "data" && own_algorithms.length == 0) || ($mode !== "data" && own_datasets.length == 0)}
                     <div class="my-3">
                         <p>You haven't shared any files with the DataExchange<br>Click here to learn how to share files:</p>
                         <a class="btn btn-primary" href="/myfiles">Share files</a>
                     </div>
                 {/if}
 
-                {#if own_datasets.length > 0}
+                {#if $mode === "data" && own_datasets.length > 0}
                     <div class="my-3">
                         <p>You have shared datasets with the DataExchange<br>Click here to see requests for your data:</p>
                         <a class="btn btn-primary" href="/tasks">See requests</a>
                     </div>
                 {/if}
 
-                {#if own_algorithms.length > 0}
+                {#if $mode !== "data" && own_algorithms.length > 0}
                     <div class="my-3">
                         <p>You have shared algorithms with the DataExchange<br>Click here to make a request:</p>
                         <a class="btn btn-primary" href="/tasks/request">Make a request</a>

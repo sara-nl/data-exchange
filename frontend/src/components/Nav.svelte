@@ -28,16 +28,16 @@
 <nav class="navbar navbar-light bg-light">
     <a class="navbar-brand" href="/">DataExchange (Demo)</a>
 
-    <div class="navbar justify-content-start" id="navbarNav">
+    <div class="navbar justify-content-left" id="navbarNav">
         <ul class="nav nav-pills" style="border-right: 1px solid rgba(0, 0, 0, .12)">
             <NavItem name="Home" href="/" active={segment === undefined} />
             {#if $token}
                 {#if $mode === "data"}
-                    <NavItem name="Manage Data" href="/manage_data" />
-                    <NavItem name="Review Requests" href="/requests" />
+                    <NavItem name="Manage Data" href="/manage_data" active={segment === "manage_data"} />
+                    <NavItem name="Review Requests" href="/requests"  active={segment === "requests"}/>
                 {:else}
-                    <NavItem name="Manage Algorithms" href="/manage_algorithms" />
-                    <NavItem name="Create Requests" href="/tasks/request" />
+                    <NavItem name="My permissions" href="/manage_algorithms"  active={segment === "manage_algorithms"}/>
+                    <NavItem name="Create Request" href="/tasks/request"  active={segment === "tasks"}/>
                 {/if}
             {/if}
         </ul>
@@ -60,11 +60,11 @@
                     </span>
                 </span>
                 <button
-                    class="btn btn-outline-primary"
+                    class="btn btn-light btn-sm"
                     type="button"
                     on:click={toggleMode}
                 >
-                    Toggle
+                    (Toggle)
                 </button>
             </form>
         {/if}

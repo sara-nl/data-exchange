@@ -60,10 +60,10 @@
             Click here to make a request for the use of a dataset:
           </p>
           <button
-            class="btn btn-primary rounded-xl font-weight-bold"
+            class="btn col-7 btn-primary rounded-xl font-weight-bold"
             on:click={() => goto(`/tasks/request`)}>
 
-            <div class="px-4">Make a request</div>
+            <div class="px-4">Make request for or run with permission</div>
           </button>
         </div>
       {:else}

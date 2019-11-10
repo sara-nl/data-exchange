@@ -135,6 +135,7 @@
 
 <ErrorMessage error={showError} />
 
+<div class="row w-100 mb-2"><h3 class="display-5">Create request</h3></div>
 <div class="row">
     <div class="col-6">
         <!-- Request permission -->
@@ -144,30 +145,40 @@
 
                 <div class="row mb-3 ml-2 mr-3 w-100">
                     <div class="col-3 pl-2">Type of permission</div>
-                    <div class="col-5">
-                        {#if permissions === null}
-                            <Spinner small />
-                        {:else}
-                            <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
-                                    id="permissions"
-                                    bind:value={data.permission}>
-                                <option selected="selected" disabled value="">No permission selected</option>
+                    <div class="col-9">
+                        <div class="container">
+                            {#if permissions === null}
+                                <Spinner small />
+                            {:else}
+                                <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
+                                        id="permissions"
+                                        bind:value={data.permission}>
+                                    <option selected="selected" disabled value="">No permission selected</option>
 
-                                {#each permissions as permission}
-                                    <option value={permission[0]}>{permission[1]}</option>
-                                {/each}
-                            </select>
-                        {/if}
+                                    {#each permissions as permission}
+                                        <option value={permission[0]}>{permission[1]}</option>
+                                    {/each}
+                                </select>
+                            {/if}
+                        </div>
                     </div>
-                    {#if data.permission === "one time permission"}
-                        <div class="col-4">{info_run_once}</div>
-                    {:else if data.permission === "stream permission"}
-                        <div class="col-4">{info_stream_permission}</div>
-                    {:else if data.permission === "user permission"}
-                        <div class="col-4">{info_user_permission}</div>
-                    {:else}
-                        <div class="col-4">{info_standard}</div>
-                    {/if}
+                </div>
+
+                <div class="row my-3 ml-2 mr-3 w-100">
+                    <div class="col-lg-3 pl-2"></div>
+                    <div class="col-9">
+                        <div class="container">
+                            {#if data.permission === "one time permission"}
+                                {info_run_once}
+                            {:else if data.permission === "stream permission"}
+                                {info_stream_permission}
+                            {:else if data.permission === "user permission"}
+                                {info_user_permission}
+                            {:else}
+                                {info_standard}
+                            {/if}
+                        </div>
+                    </div>
                 </div>
 
                 <div class="row my-3 ml-2 mr-3 w-100">
@@ -235,10 +246,10 @@
         <!-- Running Requests -->
         <div class="row bg-light mr-4 rounded pb-5">
             <div class="row ml-1 px-3 py-4 font-weight-bold w-100">Pending Requests</div>
-            <div class="row px-4 w-100">
+            <div class="row px-4 w-100 mb-2">
                 <div class="col-3 font-weight-bold">Who</div>
-                <div class="col-3 font-weight-bold">Type</div>
-                <div class="col-6 font-weight-bold">Given Description</div>
+                <div class="col-4 font-weight-bold">Type</div>
+                <div class="col-5 font-weight-bold">Given Description</div>
             </div>
             {#if running_tasks === null || running_tasks.length === 0}
             <div class="row px-4 ml-1 w-100">
@@ -246,10 +257,10 @@
             </div>
             {:else}
                 {#each running_tasks as run_task}
-                    <div class="row px-4 w-100">
+                    <div class="row px-4 w-100 mb-1">
                         <div class="col-3">{run_task.approver_email}</div>
-                        <div class="col-3">{run_task.permission.permission_type}</div>
-                        <div class="col-6">{run_task.dataset_desc}</div>
+                        <div class="col-4">{run_task.permission.permission_type}</div>
+                        <div class="col-5">{run_task.dataset_desc}</div>
                     </div>
                 {/each}
             {/if}

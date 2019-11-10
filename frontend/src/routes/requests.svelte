@@ -102,8 +102,8 @@
                   <td class="bg-lightgrey normal_column">
                     {dayjs(file.registered_on).format('DD-MM-YYYY')}
                   </td>
-                  <td class="bg-lightgrey rounded-xlr normal_column" />
-                  <td class="bg-lightgrey normal_column">
+                  <td class="bg-lightgrey normal_column" />
+                  <td class="bg-lightgrey normal_column rounded-xlr">
                     <button
                       class="btn btn-primary rounded-xl font-weight-bold"
                       on:click={() => goto(`/tasks/${file.id}`)}>
@@ -128,7 +128,7 @@
     </div>
 
     <!-- Reviewed Table -->
-    <div class="row">
+    <div class="row mt-5">
       <div class="col">
         <h3>
           <small class="text-muted">Reviewed</small>

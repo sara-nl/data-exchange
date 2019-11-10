@@ -4,7 +4,7 @@ from surfsara.models.permission import Permission
 
 
 class Task(models.Model):
-    REGISTERED = "registered"
+    STREAM_PERMISSION_REQUEST = "stream_permission_request"
     DATA_REQUESTED = "data_requested"
     ANALYZING = "analyzing_algorithm"
     RUNNING = "running"
@@ -14,21 +14,20 @@ class Task(models.Model):
     REQUEST_REJECTED = "request_rejected"
     RELEASE_REJECTED = "release_rejected"
 
-    id = models.AutoField(primary_key=True)
-    state = models.CharField(
-        max_length=255,
-        choices=[
-            (REGISTERED, "Registered"),
-            (DATA_REQUESTED, "Data Requested"),
-            (RUNNING, "Running"),
-            (ANALYZING, "Analyzing_algorithm"),
-            (SUCCESS, "Success"),
-            (ERROR, "Error"),
-            (OUTPUT_RELEASED, "Output Released"),
-            (REQUEST_REJECTED, "Request Rejected"),
-            (RELEASE_REJECTED, "Release Rejected"),
-        ],
+    TASK_STATES = (
+        (STREAM_PERMISSION_REQUEST, "stream_permission_request"),
+        (DATA_REQUESTED, "Data Requested"),
+        (RUNNING, "Running"),
+        (ANALYZING, "Analyzing_algorithm"),
+        (SUCCESS, "Success"),
+        (ERROR, "Error"),
+        (OUTPUT_RELEASED, "Output Released"),
+        (REQUEST_REJECTED, "Request Rejected"),
+        (RELEASE_REJECTED, "Release Rejected"),
     )
+
+    id = models.AutoField(primary_key=True)
+    state = models.CharField(max_length=255, choices=TASK_STATES)
     author_email = models.EmailField()
     approver_email = models.EmailField()
     algorithm = models.TextField()

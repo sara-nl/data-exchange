@@ -1,11 +1,7 @@
 <script lang="ts">
-  import { goto } from "@sapper/app";
   import { onMount } from "svelte";
   import dayjs from "dayjs";
-  import LoadFiles from "../api/loader";
-  import Tasks from "../api/tasks";
   import Permissions from "../api/permissions";
-  import RemoveShare from "../api/shares";
 
   import Spinner from "../components/Spinner.svelte";
   import File from "../components/File.svelte";
@@ -76,12 +72,14 @@
                   </thead>
                   <tbody>
                     {#each tasks as task}
-                      <tr>
-                        <td><File name={task.dataset} /></td>
-                        <td><State state={task.state} /></td>
-                        <td>{dayjs(task.registered_on).format("DD-MM-YYYY")}</td>
-                        <td><a href={`/tasks/${task.id}`}>Details</a></td>
-                      </tr>
+                        {#if task.state !== "stream_permission_request"}
+                        <tr>
+                          <td><File name={task.dataset} /></td>
+                          <td><State state={task.state} /></td>
+                          <td>{dayjs(task.registered_on).format("DD-MM-YYYY")}</td>
+                          <td><a href={`/tasks/${task.id}`}>Details</a></td>
+                        </tr>
+                        {/if}
                     {:else}
                       No tasks for this algorithm.
                     {/each}
@@ -92,7 +90,7 @@
         </div>
       </div>
     {:else}
-      <div>You have shared no datasets</div>
+      <div>You have shared no algorithms</div>
     {/each}
   {/if}
 

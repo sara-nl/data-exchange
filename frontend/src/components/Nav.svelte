@@ -11,7 +11,6 @@
     function toggleMode() {
         let current = $mode;
         mode.set(current === "data" ? "algorithm" : "data");
-        console.log($mode);
     }
 </script>
 
@@ -35,10 +34,11 @@
             {#if $token}
                 {#if $mode === "data"}
                     <NavItem name="Manage Data" href="/manage_data" />
+                    <NavItem name="Review Requests" href="/requests" />
                 {:else}
                     <NavItem name="Manage Algorithms" href="/manage_algorithms" />
+                    <NavItem name="Create Requests" href="/tasks/request" />
                 {/if}
-                <NavItem name="Requests" href="/requests" />
             {/if}
         </ul>
 

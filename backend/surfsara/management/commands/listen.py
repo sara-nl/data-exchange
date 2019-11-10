@@ -4,7 +4,7 @@ from django.core.management.base import BaseCommand, CommandError
 from dataclasses import dataclass
 from dataclasses_json import dataclass_json, LetterCase
 
-from surfsara.models import Task
+from surfsara.models import Task, Permission
 from surfsara.services import mail_service
 from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 
@@ -85,9 +85,16 @@ class AnalyzeListener(Listener):
         processor = AlgorithmProcessor(task.algorithm, task.author_email)
         task.algorithm_content = processor.start_processing()
         task.algorithm_info = processor.calculate_algorithm_total()
-        task.algorithm_etag = processor.get_etag()
-        self.stdout.write(f"Etag found: {task.algorithm_etag}")
-        task.state = Task.DATA_REQUESTED
+        etag = processor.get_etag()
+        task.algorithm_etag = etag
+        task.permission.algorithm_etag = etag
+        task.permission.save()
+        self.stdout.write(f"Etag found: {etag}")
+
+        # If the permission is active we shouldn't change the task state, because it
+        # is not necessary for the data owner to review the algorithm.
+        if task.permission.state != Permission.ACTIVE:
+            task.state = Task.DATA_REQUESTED
         task.save()
 
 

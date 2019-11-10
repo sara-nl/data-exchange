@@ -86,7 +86,7 @@
                 <tr class="rounded-xl">
 
                   <td class="bg-lightgrey normal_column rounded-xll">
-                    {file.approver_email}
+                    {file.author_email}
                   </td>
 
                   {#if file.permission !== null}

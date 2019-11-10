@@ -11,6 +11,8 @@ class OwnShares:
         self.shares = list(
             filter(self.belongs_to_requester, self.rd_client.get_shares())
         )
+        self.alg_shares = None
+        self.data_shares = None
         self.reduce_shares()
 
     def return_own_shares(self):
@@ -22,7 +24,8 @@ class OwnShares:
         else:
             return share.get("path")[-3:] == ".py"
 
-    def can_be_dataset(self, share):
+    @staticmethod
+    def can_be_dataset(share):
         return share.get("path")[-3:] != ".py"
 
     def belongs_to_requester(self, share):

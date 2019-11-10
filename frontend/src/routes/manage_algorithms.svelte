@@ -9,6 +9,11 @@
 
   let permissions: any | null = null;
 
+  const permissionTypes = {
+    "user permission": "any algorithm",
+    "stream permission": "stream",
+  }
+
   onMount(async () => {
     await load();
   });
@@ -20,36 +25,36 @@
 </script>
 
 <style>
-  .permission {
-    display: inline-block;
+  .algorithm-row:not(:last-child) {
+    border-bottom: 2px solid rgba(0, 0, 0, .2);
   }
 </style>
 
 <svelte:head>
-  <title>Manage Algorithms</title>
+  <title>My permissions</title>
 </svelte:head>
 
-<h3 class="display-5">My algorithms & outputs</h3>
+<h3 class="display-5">My permissions</h3>
 
-<div class="container-fluid m-2">
+<div class="container-fluid m-3">
 
   {#if permissions === null}
     <Spinner />
   {:else}
     {#each Object.entries(permissions) as [file, { permissions, tasks }]}
-      <div class="row my-5 p-4">
+      <div class="row my-5 p-3 pb-5 algorithm-row">
         <div class="row w-100">
           <File name={file} />
         </div>
-        <div class="row mt-5 w-100">
+        <div class="row mt-3 w-100">
           <div class="col-4 p-3 rounded-xl background bg-lightgrey">
             <h3>
               <small class="text-muted">Permissions</small>
             </h3>
             <div>
-            {#each permissions as permission}
+            {#each permissions.sort((a, b) => a.permission_type < b.permission_type) as permission}
               <div class="permission my-2">
-                <File name={permission.dataset} />
+                <File name={`${permission.dataset} (${permissionTypes[permission.permission_type] || permission.permission_type})`} />
               </div>
             {:else}
               No permissions given on this file.
@@ -77,7 +82,17 @@
                           <td><File name={task.dataset} /></td>
                           <td><State state={task.state} /></td>
                           <td>{dayjs(task.registered_on).format("DD-MM-YYYY")}</td>
-                          <td><a href={`/tasks/${task.id}`}>Details</a></td>
+                          <td>
+                            <a href={`/tasks/${task.id}`}>
+                              {#if task.state === "data_requested"}
+                                See request
+                              {:else if task.state === "output_released"}
+                                See output
+                              {:else}
+                                See details
+                              {/if}
+                            </a>
+                          </td>
                         </tr>
                         {/if}
                     {:else}

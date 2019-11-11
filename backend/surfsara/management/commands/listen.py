@@ -48,9 +48,7 @@ class TaskerDoneListener(Listener):
         task = Task.objects.get(pk=task_completed.task_id)
 
         if task_completed.state == "rejected":
-        perm = Permission.objects.get(
-            id=task.permission.id,
-        )            
+            perm = Permission.objects.get(id=task.permission.id)            
             perm.state = Permission.ABORTED
             perm.status_description = "algorithm changed"
             perm.save()

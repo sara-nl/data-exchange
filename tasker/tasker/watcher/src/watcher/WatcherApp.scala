@@ -48,7 +48,9 @@ object WatcherApp extends IOApp {
     } yield publisher
 
   override def run(args: List[String]): IO[ExitCode] =
-    logger.info("Watcher started") *>
+    logger.info(
+      s"Watcher started (interval ${TaskerConfig.watcher.awakeInterval})"
+    ) *>
       todoPublisherResource.use { publisher =>
         fs2.Stream
           .awakeEvery[IO](TaskerConfig.watcher.awakeInterval)

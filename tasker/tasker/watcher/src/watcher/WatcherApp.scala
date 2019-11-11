@@ -56,7 +56,12 @@ object WatcherApp extends IOApp {
           .through(_.flatMap { _ =>
             fs2.Stream
               .evalSeq(Permission.findAllPermissions(xa))
-              .evalTap(p => logger.debug(s"Reacting on permission $p"))
+              .evalTap(
+                p =>
+                  logger.debug(
+                    s"Reacting on permission $p \n (already applied for ${p._2.size} datasets"
+                )
+              )
               .through(DataSet.newDatasetsPipe)
               .evalTap {
                 case (newDataset, eTag, permission) =>

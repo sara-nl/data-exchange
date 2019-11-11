@@ -290,6 +290,13 @@
           Step 3. Release output
         </div>
       {/if}
+
+      {#if task.state === 'output_released' || (task.state === 'error' && !task.review_output)}
+        <div class="col-sm text-center text-secondary p-2 font-weight-bold">
+          Execution finished
+        </div>
+
+      {/if}
     </div>
 
     {#if task.state === 'running'}

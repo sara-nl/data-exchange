@@ -51,6 +51,7 @@
     try {
       let { data: response } = await Tasks.get_logs();
       dataset_tasks = response.data_tasks;
+      console.log(dataset_tasks)
     } catch (error) {
       console.log(error.toString());
     }

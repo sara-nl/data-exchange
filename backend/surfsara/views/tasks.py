@@ -223,6 +223,7 @@ class Tasks(viewsets.ViewSet):
             task.permission.state = Permission.ACTIVE
             task.permission.dataset = task.dataset
             task.permission.save()
+        
 
             # If the permission is a stream permission, the execution of the dataset gets handled by
             # the watcher, therefore no call to rabbitMQ is made.
@@ -260,13 +261,14 @@ class Tasks(viewsets.ViewSet):
 
             if request.data["stream"]:
                 permission_type = Permission.STREAM_PERMISSION
+                algorithm_name = task.algorithm
             elif task.permission.permission_type == Permission.STREAM_PERMISSION:
                 permission_type = Permission.USER_PERMISSION
                 algorithm_name = "Any algorithm"
             else:
                 permission_type = Permission.ONE_TIME_PERMISSION
+                algorithm_name = task.algorithm
 
-            print(permission_type)
             new_perm = Permission(
                 algorithm=algorithm_name,
                 algorithm_provider=update["author_email"],

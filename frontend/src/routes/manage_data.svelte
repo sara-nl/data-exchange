@@ -12,7 +12,7 @@
 
   let own_datasets: any[] | null = null;
   let data = {};
-  let dataset_tasks: {};
+  let dataset_tasks = {};
 
   let datasets = {};
   let algorithms = {};
@@ -40,7 +40,6 @@
       givenPermissions = response.given_permissions;
       datasets = Object.keys(givenPermissions);
 
-      console.log(givenPermissions);
     } catch (error) {
       console.log(error.toString());
     }
@@ -51,7 +50,6 @@
     try {
       let { data: response } = await Tasks.get_logs();
       dataset_tasks = response.data_tasks;
-      console.log(dataset_tasks)
     } catch (error) {
       console.log(error.toString());
     }
@@ -175,7 +173,7 @@
             <h3>
               <small class="text-muted">Runs</small>
             </h3>
-            {#if dataset_tasks !== null && dataset_tasks[file.name] !== undefined}
+            {#if dataset_tasks !== undefined && dataset_tasks[file.name] !== undefined}
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>

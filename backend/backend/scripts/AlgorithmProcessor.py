@@ -77,7 +77,7 @@ class AlgorithmProcessor:
                 "algorithm_name": original_name,
                 "algorithm_content": algorithm_content,
                 "algorithm_dependencies": imports,
-                "algorithm_newline": newline,
+                "algorithm_newline": newline + 1,
                 "algorithm_words": words,
                 "algorithm_characters": characters,
             }

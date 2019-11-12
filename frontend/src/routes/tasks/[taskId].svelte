@@ -198,7 +198,7 @@
 
         <div class="row mb-3 font-weight-bold">Algorithm Length</div>
         <div class="row mt-1 mb-5">
-          Newlines: {task.algorithm_info.algorithm_newline | "N/A"},
+          Lines: {task.algorithm_info.algorithm_newline | "N/A"},
           Words: {task.algorithm_info.algorithm_words | "N/A"},
           Characters: {task.algorithm_info.algorithm_characters | "N/A"}
         </div>

@@ -45,8 +45,18 @@ class TaskerDoneListener(Listener):
         # Probably it needs to be wrapped in try/except too :-)
         task_completed = self.TaskCompleted.from_json(body)
         self.stdout.write(f"Received {task_completed}")
-
         task = Task.objects.get(pk=task_completed.task_id)
+
+        if task_completed.state == "rejected":
+            perm = Permission.objects.get(id=task.permission.id)            
+            perm.state = Permission.ABORTED
+            perm.status_description = "algorithm changed"
+            perm.save()
+            task.state = Task.ALGORITHM_CHANGED
+            task.save()
+
+            return
+
         task.output = task_completed.output
 
         if not task.review_output and task_completed.state == "success":

@@ -25,7 +25,7 @@ object Permission {
     sql"""SELECT permission.id, permission.algorithm_provider, permission.dataset_provider, permission.algorithm, permission.algorithm_etag, permission.dataset, task.dataset
                    |  FROM surfsara_permission as permission
                    |  LEFT JOIN surfsara_task as task ON permission.id = task.permission_id
-                   |  WHERE permission.state != 'rejected' AND permission.permission_type = 'stream permission' AND permission.algorithm != 'Any algorithm'""".stripMargin
+                   |  WHERE permission.state = 'active' AND permission.permission_type = 'stream permission' AND permission.algorithm != 'Any algorithm'""".stripMargin
 
   /**
     * Fetches permissions of type streaming from the DB along with happened algorithm runs

@@ -10,6 +10,7 @@ class Task(models.Model):
     RUNNING = "running"
     SUCCESS = "success"
     ERROR = "error"
+    ALGORITHM_CHANGED = "algorithm_changed"
     OUTPUT_RELEASED = "output_released"
     REQUEST_REJECTED = "request_rejected"
     RELEASE_REJECTED = "release_rejected"

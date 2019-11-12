@@ -48,7 +48,9 @@ object WatcherApp extends IOApp {
     } yield publisher
 
   override def run(args: List[String]): IO[ExitCode] =
-    logger.info("Watcher started") *>
+    logger.info(
+      s"Watcher started (interval ${TaskerConfig.watcher.awakeInterval})"
+    ) *>
       todoPublisherResource.use { publisher =>
         fs2.Stream
           .awakeEvery[IO](TaskerConfig.watcher.awakeInterval)
@@ -56,7 +58,12 @@ object WatcherApp extends IOApp {
           .through(_.flatMap { _ =>
             fs2.Stream
               .evalSeq(Permission.findAllPermissions(xa))
-              .evalTap(p => logger.debug(s"Reacting on permission $p"))
+              .evalTap(
+                p =>
+                  logger.debug(
+                    s"Reacting on permission $p \n (already applied for ${p._2.size} datasets"
+                )
+              )
               .through(DataSet.newDatasetsPipe)
               .evalTap {
                 case (newDataset, eTag, permission) =>

@@ -28,7 +28,7 @@ object TaskerConfig {
   object watcher {
     val awakeInterval: FiniteDuration = 30.seconds
     val jdbcUrl = sys.env
-      .getOrElse("DB_JDBC_URL", "jdbc:postgresql://localhost:5433/surfsara")
+      .getOrElse("DB_JDBC_URL", "jdbc:postgresql://localhost:5432/surfsara")
     val dbUser = sys.env.getOrElse("DB_USER", "surfsara")
     val dbPassword = sys.env.getOrElse("DB_PASSWORD", "")
   }

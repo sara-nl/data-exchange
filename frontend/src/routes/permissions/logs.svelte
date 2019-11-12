@@ -64,7 +64,7 @@
 {#if dataset_tasks === null || alg_tasks === null}
   <Spinner />
 {:else}
-  <div class="container-fluid">
+  <div class="container-fluid mx-auto">
     <div class="row">
       <div class="col-xl">
         <h2>

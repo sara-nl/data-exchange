@@ -51,7 +51,7 @@ object DataSet {
                   ) *> IO.pure(Nil)
               }
           })
-          .filter(path => !oldDataSetPaths.contains(path))
+          .filter(path => !oldDataSetPaths.contains(path._1))
           .filter(_._1 =!= permission.dataSetPath)
     }
 }

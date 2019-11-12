@@ -72,7 +72,7 @@
 {#if to_approve_requests === null || own_requests === null}
 <Spinner />
 {:else}
-<div class="container-fluid">
+<div class="container-fluid mx-auto">
     {#if $mode === "data"}
         <div class="row">
             <div class="col-xl">

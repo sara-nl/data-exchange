@@ -4,13 +4,15 @@
   import LoadFiles from "../api/loader";
   import Tasks from "../api/tasks";
   import Permissions from "../api/permissions";
+    import File from "../components/File.svelte";
+  import State from "../components/State.svelte";
 
   import RemoveShare from "../api/shares";
   import Spinner from "../components/Spinner.svelte";
 
   let own_datasets: any[] | null = null;
   let data = {};
-  let dataset_tasks: {};
+  let dataset_tasks = {};
 
   let datasets = {};
   let algorithms = {};
@@ -38,7 +40,6 @@
       givenPermissions = response.given_permissions;
       datasets = Object.keys(givenPermissions);
 
-      console.log(givenPermissions);
     } catch (error) {
       console.log(error.toString());
     }
@@ -107,7 +108,7 @@
 
 <h3 class="display-5">Manage shared Files and Folders</h3>
 
-<div class="container-fluid m-2">
+<div class="container-fluid mx-auto m-2">
 
   {#if own_datasets === null}
     <Spinner />
@@ -172,7 +173,7 @@
             <h3>
               <small class="text-muted">Runs</small>
             </h3>
-            {#if dataset_tasks !== null && dataset_tasks[file.name] !== undefined}
+            {#if dataset_tasks !== undefined && dataset_tasks[file.name] !== undefined}
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
@@ -186,11 +187,12 @@
                     {#if task.state !== "stream_permission_request"}
                       <tr class="my-1">
                         <td>{task.author_email}</td>
-                        {#if task.state === 'data_requested' || task.state === 'running'}
+                        <!-- {#if task.state === 'data_requested' || task.state === 'running'}
                           <td class="text-danger font-weight-bold">False</td>
                         {:else}
                           <td class="text-success font-weight-bold">True</td>
-                        {/if}
+                        {/if} -->
+                        <td><State state={task.state} /></td>
 
                         <td>
                           {dayjs(task.registered_on).format('DD-MM-YYYY')}

@@ -6,6 +6,7 @@
     import Permissions from "../../api/permissions"
     import Tasks, { TasksStartRequest } from "../../api/tasks";
     import Spinner from "../../components/Spinner.svelte";
+    import PermissionInfo from "../../components/PermissionInfo.svelte";
     import ErrorMessage from "../../components/ErrorMessage.svelte";
 
     let state_color = {
@@ -34,17 +35,6 @@
     let continuous_requesting = false;
 
     let running_tasks: any = null;
-
-
-    let info_user_permission: string = "You request user based permission. If the data owner allows, " +
-                                       "you can always run all your algorithms on the selected dataset.";
-    let info_stream_permission: string = "You request continuous permission. If the data owner allows, " +
-                                         "every change in the selected data (or data folder) will automatically" +
-                                         " start a new run using this algorithm.";
-    let info_run_once: string = "You request one time permission. The selected algorithm will be ran on the " +
-                                "selected dataset once.";
-    let info_standard: string = "You have to select a specific permission in order to make a request to a data" +
-                                "owner.";
 
     onMount(async () => {
         await getPermissions();
@@ -173,15 +163,7 @@
                     <div class="col-lg-3 pl-2"></div>
                     <div class="col-9">
                         <div class="container">
-                            {#if data.permission === "one time permission"}
-                                {info_run_once}
-                            {:else if data.permission === "stream permission"}
-                                {info_stream_permission}
-                            {:else if data.permission === "user permission"}
-                                {info_user_permission}
-                            {:else}
-                                {info_standard}
-                            {/if}
+                            <PermissionInfo permission={data.permission}/>
                         </div>
                     </div>
                 </div>
@@ -252,8 +234,8 @@
         <div class="row bg-light mr-4 rounded pb-5">
             <div class="row ml-1 px-3 py-4 font-weight-bold w-100">Pending Requests</div>
             <div class="row px-4 w-100 mb-2">
-                <div class="col-3 font-weight-bold">Who</div>
-                <div class="col-4 font-weight-bold">Type</div>
+                <div class="col-4 font-weight-bold">Who</div>
+                <div class="col-3 font-weight-bold">Type</div>
                 <div class="col-5 font-weight-bold">Given Description</div>
             </div>
             {#if running_tasks === null || running_tasks.length === 0}
@@ -263,8 +245,8 @@
             {:else}
                 {#each running_tasks as run_task}
                     <div class="row px-4 w-100 mb-1">
-                        <div class="col-3">{run_task.approver_email}</div>
-                        <div class="col-4">{run_task.permission.permission_type}</div>
+                        <div class="col-4">{run_task.approver_email}</div>
+                        <div class="col-3">{run_task.permission.permission_type}</div>
                         <div class="col-5">{run_task.dataset_desc}</div>
                     </div>
                 {/each}

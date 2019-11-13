@@ -135,13 +135,13 @@
     <div class="col-6">
         <!-- Request permission -->
         <div class="row bg-primary text-white mr-4 rounded">
-            <form id="request-permission" on:submit={createRequest}>
+            <form id="request-permission mw-100" on:submit={createRequest}>
                 <div class="row ml-1 font-weight-bold px-3 py-4">Request Permission for a dataset</div>
 
-                <div class="row mb-3 ml-2 mr-3 w-100">
-                    <div class="col-3 pl-2">Type of permission</div>
+                <div class="row mb-3 ml-2 mr-3">
+                    <div class="col-3 pl-2 w-100">Type of permission</div>
                     <div class="col-9">
-                        <div class="container">
+                        <div class="container w-100">
                             {#if permissions === null}
                                 <Spinner small />
                             {:else}
@@ -162,7 +162,7 @@
                 <div class="row my-3 ml-2 mr-3 w-100">
                     <div class="col-lg-3 pl-2"></div>
                     <div class="col-9">
-                        <div class="container">
+                        <div class="container my-0 py-0 mx-0 my-0">
                             <PermissionInfo permission={data.permission}/>
                         </div>
                     </div>

@@ -1,9 +1,10 @@
 <script lang="ts">
-    let info_user_permission: string = "You can always run all your algorithms on the selected dataset.";
+    let info_user_permission: string = "You can always run all the algorithms you've shared to DataExchange on the " +
+                                       "selected dataset.";
     let info_stream_permission: string = "Every change in the selected data (or data folder) will automatically" +
                                          " start a new run using this algorithm.";
     let info_run_once: string = "The selected algorithm will be ran on the " +
-                                "selected dataset once.";
+                                "selected dataset of the data owner exactly once.";
     let info_standard: string = "You have to select a specific permission in order to make a request to a data" +
                                 "owner.";
 
@@ -20,8 +21,8 @@
     export let user: string = "algorithm";
 </script>
 
-<div class="PermissionInfo">
-    <div class="container pl-0">
+<div class="PermissionInfo px-0 my-0 mx-0 py-0">
+    <div class="container px-0 my-0 mx-0 py-0">
         {#if permission === "one time permission"}
             {#if user === "algorithm"}
                 {info_run_once}

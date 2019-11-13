@@ -58,7 +58,6 @@
   }
 
   async function remove_permission(id: string, filename: string) {
-    event.preventDefault();
     try {
       let { data: response } = await Permissions.remove(Number(id));
 

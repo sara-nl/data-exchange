@@ -2,7 +2,7 @@ from django.db import models
 
 
 class Permission(models.Model):
-    USER_PERMISSION = "user permission"
+    USER_PERMISSION = "One specific user permission"
     STREAM_PERMISSION = "stream permission"
     NO_PERMISSION = "no permission"
     ONE_TIME_PERMISSION = "one time permission"

@@ -2,11 +2,13 @@
   import { onMount } from "svelte";
   import LoadFiles from "../api/loader";
   import Spinner from "../components/Spinner.svelte";
-  import { mode } from "../stores";
-  import { goto, stores } from "@sapper/app";
+  import { token, mode, email } from "../stores";
+  import { stores, goto } from "@sapper/app";
 
   let own_algorithms: any = null;
   let own_datasets: any = null;
+
+  declare var $email: any;
 
   onMount(async () => {
     await getUserFiles();
@@ -36,41 +38,46 @@
   <div class="row my-5">
     <div class="col my-3 p-4 px-5 bg-lightgrey rounded-xl">
       <h3>Where to start?</h3>
-      {#if own_datasets === null || own_algorithms === null}
-        <Spinner />
-      {:else if (own_datasets.length > 0) & ($mode === 'data')}
-        <div class="my-3">
-          <p>
-            You have shared datasets with the DataExchange
-            <br />
-            Click here to see any requests made for your data:
-          </p>
-          <button
-            class="btn btn-primary rounded-xl font-weight-bold"
-            on:click={() => goto(`/requests`)}>
-
-            <div class="px-4">Go to your requests</div>
-          </button>
-        </div>
-      {:else if (own_algorithms.length > 0) & ($mode === 'algorithm')}
-        <div class="my-3">
-          <p>
-            You have shared algorithms with the DataExchange
-            <br />
-            Click here to make a request for the use of a dataset:
-          </p>
-          <button
-            class="btn col-7 btn-primary rounded-xl font-weight-bold"
-            on:click={() => goto(`/tasks/request`)}>
-
-            <div class="px-4">Make request for or run with permission</div>
-          </button>
-        </div>
+      {#if $email === null}
+        <div class="my-3"><p>You have to login in order to use the DataExchange</p></div>
       {:else}
-        <div class="my-3">
-          <p>You haven't shared any files with the DataExchange</p>
-        </div>
+        {#if own_datasets === null || own_algorithms === null}
+          <Spinner />
+        {:else if (own_datasets.length > 0) && ($mode === 'data')}
+          <div class="my-3">
+            <p>
+              You have shared datasets with the DataExchange
+              <br />
+              Click here to see any requests made for your data:
+            </p>
+            <button
+              class="btn btn-primary rounded-xl font-weight-bold"
+              on:click={() => goto(`/requests`)}>
+
+              <div class="px-4">Go to your requests</div>
+            </button>
+          </div>
+        {:else if (own_algorithms.length > 0) && ($mode === 'algorithm')}
+          <div class="my-3">
+            <p>
+              You have shared algorithms with the DataExchange
+              <br />
+              Click here to make a request for the use of a dataset:
+            </p>
+            <button
+              class="btn col-7 btn-primary rounded-xl font-weight-bold"
+              on:click={() => goto(`/tasks/request`)}>
+
+              <div class="px-4">Make request for or run with permission</div>
+            </button>
+          </div>
+        {:else}
+          <div class="my-3">
+            <p>You haven't shared any files with the DataExchange</p>
+          </div>
+        {/if}
       {/if}
+
     </div>
     <div class="col-1" />
     <div class="col bg-lightgrey my-3 p-4 px-5">

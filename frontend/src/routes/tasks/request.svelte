@@ -6,6 +6,7 @@
     import Permissions from "../../api/permissions"
     import Tasks, { TasksStartRequest } from "../../api/tasks";
     import Spinner from "../../components/Spinner.svelte";
+    import PermissionInfo from "../../components/PermissionInfo.svelte";
     import ErrorMessage from "../../components/ErrorMessage.svelte";
 
     let state_color = {
@@ -35,17 +36,6 @@
 
     let running_tasks: any = null;
 
-
-    let info_user_permission: string = "You request user based permission. If the data owner allows, " +
-                                       "you can always run all your algorithms on the selected dataset.";
-    let info_stream_permission: string = "You request continuous permission. If the data owner allows, " +
-                                         "every change in the selected data (or data folder) will automatically" +
-                                         " start a new run using this algorithm.";
-    let info_run_once: string = "You request one time permission. The selected algorithm will be ran on the " +
-                                "selected dataset once.";
-    let info_standard: string = "You have to select a specific permission in order to make a request to a data" +
-                                "owner.";
-
     onMount(async () => {
         await getPermissions();
         await getUserFiles();
@@ -74,12 +64,19 @@
         try {
             Tasks.start(data).then( response => {
                 getPendingTasks();
+                clearForm();
             });
 
         } catch (error) {
             requesting = false;
             showError = error.response && error.response.data && error.response.data.error || null;
         }
+    }
+
+    function clearForm() {
+        (<HTMLFormElement>document.getElementById("request-permission")).reset();
+        (<HTMLInputElement>document.getElementById("permissions")).value="main";
+        (<HTMLInputElement>document.getElementById("algorithm-file")).value="main";
     }
 
 
@@ -98,7 +95,6 @@
     async function getPendingTasks() {
         try {
             Tasks.get_pending_requests().then(task_response => {
-                // console.log(task_response.data)
                 running_tasks = task_response.data;
                 requesting = false;
 
@@ -148,17 +144,17 @@
             <form id="request-permission" on:submit={createRequest}>
                 <div class="row ml-1 font-weight-bold px-3 py-4">Request Permission for a dataset</div>
 
-                <div class="row mb-3 ml-2 mr-3 w-100">
-                    <div class="col-3 pl-2">Type of permission</div>
+                <div class="row mb-3 ml-2 mr-3">
+                    <div class="col-3 pl-2 w-100">Type of permission</div>
                     <div class="col-9">
-                        <div class="container">
+                        <div class="container w-100">
                             {#if permissions === null}
                                 <Spinner small />
                             {:else}
                                 <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
                                         id="permissions"
                                         bind:value={data.permission}>
-                                    <option selected="selected" disabled value="">No permission selected</option>
+                                    <option selected="selected" disabled value="main">No permission selected</option>
 
                                     {#each permissions as permission}
                                         <option value={permission[0]}>{permission[1]}</option>
@@ -172,16 +168,8 @@
                 <div class="row my-3 ml-2 mr-3 w-100">
                     <div class="col-lg-3 pl-2"></div>
                     <div class="col-9">
-                        <div class="container">
-                            {#if data.permission === "one time permission"}
-                                {info_run_once}
-                            {:else if data.permission === "stream permission"}
-                                {info_stream_permission}
-                            {:else if data.permission === "user permission"}
-                                {info_user_permission}
-                            {:else}
-                                {info_standard}
-                            {/if}
+                        <div class="container my-0 py-0 mx-0 my-0">
+                            <PermissionInfo permission={data.permission}/>
                         </div>
                     </div>
                 </div>
@@ -199,7 +187,7 @@
                                 class="form-control bg-light text-black custom-select rounded mr-sm-2"
                                 id="algorithm-file"
                                 bind:value={data.algorithm}>
-                                <option disabled value="">Select algorithm</option>
+                                <option disabled selected="selected" value="main">Select algorithm</option>
 
                                 {#each algorithm_files as file}
                                     <option value={file.name}>{file.name}</option>
@@ -252,8 +240,8 @@
         <div class="row bg-light mr-4 rounded pb-5">
             <div class="row ml-1 px-3 py-4 font-weight-bold w-100">Pending Requests</div>
             <div class="row px-4 w-100 mb-2">
-                <div class="col-3 font-weight-bold">Who</div>
-                <div class="col-4 font-weight-bold">Type</div>
+                <div class="col-4 font-weight-bold">Who</div>
+                <div class="col-3 font-weight-bold">Type</div>
                 <div class="col-5 font-weight-bold">Given Description</div>
             </div>
             {#if running_tasks === null || running_tasks.length === 0}
@@ -263,8 +251,8 @@
             {:else}
                 {#each running_tasks as run_task}
                     <div class="row px-4 w-100 mb-1">
-                        <div class="col-3">{run_task.approver_email}</div>
-                        <div class="col-4">{run_task.permission.permission_type}</div>
+                        <div class="col-4">{run_task.approver_email}</div>
+                        <div class="col-3">{run_task.permission.permission_type}</div>
                         <div class="col-5">{run_task.dataset_desc}</div>
                     </div>
                 {/each}

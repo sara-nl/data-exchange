@@ -64,12 +64,19 @@
         try {
             Tasks.start(data).then( response => {
                 getPendingTasks();
+                clearForm();
             });
 
         } catch (error) {
             requesting = false;
             showError = error.response && error.response.data && error.response.data.error || null;
         }
+    }
+
+    function clearForm() {
+        document.getElementById("request-permission").reset();
+        document.getElementById("permissions").value="main";
+        document.getElementById("algorithm-file").value="main";
     }
 
 
@@ -88,7 +95,6 @@
     async function getPendingTasks() {
         try {
             Tasks.get_pending_requests().then(task_response => {
-                // console.log(task_response.data)
                 running_tasks = task_response.data;
                 requesting = false;
 
@@ -135,7 +141,7 @@
     <div class="col-6">
         <!-- Request permission -->
         <div class="row bg-primary text-white mr-4 rounded">
-            <form id="request-permission mw-100" on:submit={createRequest}>
+            <form id="request-permission" on:submit={createRequest}>
                 <div class="row ml-1 font-weight-bold px-3 py-4">Request Permission for a dataset</div>
 
                 <div class="row mb-3 ml-2 mr-3">
@@ -148,7 +154,7 @@
                                 <select class="form-control bg-light text-dark custom-select rounded mr-sm-2"
                                         id="permissions"
                                         bind:value={data.permission}>
-                                    <option selected="selected" disabled value="">No permission selected</option>
+                                    <option selected="selected" disabled value="main">No permission selected</option>
 
                                     {#each permissions as permission}
                                         <option value={permission[0]}>{permission[1]}</option>
@@ -181,7 +187,7 @@
                                 class="form-control bg-light text-black custom-select rounded mr-sm-2"
                                 id="algorithm-file"
                                 bind:value={data.algorithm}>
-                                <option disabled value="">Select algorithm</option>
+                                <option disabled selected="selected" value="main">Select algorithm</option>
 
                                 {#each algorithm_files as file}
                                     <option value={file.name}>{file.name}</option>

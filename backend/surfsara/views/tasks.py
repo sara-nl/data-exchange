@@ -168,7 +168,7 @@ class Tasks(viewsets.ViewSet):
 
         data_tasks = TaskSerializer(data_tasks, many=True).data
         for perm in data_tasks:
-            data_tasks_per_file[perm["dataset"]].append(perm)
+            data_tasks_per_file[perm["dataset"].split("/")[0]].append(perm)
 
         algorithm_tasks = TaskSerializer(algorithm_tasks, many=True).data
         for perm in algorithm_tasks:

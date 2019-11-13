@@ -67,10 +67,16 @@ class AlgorithmProcessor:
         original_name = remote_path.split("/")[-1]
 
         # Open file, analyze and save information, finally clean
-        with open(os.path.join(os.getcwd(), tempname), "r") as algorithm_file:
-            lines = algorithm_file.readlines()
-            algorithm_content = " ".join(line for line in lines)
-            characters, newline, words, imports = self.calculate_algorithm_info(lines)
+        try:
+            with open(os.path.join(os.getcwd(), tempname), "r") as algorithm_file:
+                lines = algorithm_file.readlines()
+                algorithm_content = " ".join(line for line in lines)
+                characters, newline, words, imports = self.calculate_algorithm_info(
+                    lines
+                )
+        except:
+            os.remove(tempname)
+            return
 
         self.files.append(
             {

@@ -98,7 +98,7 @@
               <th scope="col">Algorithm</th>
               <th scope="col">Dataset</th>
               <th scope="col">Permission</th>
-              <th scope="col">Registered on</th>
+              <th scope="col">Registered On</th>
             </thead>
             {#each dataset_tasks[file] as task}
               <tbody id="data-{i}" class="collapse">
@@ -152,7 +152,7 @@
               <th scope="col">Requester</th>
               <th scope="col">Algorithm</th>
               <th scope="col">Dataset</th>
-              <th scope="col">Registered on</th>
+              <th scope="col">Registered On</th>
             </thead>
             {#each alg_tasks[file] as task}
               <tbody id="alg-{i}" class="collapse">

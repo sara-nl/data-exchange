@@ -98,8 +98,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
       } yield
         endState match {
           case ContainerState.Exited(0, _, output) =>
-            val taskUserOutput =
-              s"Container exited successfully\n$output\n$stdoutContent\n$stderrContent"
+            val taskUserOutput = s"$output\n$stdoutContent\n$stderrContent"
             Messages.Done
               .success(msg.taskId, taskUserOutput, algorithmOutput)
           case ContainerState.Exited(x, _, output) =>

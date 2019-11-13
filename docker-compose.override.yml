@@ -7,8 +7,6 @@ services:
             dockerfile: "docker/dev.Dockerfile"
         environment:
             ENVIRONMENT: "development"
-        volumes:
-            - "./tasker:/app"
 
     backend_listen:
         build:

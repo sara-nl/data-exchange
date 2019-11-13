@@ -82,7 +82,7 @@
                         <tr>
                             <th scope="col">State</th>
                             <th scope="col">Requester</th>
-                            <th scope="col">Dataset description</th>
+                            <th scope="col">Dataset Description</th>
                             <th scope="col">Algorithm</th>
                             <th scope="col">Dataset</th>
                         </tr>
@@ -114,8 +114,8 @@
                     <thead>
                         <tr>
                             <th scope="col">State</th>
-                            <th scope="col">Dataset owner</th>
-                            <th scope="col">Dataset description</th>
+                            <th scope="col">Dataset Owner</th>
+                            <th scope="col">Dataset Description</th>
                             <th scope="col">Algorithm</th>
                             <th scope="col">Dataset</th>
                         </tr>

@@ -58,7 +58,6 @@
   }
 
   async function remove_permission(id: string, filename: string) {
-    event.preventDefault();
     try {
       let { data: response } = await Permissions.remove(Number(id));
 
@@ -177,7 +176,7 @@
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
-                    <th>Who</th>
+                    <th>Algorithm Owner</th>
                     <th>Passed</th>
                     <th>When</th>
                     <th>Action</th>

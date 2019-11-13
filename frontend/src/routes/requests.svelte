@@ -68,7 +68,7 @@
           <table class="table table-borderless">
             <thead>
               <tr>
-                <th class="normal_column" scope="col">Who</th>
+                <th class="normal_column" scope="col">Algorithm Owner</th>
                 <th class="normal_column" scope="col">Type</th>
                 <th scope="col" class="desc_column">Dataset description</th>
                 <th class="normal_column" scope="col">Algorithm Name</th>
@@ -137,7 +137,7 @@
           <table class=" table table-borderless">
             <thead>
               <tr>
-                <th class="normal_column" scope="col">Who</th>
+                <th class="normal_column" scope="col">Algorithm Owner</th>
                 <th class="normal_column" scope="col">Type</th>
 
                 <th scope="col">Dataset description</th>

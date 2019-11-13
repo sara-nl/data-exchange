@@ -89,7 +89,7 @@
     }
   }
 
-  function review_permission(approved: boolean) {
+  async function review_permission(approved: boolean) {
     data = {
       ...data,
       approved,
@@ -99,7 +99,7 @@
     };
 
     try {
-      let { data: response } = Tasks.review(taskId, data);
+      let { data: response } = await Tasks.review(taskId, data);
     } catch (error) {
       console.log(error.toString());
     }
@@ -182,7 +182,13 @@
       <div class="row px-3">
 
         <div class="col-4">
-          <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
+          <div class="row mb-3 font-weight-bold">
+            {#if $mode === "data"}
+              Algorithm Owner
+            {:else}
+              Data Owner
+            {/if}
+          </div>
           <div class="row mt-1 mb-5">{task.author_email}</div>
 
           <div class="row mb-3 font-weight-bold">Permission Type</div>
@@ -243,12 +249,12 @@
             <button
               disabled={!task.dataset}
               class="btn btn-success rounded-xl px-4 mr-3"
-              on:click={() => review_permission(true)}>
+              on:click={async () => await review_permission(true)}>
               Give Permission to run any algorithm on dataset
             </button>
             <button
               class="btn btn-danger rounded-xl px-4"
-              on:click={() => review_permission(false)}>
+              on:click={async () => await review_permission(false)}>
               Reject request
             </button>
           {:else}
@@ -370,7 +376,13 @@
     {:else}
       <div class="row mx-auto">
         <div class="col-sm-4 h-50">
-          <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
+          <div class="row mb-3 font-weight-bold">
+            {#if $mode === "data"}
+              Algorithm Owner
+            {:else}
+              Data Owner
+            {/if}
+          </div>
           <div class="row mt-1 mb-5">{task.author_email}</div>
 
           <div class="row mb-3 font-weight-bold">Permission Type</div>
@@ -406,7 +418,7 @@
           </div>
 
           {#if task.state === 'error' || task.state === 'success'}
-            <div class="row mb-3 font-weight-bold">Used dataset</div>
+            <div class="row mb-3 font-weight-bold">Used Dataset</div>
           {:else}
             {#if task.permission.permission_type === "stream permission"}
               <div class="row mb-3 font-weight-bold">Choose stream of datasets</div>

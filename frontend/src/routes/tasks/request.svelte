@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { goto } from "@sapper/app";
 
-    import LoadFiles from "../../api/loader";
+    import loadFiles from "../../api/loader";
     import Permissions from "../../api/permissions"
     import Tasks, { TasksStartRequest } from "../../api/tasks";
     import Spinner from "../../components/Spinner.svelte";
@@ -46,7 +46,7 @@
     });
 
     async function getUserFiles(){
-        LoadFiles.start().then(response => {
+        loadFiles().then(response => {
             algorithm_files = response.data.output.own_algorithms;
         });
     }

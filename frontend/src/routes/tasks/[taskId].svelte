@@ -7,7 +7,7 @@
   import * as hljs from "highlight.js";
   import { mode } from "../../stores";
 
-  import LoadFiles from "../../api/loader";
+  import loadFiles from "../../api/loader";
   import Tasks, { TasksReviewRequest } from "../../api/tasks";
   import Spinner from "../../components/Spinner.svelte";
   import PermissionInfo from "../../components/PermissionInfo.svelte";
@@ -84,7 +84,7 @@
 
   async function load_dataset() {
     if (task.state === "data_requested") {
-      const { data } = await LoadFiles.start();
+      const { data } = await loadFiles();
       ownDatasets = data.output.own_datasets;
     }
   }

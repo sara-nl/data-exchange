@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import dayjs from "dayjs";
-  import LoadFiles from "../api/loader";
+  import loadFiles from "../api/loader";
   import Tasks from "../api/tasks";
   import Permissions from "../api/permissions";
     import File from "../components/File.svelte";
@@ -26,7 +26,7 @@
 
   async function updateUserFiles() {
     try {
-      let { data: response } = await LoadFiles.start();
+      let { data: response } = await loadFiles();
       own_datasets = response.output.own_datasets;
     } catch (error) {
       console.log(error.toString());

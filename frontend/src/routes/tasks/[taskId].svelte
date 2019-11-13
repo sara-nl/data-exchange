@@ -465,7 +465,7 @@
               {#if task.state === 'success' || (task.state === 'error' && task.review_output)}
                 Reject output
               {:else}
-                Reject output
+                Reject request
               {/if}
             </button>
           {:else}

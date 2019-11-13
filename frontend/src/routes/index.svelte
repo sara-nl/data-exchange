@@ -43,7 +43,7 @@
       {:else}
         {#if own_datasets === null || own_algorithms === null}
           <Spinner />
-        {:else if (own_datasets.length > 0) & ($mode === 'data')}
+        {:else if (own_datasets.length > 0) && ($mode === 'data')}
           <div class="my-3">
             <p>
               You have shared datasets with the DataExchange
@@ -57,7 +57,7 @@
               <div class="px-4">Go to your requests</div>
             </button>
           </div>
-        {:else if (own_algorithms.length > 0) & ($mode === 'algorithm')}
+        {:else if (own_algorithms.length > 0) && ($mode === 'algorithm')}
           <div class="my-3">
             <p>
               You have shared algorithms with the DataExchange

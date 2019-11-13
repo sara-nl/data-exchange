@@ -11,6 +11,7 @@
   import Tasks, { TasksReviewRequest } from "../../api/tasks";
   import Spinner from "../../components/Spinner.svelte";
   import PermissionInfo from "../../components/PermissionInfo.svelte";
+  import ErrorMessage from "../../components/ErrorMessage.svelte";
 
   const { page } = stores();
   const { taskId } = $page.params;
@@ -182,7 +183,7 @@
 
           <div class="col-6">
             <div class="row mb-3 font-weight-bold">Permission Information</div>
-            <div class="row mt-1 mb-5">
+            <div class="row mt-1 mb-5 pr-3">
               <PermissionInfo permission={task.permission.permission_type} user={$mode}/>
             </div>
             {#if $mode === 'data'}
@@ -301,12 +302,11 @@
         <div class="col-sm text-center text-secondary p-2 font-weight-bold">
           Execution finished
         </div>
-      {:else if (task.state === 'error' && task.review_output)}
-        <div class="col-sm text-center text-secondary p-2 font-weight-bold">
-          Execution failed with an error
-        </div>
       {/if}
     </div>
+    {#if (task.state === 'error' && $mode === "data")}
+        <ErrorMessage error={"Execution failed with an error"} />
+    {/if}
 
     {#if task.state === 'running'}
       <div class="col-sm-12 bg-primary text-white rounded">
@@ -361,7 +361,7 @@
           <div class="row mt-1 mb-5">{task.permission.permission_type}</div>
 
           <div class="row mb-3 font-weight-bold">Permission Information</div>
-          <div class="row mt-1 mb-5">
+          <div class="row mt-1 mb-5 pr-3">
             <PermissionInfo permission={task.permission.permission_type} user={$mode}/>
           </div>
         </div>

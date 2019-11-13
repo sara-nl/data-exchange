@@ -170,7 +170,13 @@
       <div class="row px-3">
 
         <div class="col-4">
-          <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
+          <div class="row mb-3 font-weight-bold">
+            {#if $mode === "data"}
+              Algorithm Owner
+            {:else}
+              Data Owner
+            {/if}
+          </div>
           <div class="row mt-1 mb-5">{task.author_email}</div>
 
           <div class="row mb-3 font-weight-bold">Permission Type</div>
@@ -354,7 +360,13 @@
     {:else}
       <div class="row mx-auto">
         <div class="col-sm-4 h-50">
-          <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
+          <div class="row mb-3 font-weight-bold">
+            {#if $mode === "data"}
+              Algorithm Owner
+            {:else}
+              Data Owner
+            {/if}
+          </div>
           <div class="row mt-1 mb-5">{task.author_email}</div>
 
           <div class="row mb-3 font-weight-bold">Permission Type</div>
@@ -390,7 +402,7 @@
           </div>
 
           {#if task.state === 'error' || task.state === 'success'}
-            <div class="row mb-3 font-weight-bold">Used dataset</div>
+            <div class="row mb-3 font-weight-bold">Used Dataset</div>
           {:else}
             {#if task.permission.permission_type === "stream permission"}
               <div class="row mb-3 font-weight-bold">Choose stream of datasets</div>

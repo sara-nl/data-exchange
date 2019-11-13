@@ -74,9 +74,9 @@
     }
 
     function clearForm() {
-        document.getElementById("request-permission").reset();
-        document.getElementById("permissions").value="main";
-        document.getElementById("algorithm-file").value="main";
+        (<HTMLFormElement>document.getElementById("request-permission")).reset();
+        (<HTMLInputElement>document.getElementById("permissions")).value="main";
+        (<HTMLInputElement>document.getElementById("algorithm-file")).value="main";
     }
 
 

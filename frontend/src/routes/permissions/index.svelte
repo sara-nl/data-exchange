@@ -66,11 +66,11 @@
                 <thead>
                     <tr>
                         <th scope="col">Type</th>
-                        <th scope="col">Given by</th>
-                        <th scope="col">Given to</th>
+                        <th scope="col">Given By</th>
+                        <th scope="col">Given To</th>
                         <th scope="col">Dataset</th>
                         <th scope="col">Algorithm</th>
-                        <th scope="col">Permission state</th>
+                        <th scope="col">Permission State</th>
                         <th scope="col"></th>
                     </tr>
                 </thead>

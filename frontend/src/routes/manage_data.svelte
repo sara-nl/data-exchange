@@ -177,7 +177,7 @@
               <div class="table-wrapper">
                 <table class="table table-borderless">
                   <thead>
-                    <th>Who</th>
+                    <th>Algorithm Owner</th>
                     <th>Passed</th>
                     <th>When</th>
                     <th>Action</th>

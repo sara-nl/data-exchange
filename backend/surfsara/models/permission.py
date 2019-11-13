@@ -9,7 +9,7 @@ class Permission(models.Model):
 
     PERMISSIONS = (
         (USER_PERMISSION, "Any algorithm on a Dataset"),
-        (STREAM_PERMISSION, "Run for all data changes"),
+        (STREAM_PERMISSION, "Run for a stream of data sets"),
         (NO_PERMISSION, "no permission"),
         (ONE_TIME_PERMISSION, "Run once"),
     )

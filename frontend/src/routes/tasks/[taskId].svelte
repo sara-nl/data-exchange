@@ -106,6 +106,18 @@
     goto("/requests");
   }
 
+  async function approve_stream() {
+    data = {
+      ...data,
+      approved: true,
+      updated_request: task
+    };
+
+    await Tasks.review(taskId, data)
+    alert(`Streaming request has been approved. Every new dataset added to ${task.dataset} will automatically execute the algorithm (unless its code has changed).`)
+    goto("/manage_data")
+  }
+
   async function review_request(approved: boolean) {
     data = {
       ...data,
@@ -188,7 +200,11 @@
             </div>
             {#if $mode === 'data'}
               <div class="row mb-3 font-weight-bold">
+              {#if task.permission.permission_type === 'stream permission'}
+                <b>Choose stream of datasets</b>
+              {:else}
                 <b>Choose dataset</b>
+              {/if}
               </div>
             <div class="row mt-1 mb-5 pr-5">
               {#if task.is_owner && task.state === 'data_requested'}
@@ -453,12 +469,21 @@
       <div class="row">
         {#if task.state === 'data_requested'}
           {#if task.is_owner && $mode === 'data'}
-            <button
-              disabled={!task.dataset}
-              class="btn btn-success rounded-xl px-4 mr-3"
-              on:click={() => review_request(true)}>
-              Run algorithm on data to see output and go to step 2
-            </button>
+            {#if task.permission.permission_type === 'stream permission'}
+              <button
+                disabled={!task.dataset}
+                class="btn btn-success rounded-xl px-4 mr-3"
+                on:click={() => approve_stream()}>
+                Allow algorithm for stream of datasets
+              </button>
+            {:else}
+              <button
+                disabled={!task.dataset}
+                class="btn btn-success rounded-xl px-4 mr-3"
+                on:click={() => review_request(true)}>
+                Run algorithm on data to see output and go to step 2
+              </button>            
+            {/if}
             <button
               class="btn btn-danger rounded-xl px-4"
               on:click={() => review_request(false)}>

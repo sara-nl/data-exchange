@@ -5,9 +5,7 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ("surfsara", "0032_merge_20191103_1022"),
-    ]
+    dependencies = [("surfsara", "0032_merge_20191103_1022")]
 
     operations = [
         migrations.AlterField(
@@ -22,5 +20,5 @@ class Migration(migrations.Migration):
                 default="active",
                 max_length=255,
             ),
-        ),
+        )
     ]

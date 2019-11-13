@@ -33,9 +33,19 @@ services:
             dockerfile: "docker/dev.Dockerfile"
         environment:
             NODE_ENV: "development"
+            BACKEND_BASE_URI: 'http://backend:8000'
         volumes:
             - "./frontend:/app"
         ports:
             - "127.0.0.1:3000:3000"
             - "127.0.0.1:10000:10000"
         command: "yarn dev"
+
+    postgres:
+        ports:
+            - 127.0.0.1:5432:5432
+
+    rabbitmq:
+        ports:
+            - 127.0.0.1:8080:15672
+            - 127.0.0.1:5672:5672

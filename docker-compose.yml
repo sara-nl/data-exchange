@@ -53,6 +53,8 @@ services:
     frontend:
         build:
             context: "frontend/"
+        environment:
+            BACKEND_BASE_URI: 'http://backend:8000'
 
     postgres:
         image: postgres:11-alpine
@@ -61,5 +63,3 @@ services:
 
     rabbitmq:
         image: rabbitmq:3-management-alpine
-        ports:
-            - 127.0.0.1:8080:15672

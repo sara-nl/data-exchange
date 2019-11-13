@@ -4,8 +4,9 @@ import compression from 'compression';
 import proxy from 'http-proxy-middleware';
 import * as sapper from '@sapper/server';
 
-const { PORT, NODE_ENV } = process.env;
+const { PORT, NODE_ENV, BACKEND_BASE_URI } = process.env;
 const dev = NODE_ENV === 'development';
+const backendBaseUri = BACKEND_BASE_URI || 'http://localhost:8000'
 
 // Handle SIGTERM, to immediately quit when Docker asks us to.
 process.on("SIGTERM", () => process.exit(128 + 15));
@@ -14,9 +15,9 @@ let server = polka();
 
 if (dev) {
     server = server.use(
-        proxy('/api', { target: 'http://backend:8000' }),
-        proxy('/static', { target: 'http://backend:8000' }),
-        proxy('/admin', { target: 'http://backend:8000' }),
+        proxy('/api', { target: backendBaseUri }),
+        proxy('/static', { target: backendBaseUri }),
+        proxy('/admin', { target: backendBaseUri }),
     );
 }
 

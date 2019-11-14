@@ -105,7 +105,7 @@
         </div>
       </div>
     {:else}
-      <div>You have shared no algorithms</div>
+      <div>You have not received any permissions</div>
     {/each}
   {/if}
 

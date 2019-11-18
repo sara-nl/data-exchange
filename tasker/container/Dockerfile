@@ -1,7 +1,7 @@
 # Docker file, which is used to build the base image
 # for running secure containers.
 
-FROM python
+FROM python:3.7
 RUN apt-get update
 RUN apt-get install -y strace
 RUN pip install --upgrade pip

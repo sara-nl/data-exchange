@@ -163,7 +163,7 @@ object DockerContainer {
           .withAttachStderr(true)
       }
       containerId <- IO(ContainerId(dockerCommand.exec().getId))
-      _ <- Slf4jLogger.getLogger[IO].info(s"Created $containerId")
+      _ <- Slf4jLogger.getLogger[IO].debug(s"Created $containerId")
     } yield containerId
   }
 

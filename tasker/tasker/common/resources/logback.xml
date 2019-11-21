@@ -10,15 +10,15 @@
         <appender-ref ref="STDOUT" />
     </root>
 
-    <logger name="tasker" level="info" additivity="false">
+    <logger name="tasker" level="${taskerLogLevel:-info}" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="runner" level="info" additivity="false">
+    <logger name="runner" level="${runnerLogLevel:-info}" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="watcher" level="info" additivity="false">
+    <logger name="watcher" level="${watcherLogLevel:-info}" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 </configuration>

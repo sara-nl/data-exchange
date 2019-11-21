@@ -16,9 +16,9 @@ Example:
 ```json
   {
     "taskId": "123", 
-    "codePath": "demo2_code",
-    "dataPath": "demo1_data",
-    "codeHash": { "eTag": "5db6a51baa9e0" }
+    "codePath": "kit pes",
+    "dataPath": "kitpes_data/cat01.jpeg",
+    "codeHash": { "eTag": "5dd2be291447e" }
   }
 ```
 
@@ -37,6 +37,16 @@ Example:
   }
 }
 ```
+
+## Log level
+
+There are three default loggers configured: for `tasker`, `watcher` and `runner`. The log level of those can be changed by adding an appropriate JVM system property. E.g.:
+
+```
+-DtaskerLogLevel=info -DwatcherLogLevel=trace -DrunnerLogLevel=debug
+```
+
+Note, that `tasker` is merely a wrapper and most of the stuff will be happening in `watcher` and `runner`, so most likely you want to change the level of those loggers. 
 
 ## Debugging container contents
 

@@ -8,12 +8,12 @@ This is the list of known ~issues~ limitations.
 * Output is only STDOUT/STDERR;
 * Webdav interface of Research Drive is relatively slow;
 * A shared algorithm is file or a folder with one layer depth
-(so a folder containing only files. If it contains more folders,
-they will not be used/shown)
+  (so a folder containing only files. If it contains more folders, they will not be used/shown)
 * Changes to code or data files are detected, but no diff interface was implemented
+* Algorithm folder can contain auxiliary files, including binary files (e.g. images or compiled code), but binary files are not shown for review.
 
+## Known security issues
 * Edge case; if:
-
   - Algorithm A is uploaded.
   - Data owner opens page on algorithm A.
   - While the data owner is reviewing, algorithm B gets uploaded.

@@ -33,7 +33,6 @@ services:
         environment:
             NODE_ENV: "production"
         restart: "always"
-        command: "node __sapper__/build"
 
     postgres:
         restart: "always"

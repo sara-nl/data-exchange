@@ -38,7 +38,6 @@ services:
         ports:
             - "127.0.0.1:3000:3000"
             - "127.0.0.1:10000:10000"
-        command: "yarn dev"
 
     postgres:
         ports:

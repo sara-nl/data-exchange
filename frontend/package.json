@@ -1,10 +1,11 @@
 {
-    "name": "TODO",
-    "description": "TODO",
+    "name": "DataExchange",
+    "description": "The DataExchange offers a controlled and safe third-party environment where dataset and algorithm providers can safely cooperate and share data.",
+    "license": "Apache-2.0",
     "version": "0.0.1",
     "scripts": {
         "dev": "sapper dev --no-hot",
-        "build": "sapper build",
+        "build": "NODE_ENV=production sapper build",
         "export": "sapper export",
         "start": "node __sapper__/build",
         "cy:run": "cypress run",

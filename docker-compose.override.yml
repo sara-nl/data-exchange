@@ -32,7 +32,6 @@ services:
         build:
             dockerfile: "docker/dev.Dockerfile"
         environment:
-            NODE_ENV: "development"
             BACKEND_BASE_URI: 'http://backend:8000'
         volumes:
             - "./frontend:/app"

@@ -1,0 +1,4 @@
+build:
+  script:
+    - echo "Test"
+    - date

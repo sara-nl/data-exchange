@@ -1,4 +1,59 @@
-build:
+# This file can be linted using a web tool:
+# - https://git.ia.surfsara.nl/SOIL/secure-container/-/ci/lint
+
+variables:
+  NODE_ENV: "test"
+
+after_script:
+  - date
+
+tasker_test:
+  stage: test
+  image: openjdk:11
+  cache:
+    paths:
+      - ~/.mill
+      - ~/.ivy2
   script:
-    - echo "Test"
-    - date
+    - curl -L https://github.com/lihaoyi/mill/releases/download/0.5.2/0.5.2 > /tmp/mill && chmod +x /tmp/mill
+    - cd tasker && /tmp/mill tasker.compile
+
+
+backend_lint:
+  stage: test
+  image: python:3-alpine
+  variables:
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"  
+  cache:
+    paths:
+      - .cache/pip  
+  script:
+    - apk add -U gcc musl-dev
+    - pip install black
+    - black --check backend/backend backend/surfsara
+
+
+frontend_test:
+  stage: test
+  image: node:12-alpine
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/  
+  script:
+    - cd frontend
+    - yarn install
+    - yarn build
+
+
+deploy_all:
+  stage: deploy
+  image: alpine:3
+  only:
+    - master
+  script:
+    - apk add --no-cache openssh
+    - chmod 0600 "${TEST2_SSH_KEY}"
+    # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
+    # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
+    - ssh -oStrictHostKeyChecking=no -i "${TEST2_SSH_KEY}" "${TEST2_SSH_ADDRESS}" 'cd surfsara && git pull --rebase && ./deploy.sh'

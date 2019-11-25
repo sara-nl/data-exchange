@@ -1,28 +1,36 @@
 # SURFsara Amsterdam Data Exchange
-This is the repository for the SURFsara Amsterdam Data Exchange project.
+This is the repository for the SURFsara Amsterdam Data Exchange project. The project is in **prototype** phase, therefore check list of [known limitations](./).
 
-*These instructions are for Ubuntu and similar distributions
-(Debian, Mint, etc). The package management commands will be different on other
-distributions or macOS, but the gist will remain the same.*
+# Components
+
+Applications consists of a few main components packaged as one or a few docker containers for development.
+
+* backend (Python, Django) ([README](backend/README.md))
+* frontend (TypeScript/JS, Svelte)
+* tasker (Scala) ([README](./tasker/README.md))
+
+<img src="./docs/topology.png" alt="Containers topology" title="Containers topology" />
 
 # Developing
-Install docker and docker-compose (when you are using an old Ubuntu version, it
-might be worth considering getting `docker-compose` from Pip instead of apt).
+* Install `docker` and `docker-compose` locally.
 
-Then, run everything with `docker-compose up --build`. This will build all
-dependencies and then run everything with hot reloading.
+You can run everything with `docker-compose up --build`. This will build all
+dependencies and then run everything with hot reloading and follow the output of all of them in the terminal.
 
-## Django commands
-If you want to e.g. generate migrations, prefix the command with
-`docker-compose run backend`. For example:
+Or you can start each module independently with `docker-compose up --build <module-name>`. In this case, some modules can be started without Docker.
 
-```bash
-docker-compose run backend ./manage.py makemigrations
-```
+The main code repository is: [SOIL/secure-container](https://git.ia.surfsara.nl/SOIL/secure-container)
 
-*Note that files generated in the container, such as migrations, will have
-incorrect permissions. This is a side effect of how Docker works. You can fix
-this with `sudo chown $USER backend/surfsara/migrations`*
+# Deployment
+
+Data exchange runs in [HPC Cloud](https://userinfo.surfsara.nl/systems/hpc-cloud). There are two active servers:
+
+* Demo: https://dataexchange.surfsara.nl/
+* Test 2: http://test-2.dataex-sara.surf-hosted.nl/
+
+There is a [Continuous Delivery](https://en.wikipedia.org/wiki/Continuous_delivery) process via GitLab from `master` to `Test 2`. 
+
+The version on `Demo` is usually a few development days behind `Test 2`.
 
 # Mail
 All outgoing emails can be read at: https://dataexchange.surfsara.nl/mail

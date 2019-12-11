@@ -1,6 +1,6 @@
 Dear user,
 
-{{author_email}} just granted your algorithm ({{algorithm}}) continuous
+{{dataset_provider}} just granted your algorithm ({{algorithm}}) continuous
 access to their dataset ({{dataset}}).
 
 You will now be able to run algorithms on this dataset without requesting

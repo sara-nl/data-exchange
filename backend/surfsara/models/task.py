@@ -6,7 +6,6 @@ from surfsara.models.permission import Permission
 class Task(models.Model):
     STREAM_PERMISSION_REQUEST = "stream_permission_request"
     DATA_REQUESTED = "data_requested"
-    ANALYZING = "analyzing_algorithm"
     RUNNING = "running"
     SUCCESS = "success"
     ERROR = "error"
@@ -19,7 +18,6 @@ class Task(models.Model):
         (STREAM_PERMISSION_REQUEST, "stream_permission_request"),
         (DATA_REQUESTED, "Data Requested"),
         (RUNNING, "Running"),
-        (ANALYZING, "Analyzing_algorithm"),
         (SUCCESS, "Success"),
         (ERROR, "Error"),
         (OUTPUT_RELEASED, "Output Released"),
@@ -32,12 +30,9 @@ class Task(models.Model):
     author_email = models.EmailField()
     approver_email = models.EmailField()
     algorithm = models.TextField()
-    algorithm_etag = models.CharField(max_length=32, default="")
-    algorithm_content = JSONField(default=dict)
-    algorithm_info = JSONField(default=dict)
     dataset = models.TextField()
-    dataset_desc = models.TextField()
     output = models.TextField(null=True)
     review_output = models.BooleanField(default=True)
     permission = models.ForeignKey(Permission, null=True, on_delete=models.SET_NULL)
     registered_on = models.DateTimeField(auto_now_add=True)
+    updated_on = models.DateTimeField(auto_now=True)

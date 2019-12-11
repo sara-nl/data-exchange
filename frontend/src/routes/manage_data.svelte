@@ -1,13 +1,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import dayjs from "dayjs";
-  import loadFiles from "../api/loader";
+  import RemoveShare, {Share, getShares} from "../api/shares";
   import Tasks from "../api/tasks";
   import Permissions from "../api/permissions";
     import File from "../components/File.svelte";
   import State from "../components/State.svelte";
 
-  import RemoveShare from "../api/shares";
   import Spinner from "../components/Spinner.svelte";
 
   let own_datasets: any[] | null = null;
@@ -20,58 +19,32 @@
 
   onMount(async () => {
     updateUserFiles();
-    getUserTasks();
-    getUserPermissions();
+    
+    dataset_tasks = await Tasks.get_logs().then(r => r.data.data_tasks);
+
+    console.log('dataset_tasks', dataset_tasks)
+    
+    givenPermissions = await Permissions.get_given_per_file().then(r => r.data.given_permissions);
+
+    console.log('givenPermissions', givenPermissions)
+    datasets = Object.keys(givenPermissions);
   });
 
   async function updateUserFiles() {
-    try {
-      let { data: response } = await loadFiles();
-      own_datasets = response.output.own_datasets;
-    } catch (error) {
-      console.log(error.toString());
-    }
-    return false;
-  }
-
-  async function getUserPermissions() {
-    try {
-      let { data: response } = await Permissions.get_given_per_file();
-      givenPermissions = response.given_permissions;
-      datasets = Object.keys(givenPermissions);
-
-    } catch (error) {
-      console.log(error.toString());
-    }
-
-    return false;
-  }
-  async function getUserTasks() {
-    try {
-      let { data: response } = await Tasks.get_logs();
-      dataset_tasks = response.data_tasks;
-    } catch (error) {
-      console.log(error.toString());
-    }
-
-    return false;
+    own_datasets = await getShares().then(r => r.own_datasets);
   }
 
   async function remove_permission(id: string, filename: string) {
-    try {
-      let { data: response } = await Permissions.remove(Number(id));
+    let { data: response } = await Permissions.remove(Number(id));
 
-      let removed_permission = removeFromList(givenPermissions[filename], id);
+    let removed_permission = removeFromList(givenPermissions[filename], id);
 
-      if (removed_permission.length === 0) {
-        delete givenPermissions[filename];
+    if (removed_permission.length === 0) {
+      delete givenPermissions[filename];
 
-        givenPermissions = givenPermissions;
-      } else {
-        givenPermissions[filename] = removed_permission;
-      }
-    } catch (error) {
-      console.log(error.toString());
+      givenPermissions = givenPermissions;
+    } else {
+      givenPermissions[filename] = removed_permission;
     }
   }
 
@@ -91,13 +64,8 @@
   }
 
   async function revokeFileShare(fileId: string) {
-    try {
-      quickUpdate(fileId);
-      RemoveShare.remove(fileId).then(updateUserFiles);
-    } catch (error) {
-      console.log(error.toString());
-    }
-    return false;
+    quickUpdate(fileId);
+    RemoveShare.remove(fileId).then(updateUserFiles);
   }
 </script>
 
@@ -194,7 +162,7 @@
                         <td><State state={task.state} /></td>
 
                         <td>
-                          {dayjs(task.registered_on).format('DD-MM-YYYY')}
+                          {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
                         </td>
                         <td class="text-primary font-weight-bold">
                           <a href={`/tasks/${task.id}`}>See log</a>

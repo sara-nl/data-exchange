@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import dayjs from "dayjs";
-  import Permissions from "../api/permissions";
+  import Permissions, {getObtainerPerFile} from "../api/permissions";
 
   import Spinner from "../components/Spinner.svelte";
   import File from "../components/File.svelte";
@@ -15,13 +15,9 @@
   }
 
   onMount(async () => {
-    await load();
+    permissions = await getObtainerPerFile();
   });
 
-  async function load() {
-    let { data } = await Permissions.get_obtained_per_file();
-    permissions = data;
-  }
 </script>
 
 <style>
@@ -81,7 +77,7 @@
                         <tr>
                           <td><File name={task.dataset} /></td>
                           <td><State state={task.state} /></td>
-                          <td>{dayjs(task.registered_on).format("DD-MM-YYYY")}</td>
+                          <td>{dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}</td>
                           <td class="font-weight-bold">
                             <a href={`/tasks/${task.id}`}>
                               {#if task.state === "data_requested"}

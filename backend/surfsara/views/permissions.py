@@ -5,10 +5,14 @@ from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
+from rest_framework.parsers import JSONParser
 from surfsara.models import Permission, User, Task
 from surfsara.services import mail_service
 from surfsara.services.files_service import OwnShares
+from surfsara.services import task_service
+from django.http import HttpResponse, JsonResponse
+from django.db.models import Q
+from surfsara import logger
 
 import datetime
 
@@ -27,6 +31,106 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class Permissions(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
+
+    def create(self, request):
+        """
+        Request a new permission
+        """
+        data = JSONParser().parse(request)
+        data["algorithm_provider"] = request.user.email
+        serializer = PermissionSerializer(data=data)
+        if serializer.is_valid():
+            model = serializer.save()
+            model.review_output = (
+                model.permission_type == Permission.ONE_TIME_PERMISSION
+            )
+            task_service.analyze(model.id)
+            return JsonResponse(PermissionSerializer(model).data)
+
+        return JsonResponse(serializer.errors, status=400)
+
+    def retrieve(self, request, pk=None):
+        permission = Permission.objects.get(pk=pk)
+        is_approver = permission.dataset_provider == request.user.email
+        is_requester = permission.algorithm_provider == request.user.email
+        if is_approver or is_requester:
+            return Response(PermissionSerializer(permission).data)
+        else:
+            return Response(status=404)
+
+    @action(
+        detail=True,
+        methods=["PUT"],
+        name="reject",
+        permission_classes=[IsAuthenticated],
+    )
+    def reject(self, request, pk=None):
+        logger.debug(f"Rejecting permission {pk}")
+        permission = Permission.objects.get(pk=pk)
+        if permission.dataset_provider != request.user.email:
+            return Response(status=403)
+        permission.state = Permission.REJECTED
+        permission.status_description = f"Rejected by ${request.user.email}"
+        permission.save()
+
+        mail_service.send_mail(
+            mail_files="request_reviewed",
+            receiver=permission.algorithm_provider,
+            subject=f"Your data request was rejected",
+            url=f"http://{request.get_host()}/overview",
+            reviewable="data request",
+            result="rejected",
+        )
+
+        return JsonResponse(PermissionSerializer(permission).data)
+
+    @action(
+        detail=True,
+        methods=["PUT"],
+        name="approve",
+        permission_classes=[IsAuthenticated],
+    )
+    def approve(self, request, pk=None):
+        logger.debug(f"Accepting permission {pk}")
+        permission = Permission.objects.get(pk=pk)
+
+        if permission.dataset_provider != request.user.email:
+            return Response(status=403)
+
+        permission.dataset = request.data["dataset"]
+        permission.state = Permission.ACTIVE
+        permission.save()
+
+        if (
+            permission.permission_type == Permission.USER_PERMISSION
+            or permission.permission_type == Permission.STREAM_PERMISSION
+        ):
+            mail_service.send_mail(
+                mail_files="permission_granted_do",
+                receiver=permission.dataset_provider,
+                subject="You granted someone continuous access to your dataset",
+                url=f"http://{request.get_host()}/permissions",
+                **PermissionSerializer(permission).data,
+            )
+
+            mail_service.send_mail(
+                mail_files="permission_granted_ao",
+                receiver=permission.algorithm_provider,
+                subject="You were granted continuous access to a dataset",
+                url=f"http://{request.get_host()}/permissions",
+                **PermissionSerializer(permission).data,
+            )
+        else:
+            mail_service.send_mail(
+                mail_files="request_reviewed",
+                receiver=permission.algorithm_provider,
+                subject=f"Your data request was approved",
+                url=f"http://{request.get_host()}/overview",
+                reviewable="data request",
+                result="approved",
+            )
+
+        return JsonResponse(PermissionSerializer(permission).data)
 
     def list(self, request):
         """
@@ -51,6 +155,27 @@ class Permissions(viewsets.ViewSet):
                 "given_permissions": given_permissions,
             }
         )
+
+    @action(
+        detail=True,
+        methods=["GET"],
+        name="head_task_id",
+        permission_classes=[IsAuthenticated],
+    )
+    def head_task_id(self, request, pk=None):
+        permission = Permission.objects.get(pk=pk)
+        is_approver = permission.dataset_provider == request.user.email
+        is_requester = permission.algorithm_provider == request.user.email
+
+        if not (is_approver or is_requester):
+            return Response(status=403)
+
+        tasks = Task.objects.filter(permission_id=permission.id).order_by("-id")
+
+        if len(tasks) > 0:
+            return Response({"id": tasks[0].id})
+        else:
+            return Response(None)
 
     @action(
         detail=False,
@@ -118,23 +243,6 @@ class Permissions(viewsets.ViewSet):
             given_per_file[perm["dataset"]].append(perm)
 
         return Response({"given_permissions": given_per_file})
-
-    @action(
-        detail=False,
-        methods=["GET"],
-        name="list_permissions",
-        permission_classes=[IsAuthenticated],
-    )
-    def list_permissions(self, request):
-        """
-        Returns all unique permissions
-        """
-        permissions = [
-            permission
-            for permission in Permission.PERMISSIONS
-            if permission[0] != Permission.NO_PERMISSION
-        ]
-        return Response({"list_permissions": permissions})
 
     @action(
         detail=True,

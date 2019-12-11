@@ -4,7 +4,6 @@
     import { goto, stores } from "@sapper/app";
     import { onMount } from "svelte";
 
-    import LoadFiles from "../../api/loader";
     import Tasks from "../../api/tasks";
     import Spinner from "../../components/Spinner.svelte";
     import { token, mode } from "../../stores";

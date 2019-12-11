@@ -139,3 +139,29 @@ AUTH_USER_MODEL = "surfsara.User"
 EMAIL_USE_TLS = False
 EMAIL_HOST = "dataexchange.surfsara.nl"
 EMAIL_PORT = 1025
+
+import logging.config
+
+LOGGING_CONFIG = None
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "console": {
+                "format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
+            },
+        },
+        "handlers": {
+            "console": {"class": "logging.StreamHandler", "formatter": "console",},
+        },
+        "loggers": {
+            "": {"level": "WARNING", "handlers": ["console"],},  # root logger
+            "surfsara": {
+                "propagate": False,
+                "level": "DEBUG",
+                "handlers": ["console"],
+            },
+        },
+    }
+)

@@ -1,60 +1,52 @@
 import pika
 import os
 from django.core.management.base import BaseCommand, CommandError
-from dataclasses import dataclass
-from dataclasses_json import dataclass_json, LetterCase
 
-from surfsara.models import Task, Permission
+from surfsara.models import Permission
+from surfsara.models import Task
+from surfsara.messages import AnalyzeArtifact
+from surfsara.messages import TaskCompleted
 from surfsara.services import mail_service
 from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
-
-
-@dataclass
-@dataclass_json(letter_case=LetterCase.CAMEL)
-class TaskCompleted:
-    task_id: str
-    state: str
-    output: str
+from surfsara import logger
 
 
 class Listener:
     def __init__(self, stdout, stderr, channel):
+
         self.stdout = stdout
         self.stderr = stderr
         self.channel = channel
 
     def listen(self):
-        self.stdout.write(f"Starting to listen on queue {self.queue_name}")
+        logger.info(f"Starting to listen on queue {self.queue_name}")
         self.channel.queue_declare(queue=self.queue_name)
+        logger.debug(f"Declared channel")
         self.channel.basic_consume(
             queue=self.queue_name, on_message_callback=self.callback, auto_ack=True
         )
+        logger.debug(f"Set up consumer")
 
 
 class TaskerDoneListener(Listener):
-    @dataclass
-    @dataclass_json(letter_case=LetterCase.CAMEL)
-    class TaskCompleted:
-        task_id: str
-        state: str
-        output: str
 
     queue_name = "tasker_done"
 
     def callback(self, ch, method, properties, body):
-        # Probably it needs to be wrapped in try/except too :-)
-        task_completed = self.TaskCompleted.from_json(body)
-        self.stdout.write(f"Received {task_completed}")
+        logger.debug(f"New message {body}")
+        task_completed = TaskCompleted.from_json(body)
+        logger.debug(f"Successfully parsed message {task_completed}")
         task = Task.objects.get(pk=task_completed.task_id)
+        logger.debug(f"Updating task with state='{task.state}'")
 
         if task_completed.state == "rejected":
-            perm = Permission.objects.get(id=task.permission.id)
-            perm.state = Permission.ABORTED
-            perm.status_description = "algorithm changed"
-            perm.save()
+            task.permission.state = Permission.ABORTED
+            task.permission.status_description = (
+                "Algorithm changed after approval. Revoking permission automatically."
+            )
+            task.permission.save()
             task.state = Task.ALGORITHM_CHANGED
             task.save()
-
             return
 
         task.output = task_completed.output
@@ -74,42 +66,37 @@ class TaskerDoneListener(Listener):
             subject="Task output is ready for approval",
         )
 
-        self.stdout.write(f"Successfully updated task {task_completed.task_id}")
+        logger.info(f"Successfully updated task {task_completed.task_id}")
 
 
 class AnalyzeListener(Listener):
-    @dataclass
-    @dataclass_json
-    class Command:
-        task_id: str
 
     queue_name = "analyze"
 
     def callback(self, ch, method, properties, body):
-        command = self.Command.from_json(body)
-        self.stdout.write(f"Received {command}")
+        command: AnalyzeArtifact = AnalyzeArtifact.from_json(body)
+        logger.debug(f"Received {command}")
 
-        task = Task.objects.get(pk=command.task_id)
-        task.save()
+        permission: Permission = Permission.objects.get(pk=command.permission_id)
 
-        processor = AlgorithmProcessor(task.algorithm, task.author_email)
-        task.algorithm_content = processor.start_processing()
-        task.algorithm_info = processor.calculate_algorithm_total()
+        processor = AlgorithmProcessor(
+            permission.algorithm, permission.algorithm_provider
+        )
+        info = processor.start_processing()
+        logger.debug(f"Info found: {info}")
+        totals = processor.calculate_algorithm_total()
+        logger.debug(f"Totals found: {totals}")
         etag = processor.get_etag()
-        task.algorithm_etag = etag
-        task.permission.algorithm_etag = etag
-        task.permission.save()
-        self.stdout.write(f"Etag found: {etag}")
+        logger.debug(f"Etag found: {etag}")
 
-        # If the permission is active we shouldn't change the task state, because it
-        # is not necessary for the data owner to review the algorithm.
-        if task.permission.state != Permission.ACTIVE:
-            task.state = Task.DATA_REQUESTED
-        task.save()
+        permission.algorithm_report = {"info": info, "totals": totals}
+        permission.algorithm_etag = etag
+        permission.state = Permission.PENDING
+        permission.save()
 
 
 class Command(BaseCommand):
-    help = "Starts listening for finished task"
+    help = "Starts listening for finished task and analisys requests"
 
     def __init__(self):
         super().__init__()
@@ -124,16 +111,6 @@ class Command(BaseCommand):
         )
         self.channel = self.connection.channel()
 
-    def listen_analyze(self):
-        queue_name = "analyze"
-
-        def callback(ch, method, properties, body):
-
-            self.channel.queue_declare(queue=queue_name)
-            self.channel.basic_consume(
-                queue=queue_name, on_message_callback=callback, auto_ack=True
-            )
-
     def handle(self, *args, **options):
         self.stdout.write(
             self.style.SUCCESS("Starting task results listener. To exit press CTRL+C")
@@ -142,4 +119,7 @@ class Command(BaseCommand):
         TaskerDoneListener(self.stdout, self.stderr, self.channel).listen()
         AnalyzeListener(self.stdout, self.stderr, self.channel).listen()
 
-        self.channel.start_consuming()
+        try:
+            self.channel.start_consuming()
+        except:
+            self.connection.close()

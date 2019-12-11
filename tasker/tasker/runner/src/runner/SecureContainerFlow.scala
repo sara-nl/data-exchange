@@ -122,11 +122,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
       .through(AmqpCodecs.filterAndLogErrors(logger))
       .evalTap(msg => logger.info(s"Processing incoming message $msg"))
       .evalMap {
-        case StartContainer(taskId, _, _, None) =>
-          logger.error(
-            s"Task $taskId is rejected because the incoming message doesn't contain the algorithm hash."
-          )
-        case msg @ StartContainer(taskId, _, codePath, Some(eTag)) =>
+        case msg @ StartContainer(taskId, _, codePath, eTag) =>
           for {
             eTagValid <- verifyETag(WebdavPath(codePath), eTag)
             doneMsg <- if (eTagValid)

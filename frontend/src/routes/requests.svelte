@@ -1,59 +1,37 @@
 <script lang="ts">
   import { goto, stores } from "@sapper/app";
   import dayjs from "dayjs";
+  import { onMount } from "svelte";
 
-  import LoadFiles from "../api/loader";
-  import Tasks from "../api/tasks";
+  import { getAllPermissions, Permission } from "../api/permissions";
+  import { getTasksToReview, Task } from "../api/tasks";
   import Spinner from "../components/Spinner.svelte";
 
-  let state_color = {
-    request_rejected: "danger",
-    release_rejected: "warning",
-    output_released: "success",
-    running: "info",
-    success: "info",
-    error: "danger"
-  };
+  let permissionsToReview: Permission[] | null = null;
+  let reviewedPermissions: Permission[] | null = null;
 
-  let not_reviewed_yet: [any] | null = null;
-  let reviewed: [any] | null = null;
+  onMount(async () => {
+    const [{ given_permissions }, tasks] = await Promise.all([getAllPermissions(), getTasksToReview()])
+    permissionsToReview = [
+      ...(given_permissions.filter(
+        dr => dr.state === "pending" || dr.state === "analyzing"
+      )),
+      ...(tasks.map(t => t.permission))
+    ]
 
-  let data = {
-    data_file: "",
-    updated_request: {},
-    approved: false
-  };
-
-  getUserTasks();
-
-  async function getUserTasks() {
-    try {
-      let { data: response } = await Tasks.get_data_requests();
-      not_reviewed_yet = response.not_reviewed_yet;
-      reviewed = response.reviewed;
-      console.log(response);
-    } catch (error) {
-      console.log(error.toString());
-    }
-
-    return false;
-  }
-
-  function see_details(id: number) {
-    goto(`/tasks/${id}`);
-  }
+    reviewedPermissions = given_permissions.filter(
+      dr => dr.state !== "pending" && dr.state !== "analyzing"
+    );
+  });
 </script>
 
 <svelte:head>
   <title>Requests</title>
-  <link
-    rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
 </svelte:head>
 
 <h3 class="display-5">Review incoming requests</h3>
 
-{#if not_reviewed_yet === null || reviewed === null}
+{#if permissionsToReview === null || reviewedPermissions === null}
   <Spinner />
 {:else}
   <div class="container-fluid mx-auto mt-2">
@@ -79,35 +57,34 @@
             </thead>
 
             <tbody>
-              {#each not_reviewed_yet as file}
+              {#each permissionsToReview as request}
                 <tr>
                   <td />
                 </tr>
                 <tr class="rounded-xl">
 
                   <td class="bg-lightgrey normal_column rounded-xll">
-                    {file.author_email}
+                    {request.algorithm_provider}
                   </td>
 
-                  {#if file.permission !== null}
-                    <td class="bg-lightgrey normal_column">
-                      {file.permission['permission_type']}
-                    </td>
-                  {:else}
-                    <td class="bg-lightgrey normal_column">One Time Run</td>
-                  {/if}
-
-                  <td class="bg-lightgrey desc_column">{file.dataset_desc}</td>
-                  <td class="bg-lightgrey normal_column">{file.algorithm}</td>
                   <td class="bg-lightgrey normal_column">
-                    {dayjs(file.registered_on).format('DD-MM-YYYY')}
+                    {request.permission_type}
+                  </td>
+
+                  <td class="bg-lightgrey desc_column">
+                    {request.request_description}
+                  </td>
+                  <td class="bg-lightgrey normal_column">
+                    {request.algorithm}
+                  </td>
+                  <td class="bg-lightgrey normal_column">
+                    {dayjs(request.registered_on).format('DD-MM-YYYY HH:mm')}
                   </td>
                   <td class="bg-lightgrey normal_column" />
                   <td class="bg-lightgrey normal_column rounded-xlr">
                     <button
                       class="btn btn-primary rounded-xl font-weight-bold"
-                      on:click={() => goto(`/tasks/${file.id}`)}>
-
+                      on:click={() => goto(`/requests/${request.id}`)}>
                       <div class="px-4">Review</div>
                     </button>
                   </td>
@@ -116,7 +93,7 @@
               {:else}
                 <tr>
                   <td colspan="6" class="text-center">
-                    You have no requests to review
+                    You have no access requests to review
                   </td>
                 </tr>
               {/each}
@@ -143,45 +120,42 @@
                 <th scope="col">Dataset description</th>
                 <th class="normal_column" scope="col">Algorithm Name</th>
                 <th class="small_column" scope="col">When</th>
-                <th class="desc_column" scope="col">
-                  Folder/Algorithm Run on
-                </th>
+                <th class="desc_column" scope="col">Folder/Algorithm Run on</th>
                 <th class="normal_column" scope="col">Action</th>
               </tr>
             </thead>
             <tbody>
-              {#each reviewed as file}
+              {#each reviewedPermissions as request}
                 <tr>
                   <td />
                 </tr>
                 <tr>
                   <td class="bg-lightgrey normal_column rounded-xll">
-                    {file.author_email}
+                    {request.algorithm_provider}
                   </td>
-                  {#if file.permission !== null}
-                    <td class="bg-lightgrey normal_column">
-                      {file.permission['permission_type']}
-                    </td>
-                  {:else}
-                    <td class="bg-lightgrey normal_column">One Time Run</td>
-                  {/if}
-                  <td class="bg-lightgrey desc_column">{file.dataset_desc}</td>
-                  <td class="bg-lightgrey normal_column">{file.algorithm}</td>
                   <td class="bg-lightgrey normal_column">
-                    {dayjs(file.registered_on).format('DD-MM-YYYY')}
+                    {request.permission_type} ({request.state})
+                  </td>
+                  <td class="bg-lightgrey desc_column">
+                    {request.request_description}
+                  </td>
+                  <td class="bg-lightgrey normal_column">
+                    {request.algorithm}
+                  </td>
+                  <td class="bg-lightgrey normal_column">
+                    {dayjs(request.registered_on).format('DD-MM-YYYY HH:mm')}
                   </td>
                   <td class="bg-lightgrey normal_column rounded-xlr">
                     <span class="fa-stack fa-2x text-primary">
                       <i class="fas fa-circle fa-stack-2x" />
                       <i class="fas fa-file fa-stack-1x fa-inverse" />
                     </span>
-                    {file.dataset}
+                    {request.dataset || '-'}
                   </td>
                   <td class="bg-lightgrey rounded-xlr normal_column">
                     <button
                       class="btn btn-primary rounded-xl font-weight-bold"
-                      on:click={() => goto(`/tasks/${file.id}`)}>
-
+                      on:click|preventDefault={() => goto(`/requests/${request.id}`)}>
                       <div class="px-4">Details</div>
                     </button>
                   </td>

@@ -2,12 +2,11 @@ import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} fro
 import { fromUrl, token } from "../stores";
 
 export default class Controller {
-    public static client: AxiosInstance;
     public static sapper: any;
+    public static client: AxiosInstance = axios.create({ baseURL: "/api/" });
 
     public static setup(sapper: any) {
         this.sapper = sapper;
-        this.client = axios.create({ baseURL: "/api/" });
 
         token.subscribe((value: string | null) => {
             this.token = value;

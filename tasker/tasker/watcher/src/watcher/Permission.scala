@@ -9,7 +9,7 @@ case class Permission(id: Int,
                       algorithmProvider: String,
                       datasetProvider: String,
                       algorithmPath: WebdavPath,
-                      algorithmETag: Option[String],
+                      algorithmETag: String,
                       dataSetPath: WebdavPath)
 
 object Permission {
@@ -19,13 +19,12 @@ object Permission {
   type PermissionWithRuns = (Permission, List[AlgorithmRun])
 
   type QueryResult =
-    (Int, String, String, String, Option[String], String, String)
+    (Int, String, String, String, String, String, Option[String])
 
   private val query =
     sql"""SELECT permission.id, permission.algorithm_provider, permission.dataset_provider, permission.algorithm, permission.algorithm_etag, permission.dataset, task.dataset
-                   |  FROM surfsara_permission as permission
-                   |  LEFT JOIN surfsara_task as task ON permission.id = task.permission_id
-                   |  WHERE permission.state = 'active' AND permission.permission_type = 'stream permission' AND permission.algorithm != 'Any algorithm'""".stripMargin
+                   |  FROM surfsara_permission as permission LEFT JOIN surfsara_task as task ON permission.id = task.permission_id
+                   |  WHERE permission.state = 'active' AND permission.permission_type = 'stream permission'""".stripMargin
 
   /**
     * Fetches permissions of type streaming from the DB along with happened algorithm runs
@@ -47,7 +46,7 @@ object Permission {
             algorithm,
             algorithmETag,
             permissionDataset,
-            taskDataset
+            taskDatasetOption
             ) =>
           (
             Permission(
@@ -58,11 +57,15 @@ object Permission {
               algorithmETag,
               WebdavPath(permissionDataset)
             ),
-            AlgorithmRun(WebdavPath(taskDataset))
+            taskDatasetOption.map(
+              taskDataset => AlgorithmRun(WebdavPath(taskDataset))
+            )
           )
       }
 
-      transformedResults.groupMap(_._1)(_._2).toList
+      transformedResults
+        .groupMapReduce(key = _._1)(_._2.toList)(_ ::: _)
+        .toList
     }
 
 }

@@ -1,9 +1,9 @@
 <script lang="ts">
-  import LoadFiles from "../../api/loader";
   import Tasks from "../../api/tasks";
   import Spinner from "../../components/Spinner.svelte";
   import { goto, stores } from "@sapper/app";
   import { onMount } from "svelte";
+  import dayjs from "dayjs";
 
   let state_color = {
     request_rejected: "danger",
@@ -39,11 +39,6 @@
   function see_details(id: number) {
     goto(`/tasks/${id}`);
   }
-
-  function to_date(datetime: string) {
-    let date = new Date(datetime);
-    return date.toLocaleDateString();
-  }
 </script>
 
 <style>
@@ -54,9 +49,6 @@
 
 <svelte:head>
   <title>DEX</title>
-  <link
-    rel="stylesheet"
-    href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" />
 </svelte:head>
 
 <h2 class="display-5">Logs</h2>
@@ -115,7 +107,7 @@
                       No
                     {/if}
                   </td>
-                  <td>{to_date(task.registered_on)}</td>
+                  <td>{dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}</td>
                 </tr>
               </tbody>
             {/each}
@@ -162,7 +154,7 @@
                   <td><b>You</b></td>
                   <td>{task.algorithm}</td>
                   <td>{task.dataset}</td>
-                  <td>{to_date(task.registered_on)}</td>
+                  <td>{dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}</td>
                 </tr>
               </tbody>
             {/each}

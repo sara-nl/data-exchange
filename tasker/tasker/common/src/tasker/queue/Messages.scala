@@ -27,7 +27,7 @@ object Messages {
                               * Hash of the algorithm. If passed-will be checked before the task is started,
                               * and if it doesn't match - task will be rejected.
                               */
-                            codeHash: Option[ETag])
+                            codeHash: ETag)
 
   object Done {
     def success(taskId: String,

@@ -29,7 +29,7 @@ Example:
 {
   "taskId" : "123",
   "state" : "success",
-  "output" : "",
+  "output" : "Foo",
   "containerOutput" : {
     "stdout" : "Average fortune: 100350000000.0 of 4 people",
     "stderr" : "",

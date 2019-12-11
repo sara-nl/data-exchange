@@ -1,7 +1,6 @@
 <script lang="ts">
     import { goto, stores } from "@sapper/app";
 
-    import LoadFiles from "../../api/loader";
     import Tasks from "../../api/tasks";
     import Permissions from "../../api/permissions";
     import Spinner from "../../components/Spinner.svelte";
@@ -47,7 +46,6 @@
 
 <svelte:head>
     <title>Permissions</title>
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </svelte:head>
 
 

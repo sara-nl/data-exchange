@@ -8,6 +8,7 @@ from rest_framework.response import Response
 from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
 from surfsara.views import permissions
+from surfsara import logger
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -21,51 +22,6 @@ class TaskSerializer(serializers.ModelSerializer):
 class Tasks(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
-    def create(self, request):
-        data_owner_email = request.data["data_owner"]
-        if "@" not in data_owner_email:
-            return Response(
-                {"error": f"Invalid email address '{data_owner_email}'"}, status=400
-            )
-        elif not User.objects.filter(email=data_owner_email):
-            return Response(
-                {"error": f"Unknown email address '{data_owner_email}'"}, status=400
-            )
-
-        # Create permission
-        permission = Permission(
-            permission_type=request.data["permission"],
-            algorithm=request.data["algorithm"],
-            algorithm_provider=request.user.email,
-            dataset_provider=data_owner_email,
-        )
-        permission.save()
-
-        # Create task
-        task = Task(
-            state=Task.ANALYZING,
-            author_email=request.user.email,
-            approver_email=data_owner_email,
-            algorithm=request.data["algorithm"],
-            dataset_desc=request.data["dataset_desc"],
-            permission=permission,
-        )
-        task.save()
-
-        # Analyze algorithm and update the permissions model.
-        task_service.analyze(task)
-
-        mail_service.send_mail(
-            mail_files="data_request",
-            receiver=data_owner_email,
-            subject="You got a data request",
-            url=f"http://{request.get_host()}/tasks/{task.pk}",
-            author=task.author_email,
-            dataset=task.dataset,
-        )
-
-        return Response({"owner": True, "id": task.id})
-
     def list(self, request):
         """
         Gets all requests you made and requests on your data that
@@ -75,7 +31,6 @@ class Tasks(viewsets.ViewSet):
         to_approve_requests = Task.objects.filter(
             Q(approver_email=request.user.email),
             Q(state=Task.DATA_REQUESTED)
-            | Q(state=Task.ANALYZING)
             | Q(state=Task.SUCCESS, review_output=True)
             | Q(state=Task.ERROR, review_output=True),
         ).order_by("-registered_on")
@@ -133,21 +88,6 @@ class Tasks(viewsets.ViewSet):
         )
 
     @action(
-        detail=False,
-        methods=["GET"],
-        name="get_pending_requests",
-        permission_classes=[IsAuthenticated],
-    )
-    def get_pending_requests(self, request):
-        """Returns al requests with state 'running' """
-        pending_requests = Task.objects.filter(
-            permission__in=Permission.objects.filter(state=Permission.PENDING),
-            author_email=request.user.email,
-        ).order_by("-registered_on")
-
-        return Response(TaskSerializer(pending_requests, many=True).data)
-
-    @action(
         detail=False, methods=["GET"], name="list_logs", permission_classes=[AllowAny]
     )
     def list_logs(self, request):
@@ -200,83 +140,6 @@ class Tasks(viewsets.ViewSet):
     @action(
         detail=True,
         methods=["POST"],
-        name="review",
-        permission_classes=[IsAuthenticated],
-    )
-    def review(self, request, pk=None):
-        """
-        Processes review of request made by algorithm provider and reviewed
-        by data provider
-        """
-        task = Task.objects.get(pk=pk)
-
-        if task.approver_email != request.user.email:
-            return Response({"output": "Not your file"})
-
-        update = request.data["updated_request"]
-        if request.data["approved"]:
-            result = "approved"
-
-            task.dataset = update["dataset"]
-            task.review_output = request.data["review_output"]
-            task.permission.state = Permission.ACTIVE
-            task.permission.dataset = task.dataset
-            task.permission.save()
-
-            # If the permission is a stream permission, the execution of the dataset gets handled by
-            # the watcher, therefore no call to rabbitMQ is made.
-            if task.permission.permission_type == Permission.STREAM_PERMISSION:
-                task.state = Task.STREAM_PERMISSION_REQUEST
-                task.save()
-
-            # Start container and run algorithm and dataset together.
-            else:
-                task_service.start(task)
-                task.state = Task.RUNNING
-                task.save()
-
-            # Send mails.
-            if (
-                task.permission.permission_type == Permission.USER_PERMISSION
-                or task.permission.permission_type == Permission.STREAM_PERMISSION
-            ):
-
-                mail_service.send_mail(
-                    mail_files="permission_granted_do",
-                    receiver=task.approver_email,
-                    subject="You granted someone continuous access to your dataset",
-                    url=f"http://{request.get_host()}/permissions",
-                    **update,
-                )
-
-                mail_service.send_mail(
-                    mail_files="permission_granted_ao",
-                    receiver=task.author_email,
-                    subject="You were granted continuous access to a dataset",
-                    url=f"http://{request.get_host()}/permissions",
-                    **update,
-                )
-        else:
-            result = "rejected"
-            task.state = Task.REQUEST_REJECTED
-            task.permission.state = Permission.REJECTED
-            task.permission.save()
-            task.save()
-
-        mail_service.send_mail(
-            mail_files="request_reviewed",
-            receiver=update["author_email"],
-            subject=f"Your data request was {result}",
-            url=f"http://{request.get_host()}/overview",
-            reviewable="data request",
-            result=result,
-        )
-
-        return Response({"state": task.state, "output": task.output})
-
-    @action(
-        detail=True,
-        methods=["POST"],
         name="release",
         permission_classes=[IsAuthenticated],
     )
@@ -318,29 +181,72 @@ class Tasks(viewsets.ViewSet):
     )
     def start_with_perm(self, request, pk=None):
         perm = Permission.objects.get(
-            id=pk,
-            algorithm_provider=request.user.email,
-            dataset_provider=request.data["dataset_provider"],
-            dataset=request.data["dataset"],
+            id=pk, dataset_provider=request.user.email, state=Permission.ACTIVE
         )
 
         if not perm:
-            return Response({"output": "You don't have this permission"})
+            return Response(status=403)
+
+        if perm.permission_type == Permission.STREAM_PERMISSION:
+            return Response(
+                "Tasks with streaming permissions should not be started from frontend",
+                status=406,
+            )
+
+        if perm.permission_type == Permission.USER_PERMISSION:
+            return Response(
+                "This endpoint can be used only for One time permissions", status=406
+            )
 
         task = Task(
-            state=Task.ANALYZING,
+            state=Task.RUNNING,
+            author_email=perm.algorithm_provider,
+            approver_email=perm.dataset_provider,
+            algorithm=perm.algorithm,
+            dataset=perm.dataset,
+            review_output=perm.review_output,
+            permission=perm,
+        )
+
+        task.save()
+
+        logger.info(f"Created new task {task.id} from one time permission {perm.id}")
+        task_service.start(task)
+
+        return Response(TaskSerializer(task).data)
+
+    @action(
+        detail=True,
+        methods=["POST"],
+        name="start_with_user_perm",
+        permission_classes=[IsAuthenticated],
+    )
+    def start_with_user_perm(self, request, pk=None):
+        perm = Permission.objects.get(
+            id=pk, algorithm_provider=request.user.email, state=Permission.ACTIVE
+        )
+
+        if not perm:
+            return Response(status=403)
+
+        if perm.permission_type != Permission.USER_PERMISSION:
+            return Response(
+                "This endpoint can be used only for User permissions", status=406
+            )
+
+        task = Task(
+            state=Task.RUNNING,
             author_email=perm.algorithm_provider,
             approver_email=perm.dataset_provider,
             algorithm=request.data["algorithm"],
             dataset=perm.dataset,
-            review_output=perm.review_output,
-            dataset_desc="",
+            review_output=False,  # Because it's User Permission
             permission=perm,
         )
-        task.save()
-        task_service.analyze(task)
-        task_service.start(task)
-        task.state = Task.RUNNING
+
         task.save()
 
-        return Response({"id": task.id})
+        logger.info(f"Created new task {task.id} from user permission {perm.id}")
+        task_service.start(task)
+
+        return Response(TaskSerializer(task).data)

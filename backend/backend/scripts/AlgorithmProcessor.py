@@ -10,21 +10,12 @@ class AlgorithmProcessor:
         self.algorithm_name = algorithm_name
         self.data_requester = data_requester
         self.rd_client = ResearchdriveClient()
-        self.is_folder = self.is_folder()
         self.threads = []
         self.files = []
         self.all_files = {}
 
-    def is_folder(self):
-        """
-        A folder can look like a file by giving the folder a name like folder.py.
-        This functions checks the recorded filetype as saved on researchdrive.
-        :return: True or False if it's a folder.
-        """
         shares = self.rd_client.get_shares(self.data_requester, self.algorithm_name)
-        if "directory" in shares[0]["mimetype"]:
-            return True
-        return False
+        self.is_folder = "directory" in shares[0]["mimetype"]
 
     def calculate_algorithm_total(self):
         characters, newline, words, dependencies = 0, 0, 0, []

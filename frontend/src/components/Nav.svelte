@@ -1,7 +1,6 @@
 <script>
     import { token, mode, email } from "../stores";
     import NavItem from "./NavItem";
-    import NavDropdown from "./NavDropdown";
 
     export let segment;
 

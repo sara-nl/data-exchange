@@ -81,7 +81,7 @@ object WatcherApp extends IOApp {
                         s"$taskId",
                         newDataset.userPath.getOrElse("/"),
                         permission.algorithmPath.userPath.getOrElse("/"),
-                        permission.algorithmETag.map(Messages.ETag.apply)
+                        Messages.ETag(permission.algorithmETag)
                       )
                     )
                   } yield ()

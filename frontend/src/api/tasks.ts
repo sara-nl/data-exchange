@@ -1,43 +1,38 @@
-import { AxiosResponse, Method } from "axios";
+import { AxiosResponse } from "axios";
 import Controller from "./controller";
 
-export class TasksStartRequest {
-    public algorithm: string = "";
-    public data_owner: string = "";
-    public dataset_desc: string = "";
-    public permission: string = "";
+export interface Task {
+    id: number,
+    state: 'running' | 'success' | 'error' | 'algorithm_changed' | 'request_rejected' | 'release_rejected' | 'output_released',
+    author_email: string,
+    approver_email: string,
+    algorithm: string,
+    dataset: string,
+    output: string,
+    review_output: boolean,
+    permission: object,
+    registered_on: Date,
+    updated_on: Date
 }
 
-export class TasksPermRequest {
-    public permission?: any;
-
+export async function spawnTaskFromPermission(permissionId: number): Promise<Task> {
+    const response = await Controller.client.post<Task>(`/tasks/${permissionId}/start_with_perm/`, {});
+    return response.data
 }
 
-export class TasksReviewRequest {
-    public data?: any;
-    public updated_request?: any;
 
-    public approved: boolean = false;
-    public released: boolean = false;
-
-    public approve_user: boolean = false;
-    public review_output: boolean = true;
-    public stream: boolean = false;
+export async function startWithUserPermisson(permissionId: number, algorithm: string): Promise<Task> {
+    return Controller.client.post<Task>(`/tasks/${permissionId}/start_with_user_perm/`, {algorithm})
+        .then(r => r.data)
 }
 
-export class TaskRetrieveRequest {
-    public task_id: number = 0;
+export async function getTasksToReview(): Promise<Tasks> {
+    return Controller.client.get<{to_approve_requests: Task[]}>(`/tasks/`)
+    .then(r => r.data.to_approve_requests)
 }
-
 
 export default class Tasks extends Controller {
-    public static async start(data: TasksStartRequest): Promise<AxiosResponse> {
-        return this.client.post("/tasks/", data);
-    }
 
-    public static async start_with_perm(id: number, permission: TasksPermRequest): Promise<AxiosResponse> {
-        return this.client.post(`/tasks/${id}/start_with_perm/`, permission)
-    }
 
     public static async get(): Promise<AxiosResponse> {
         return this.client.get("/tasks/")
@@ -47,23 +42,15 @@ export default class Tasks extends Controller {
         return this.client.get("/tasks/get_data_requests")
     }
 
-    public static async get_pending_requests(): Promise<AxiosResponse> {
-        return this.client.get("/tasks/get_pending_requests")
-    }
-
     public static async get_logs(): Promise<AxiosResponse> {
         return this.client.get("/tasks/list_logs/");
     }
 
-    public static async retrieve(id: number): Promise<AxiosResponse> {
-        return this.client.get(`/tasks/${id}/`)
+    public static async retrieve(id: number): Promise<Task> {
+        return this.client.get(`/tasks/${id}/`).then(r => r.data)
     }
 
-    public static async review(id: number, data: TasksReviewRequest): Promise<AxiosResponse> {
-        return this.client.post(`/tasks/${id}/review/`, data)
-    }
-
-    public static async release(id: number, data: TasksReviewRequest): Promise<AxiosResponse> {
+    public static async release(id: number, data: {released: boolean}): Promise<AxiosResponse> {
         return this.client.post(`/tasks/${id}/release/`, data)
     }
 }

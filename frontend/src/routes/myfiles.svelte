@@ -1,5 +1,5 @@
 <script lang="ts">
-    import loadFiles from "../api/loader";
+    import {getShares, Share} from "../api/shares";
     import RemoveShare from "../api/shares";
     import Spinner from "../components/Spinner.svelte";
 
@@ -9,9 +9,9 @@
 
     async function updateUserFiles(){
         try {
-            let { data: response } = loadFiles();
-            own_algorithms = response.output.own_algorithms;
-            own_datasets = response.output.own_datasets;
+            const response = await getShares();
+            own_algorithms = response.own_algorithms;
+            own_datasets = response.own_datasets;
         } catch (error) {
             console.log(error.toString())
         }

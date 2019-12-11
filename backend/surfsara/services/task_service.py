@@ -1,18 +1,9 @@
 import os
+import logging
 import pika
 from surfsara.models import Task
-from dataclasses import dataclass
-from dataclasses_json import dataclass_json, LetterCase
+from surfsara.messages import StartContainer, AnalyzeArtifact
 from surfsara.management.commands.listen import AnalyzeListener
-
-
-@dataclass
-@dataclass_json(letter_case=LetterCase.CAMEL)
-class StartContainer:
-    task_id: str
-    data_path: str
-    code_path: str
-    code_hash: dict
 
 
 def __connect():
@@ -41,7 +32,7 @@ def start(task: Task):
         task_id=str(task.id),
         data_path=task.dataset,
         code_path=task.algorithm,
-        code_hash={"eTag": task.algorithm_etag},
+        code_hash={"eTag": task.permission.algorithm_etag},
     )
 
     channel.basic_publish(
@@ -54,15 +45,12 @@ def start(task: Task):
     connection.close()
 
 
-def analyze(task: Task):
+def analyze(permission_id: int):
     connection, channel = __connect()
-
-    command = AnalyzeListener.Command(task_id=str(task.id))
     channel.basic_publish(
         exchange="",
         routing_key=AnalyzeListener.queue_name,
-        body=command.to_json(),
+        body=AnalyzeArtifact(permission_id).to_json(),
         properties=PROPERTIES,
     )
-
     connection.close()

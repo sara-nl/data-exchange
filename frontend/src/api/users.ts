@@ -1,6 +1,8 @@
 import axios, { AxiosResponse } from "axios";
 import Controller from "./controller";
 
+export type UserRole = "algorithm" | "data"
+
 export class RegisterRequest {
     public email: string = "";
     public password: string = "";

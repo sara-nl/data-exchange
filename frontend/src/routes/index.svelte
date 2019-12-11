@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import loadFiles from "../api/loader";
+  import {getShares, Share} from "../api/shares";
   import Spinner from "../components/Spinner.svelte";
 
   import { mode, token } from "../stores";
@@ -13,10 +13,9 @@
   token.subscribe(value => {
     if (Boolean(value)) {
       isAuthenticated = true
-      loadFiles().then(
-        ({ data: response }) => {
-          own_algorithms = response.output.own_algorithms;
-          own_datasets = response.output.own_datasets;
+      getShares().then(response => {
+          own_algorithms = response.own_algorithms;
+          own_datasets = response.own_datasets;
         }, 
         e => console.error('Error while loading user files', e));
     }

@@ -1,5 +1,6 @@
 package tasker
 
+import cacher.CacherApp
 import cats.effect.{ExitCode, IO, IOApp}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import runner.RunnerApp
@@ -15,11 +16,16 @@ object TaskerApp extends IOApp {
       _ <- logger.info("Tasker started")
       runner <- RunnerApp
         .run(Nil)
-        .start(TaskerConfig.concurrency.newCachedTPContextShift("runner"))
+        .start(TaskerConfig.concurrency.newFixedContextShift("runner"))
       watcher <- WatcherApp
         .run(Nil)
-        .start(TaskerConfig.concurrency.newCachedTPContextShift("watcher"))
+        .start(TaskerConfig.concurrency.newFixedContextShift("watcher"))
+      cacher <- CacherApp
+        .run(Nil)
+        .start(TaskerConfig.concurrency.newFixedContextShift("cacher"))
       runnerExitCode <- runner.join
       watcherExitCode <- watcher.join
-    } yield ExitCode(runnerExitCode.code + watcherExitCode.code)
+      cacherExitCode <- cacher.join
+    } yield
+      ExitCode(runnerExitCode.code + watcherExitCode.code + cacherExitCode.code)
 }

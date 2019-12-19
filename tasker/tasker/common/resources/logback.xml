@@ -21,4 +21,8 @@
     <logger name="watcher" level="${watcherLogLevel:-info}" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
+
+    <logger name="cacher" level="${cacherLogLevel:-info}" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
 </configuration>

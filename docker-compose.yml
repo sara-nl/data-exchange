@@ -46,9 +46,11 @@ services:
             DJANGO_DB_HOST: postgres
             DJANGO_DB_NAME: surfsara
             DJANGO_DB_USER: surfsara
+            SHARES_API_URL: http://tasker:8088/shares/all
         depends_on:
             - rabbitmq
             - postgres
+            - tasker
 
     frontend:
         build:

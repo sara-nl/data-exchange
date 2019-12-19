@@ -3,7 +3,7 @@ package tasker.config
 import java.net.URI
 import java.util.concurrent.Executors
 
-import cats.effect.{IO, Timer}
+import cats.effect.{ContextShift, IO, Timer}
 import dev.profunktor.fs2rabbit.config.declaration.{
   DeclarationExchangeConfig,
   DeclarationQueueConfig
@@ -35,9 +35,16 @@ object TaskerConfig {
 
   object concurrency {
 
-    def newCachedTPContextShift(label: String) = IO.contextShift(
+    def newCachedTPContextShift(label: String): ContextShift[IO] =
+      IO.contextShift(
+        fromExecutor(
+          Executors.newCachedThreadPool(new DefaultThreadFactory(label, true))
+        )
+      )
+
+    def newFixedContextShift(label: String): ContextShift[IO] = IO.contextShift(
       fromExecutor(
-        Executors.newCachedThreadPool(new DefaultThreadFactory(label, true))
+        Executors.newFixedThreadPool(4, new DefaultThreadFactory(label, true))
       )
     )
 

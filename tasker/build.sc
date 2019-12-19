@@ -3,13 +3,17 @@ import scalalib._
 import scalafmt._
 
 object tasker extends ScalaModule with ScalafmtModule {
+  
+  val http4sVersion = "0.21.0-M5"
+  val circeVersion = "0.12.3"
+  val circeOpticsVersion = "0.12.0"
 
   object watcher extends ScalaModule with ScalafmtModule {
     override def scalaVersion = tasker.scalaVersion
     override def scalacOptions = tasker.scalacOptions
     override def ivyDeps = Agg(
-      ivy"org.http4s::http4s-dsl:0.21.0-M5",
-      ivy"org.http4s::http4s-blaze-client:0.21.0-M5",
+      ivy"org.http4s::http4s-dsl:$http4sVersion",
+      ivy"org.http4s::http4s-blaze-client:$http4sVersion",
       ivy"org.tpolecat::doobie-core:0.8.4",
       ivy"org.tpolecat::doobie-postgres:0.8.4"
     )
@@ -20,6 +24,21 @@ object tasker extends ScalaModule with ScalafmtModule {
     override def scalaVersion = tasker.scalaVersion
     override def scalacOptions = tasker.scalacOptions
     override def moduleDeps = Seq(common)
+  }
+
+  object cacher extends ScalaModule with ScalafmtModule {
+    override def scalaVersion = tasker.scalaVersion
+    override def scalacOptions = tasker.scalacOptions
+    override def moduleDeps = Seq(common)
+
+    override def ivyDeps = Agg(
+      ivy"org.http4s::http4s-dsl:$http4sVersion",
+      ivy"org.http4s::http4s-circe:$http4sVersion",
+      ivy"org.http4s::http4s-blaze-client:$http4sVersion",
+      ivy"org.http4s::http4s-blaze-server:$http4sVersion",
+      ivy"io.circe::circe-generic:$circeVersion",
+      ivy"io.circe::circe-optics:$circeOpticsVersion"
+    )
   }
 
   object common extends ScalaModule with ScalafmtModule {
@@ -47,6 +66,6 @@ object tasker extends ScalaModule with ScalafmtModule {
 
   override def scalaVersion = "2.13.1"
   override def scalacOptions = Seq("-deprecation", "-Xlint", "-Xfatal-warnings")
-  override def moduleDeps = Seq(runner, watcher)
+  override def moduleDeps = Seq(runner, watcher, cacher)
   override def forkArgs = Seq("-Djava.io.tmpdir=/tmp/tasker")
 }

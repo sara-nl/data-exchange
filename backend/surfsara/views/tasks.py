@@ -127,7 +127,13 @@ class Tasks(viewsets.ViewSet):
         """
 
         task = Task.objects.get(pk=pk)
+
         is_owner = task.approver_email == request.user.email
+        is_author = task.author_email == request.user.email
+
+        if not is_owner and not is_author:
+            return Response(status=403)
+
         if (
             task.state != Task.OUTPUT_RELEASED
             and not (task.state == Task.ERROR and task.review_output is False)

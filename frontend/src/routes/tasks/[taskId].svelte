@@ -18,7 +18,6 @@
   const { page } = stores();
   const { taskId } = $page.params;
 
-  let visible: boolean = false;
   let task: Task | null = null;
 
   let currentStep: number | null = null;

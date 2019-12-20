@@ -65,7 +65,10 @@
         </div>
       </div>
       {/if}
-    
+
+    {#if (task.state === 'algorithm_changed')}
+        <ErrorMessage error={"Execution aborted because algorithm changed"} />
+    {/if}    
     {#if (task.state === 'error' && $mode === "data")}
         <ErrorMessage error={"Execution failed with an error"} />
     {/if}

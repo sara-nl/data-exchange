@@ -26,7 +26,7 @@ export async function startWithUserPermisson(permissionId: number, algorithm: st
         .then(r => r.data)
 }
 
-export async function getTasksToReview(): Promise<Tasks> {
+export async function getTasksToReview(): Promise<Task[]> {
     return Controller.client.get<{to_approve_requests: Task[]}>(`/tasks/`)
     .then(r => r.data.to_approve_requests)
 }

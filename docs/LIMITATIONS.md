@@ -14,10 +14,11 @@ This is the list of known ~issues~ limitations.
 
 ## Known security issues
 * Edge case; if:
-  - Algorithm A is uploaded.
-  - Data owner opens page on algorithm A.
-  - While the data owner is reviewing, algorithm B gets uploaded.
-  - Data owner *thinks* they're approving A, but they are actually approving B.
+  - Malicious algorithm A is uploaded.
+  - Etag captured
+  - Benevolent algorithm B is uploaded.
+  - Data owner opens page on algorithm B.
+  - When the data owner is done reviewing, algorithm A gets uploaded again (in order for this to work the this action needs to happen within a few seconds after the data owner accepted algorithm). See [#29](https://git.ia.surfsara.nl/SOIL/secure-container/issues/29) for more info.
 
   The ETag should be checked for changes when a data owner approves an
   algorithm.

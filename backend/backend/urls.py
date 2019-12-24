@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework import routers, serializers, viewsets
 from rest_framework.authtoken.views import obtain_auth_token
 
-from surfsara.views import user, tasks, shares, permissions, requests
+from surfsara.views import user, tasks, shares, permissions
 
 # Routers provide an easy way of automatically determining the URL conf.
 router = routers.DefaultRouter()

@@ -28,9 +28,7 @@ Data exchange runs in [HPC Cloud](https://userinfo.surfsara.nl/systems/hpc-cloud
 * Demo: https://dataexchange.surfsara.nl/
 * Test 2: http://test-2.dataex-sara.surf-hosted.nl/
 
-There is a [Continuous Delivery](https://en.wikipedia.org/wiki/Continuous_delivery) process via GitLab from `master` to `Test 2`. 
-
-The version on `Demo` is usually a few development days behind `Test 2`.
+Read more about the [Continuous Delivery](docs/CD.md) pipeline used in this project.
 
 # Mail
 All outgoing emails can be read at: https://dataexchange.surfsara.nl/mail

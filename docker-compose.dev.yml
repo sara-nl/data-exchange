@@ -1,15 +1,18 @@
 # docker-compose overrides for development.
+# Describes both: build and run steps. Images are named automatically.
 
 version: "3"
 services:
     tasker:
         build:
+            context: "tasker/"
             dockerfile: "docker/dev.Dockerfile"
         environment:
             ENVIRONMENT: "development"
 
     backend_listen:
         build:
+            context: "backend/"
             dockerfile: "docker/dev.Dockerfile"
         environment:
             DJANGO_DEBUG: 1
@@ -19,6 +22,7 @@ services:
 
     backend:
         build:
+            context: "backend/"
             dockerfile: "docker/dev.Dockerfile"
         environment:
             DJANGO_DEBUG: 1
@@ -30,6 +34,7 @@ services:
 
     frontend:
         build:
+            context: "frontend/"
             dockerfile: "docker/dev.Dockerfile"
         environment:
             BACKEND_BASE_URI: 'http://backend:8000'

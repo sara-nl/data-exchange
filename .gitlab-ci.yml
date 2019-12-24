@@ -56,4 +56,4 @@ deploy_all:
     - chmod 0600 "${TEST2_SSH_KEY}"
     # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
     # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
-    - ssh -oStrictHostKeyChecking=no -i "${TEST2_SSH_KEY}" "${TEST2_SSH_ADDRESS}" 'cd surfsara && git pull --rebase && ./deploy.sh'
+    - ssh -oStrictHostKeyChecking=no -i "${TEST2_SSH_KEY}" "${TEST2_SSH_ADDRESS}" 'cd surfsara && git pull --rebase && ./scripts/build-install.sh'

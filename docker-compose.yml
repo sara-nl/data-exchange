@@ -1,10 +1,9 @@
-# Base docker-compose file
+# Base docker-compose file. No build configuration should be specified here,
+# because this file is used as a base for `build` and `run` flows.
 
 version: "3"
 services:
     tasker:
-        build:
-            context: "tasker/"
         environment:
             RABBITMQ_HOST: rabbitmq
             RABBITMQ_USERNAME: guest
@@ -21,8 +20,6 @@ services:
         command: "./docker/entrypoint.sh"
 
     backend_listen:
-        build:
-            context: "backend/"
         environment:
             RABBITMQ_HOST: rabbitmq
             RABBITMQ_USERNAME: guest
@@ -36,8 +33,6 @@ services:
             - postgres
 
     backend:
-        build:
-            context: "backend/"
         environment:
             RABBITMQ_HOST: rabbitmq
             RABBITMQ_USERNAME: guest
@@ -53,8 +48,6 @@ services:
             - tasker
 
     frontend:
-        build:
-            context: "frontend/"
         environment:
             BACKEND_BASE_URI: 'http://backend:8000'
 

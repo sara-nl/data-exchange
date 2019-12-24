@@ -1,16 +1,20 @@
-# docker-compose overrides for production.
+# docker-compose overrides for production build.
 
 version: "3"
 services:
     tasker:
+        image: git.ia.surfsara.nl:5050/soil/secure-container/tasker${DOCKER_COMPOSE_VERSION_SUFFIX}
         build:
+            context: "tasker/"
             dockerfile: "docker/prod.Dockerfile"
         restart: "always"
         environment:
             ENVIRONMENT: "production"
 
     backend_listen:
+        image: git.ia.surfsara.nl:5050/soil/secure-container/backend_listen${DOCKER_COMPOSE_VERSION_SUFFIX}
         build:
+            context: "backend/"
             dockerfile: "docker/prod.Dockerfile"
         environment:
             DJANGO_DEBUG: 0
@@ -18,7 +22,9 @@ services:
         command: "./docker/entrypoint.sh listen"
 
     backend:
+        image: git.ia.surfsara.nl:5050/soil/secure-container/backend${DOCKER_COMPOSE_VERSION_SUFFIX}
         build:
+            context: "backend/"
             dockerfile: "docker/prod.Dockerfile"
         environment:
             DJANGO_DEBUG: 0
@@ -28,7 +34,9 @@ services:
         command: "./docker/entrypoint.sh runserver"
 
     frontend:
+        image: git.ia.surfsara.nl:5050/soil/secure-container/frontend${DOCKER_COMPOSE_VERSION_SUFFIX}
         build:
+            context: "frontend/"
             dockerfile: "docker/prod.Dockerfile"
         environment:
             NODE_ENV: "production"

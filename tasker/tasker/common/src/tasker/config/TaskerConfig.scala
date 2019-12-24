@@ -73,7 +73,7 @@ object TaskerConfig {
   }
 
   object docker {
-    val image = "datex:latest"
+    val image = "git.ia.surfsara.nl:5050/soil/secure-container/datex:latest"
     val indexFile = "run.py"
     val requirementsFile = "requirements.txt"
     val containerCodePath = "/tmp/code"

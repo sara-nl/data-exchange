@@ -1,7 +1,10 @@
 #!/bin/bash
 
+# This script builds images of given services (or all known if not specified),
+# tags those images using git branch name and revision and pushes the images
+# into Gitlab Container Registry.
 
-# This script should be executed from Gitlab CI environment only.
+# Attention! This script should be executed from Gitlab CI environment only.
 # It requires $CI_COMMIT_REF_NAME and $CI_COMMIT_SHORT_SHA variables
 # to be set!
 
@@ -23,7 +26,6 @@ if [[ ! -z "$1" ]]; then
 fi
 
 echo "Building images of ${ALL_SERVICES}"
-
 
 DOCKER_COMPOSE_VERSION_SUFFIX=":$CI_COMMIT_SHORT_SHA.$CI_COMMIT_REF_NAME" \
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml build ${ALL_SERVICES}

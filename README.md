@@ -1,5 +1,5 @@
 # SURFsara Amsterdam Data Exchange
-This is the repository for the SURFsara Amsterdam Data Exchange project. The project is in **prototype** phase, therefore check list of [known limitations](./).
+This is the repository for the SURFsara Amsterdam Data Exchange project. The project is in **prototype** phase, therefore check list of [known limitations](docs/LIMITATIONS.md).
 
 # Components
 
@@ -7,7 +7,7 @@ Applications consists of a few main components packaged as one or a few docker c
 
 * backend (Python, Django) ([README](backend/README.md))
 * frontend (TypeScript/JS, Svelte)
-* tasker (Scala) ([README](./tasker/README.md))
+* tasker (Scala) ([README](tasker/README.md))
 
 <img src="./docs/topology.png" alt="Containers topology" title="Containers topology" />
 

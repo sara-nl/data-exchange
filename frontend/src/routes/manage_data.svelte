@@ -121,14 +121,16 @@
                         <td>{permission.algorithm_provider}</td>
                         <td>{permission.algorithm}</td>
                         <td>{permission.permission_type}</td>
-                        <td class="text-danger font-weight-bold">
-                          <a
-                            class="text-danger"
-                            href="#0"
-                            on:click={() => remove_permission(permission.id, file.name)}>
-                            Reject Permission
-                          </a>
-                        </td>
+                        {#if permission.permission_type != "one time permission"}
+                          <td class="text-danger font-weight-bold">
+                            <a
+                              class="text-danger"
+                              href="#0"
+                              on:click={() => remove_permission(permission.id, file.name)}>
+                              Reject Permission
+                            </a>
+                          </td>
+                        {/if}
                       </tr>
                     {/each}
                   </tbody>

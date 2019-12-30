@@ -1,17 +1,18 @@
-package runner.clients
+package runner.container.docker
 
-import cats.effect.{IO, _}
-import com.github.dockerjava.api.model._
+import cats.effect.{ConcurrentEffect, IO, Resource}
+import cats.implicits._
+import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback
-import cats.implicits._
-import runner.container.Ids.{ContainerId, ImageId}
-import runner.container.{ContainerCommand, ContainerEnv, ContainerState}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-
+import runner.container.docker.Ids.{ContainerId, ImageId}
+import runner.container.{ContainerCommand, ContainerEnv, ContainerState}
 import scala.jdk.CollectionConverters._
 
-object DockerContainer {
+object DockerOps {
+
+  private val logger = Slf4jLogger.getLogger[IO]
 
   private val dockerClient = DockerClientBuilder.getInstance().build()
 
@@ -34,7 +35,7 @@ object DockerContainer {
   private def lastStatusIO(
     containerId: ContainerId
   ): IO[Option[(String, Int)]] =
-    DockerContainer
+    DockerOps
       .statusStream(containerId)
       .compile
       .last
@@ -102,9 +103,7 @@ object DockerContainer {
         Some(containerId)
       )
     ).flatMap { imageId =>
-      Slf4jLogger
-        .getLogger[IO]
-        .info(s"Created $imageId from $containerId") *> IO.pure(imageId)
+      logger.info(s"Created $imageId from $containerId") *> IO.pure(imageId)
     }
 
   /**
@@ -115,9 +114,7 @@ object DockerContainer {
       dockerClient
         .removeImageCmd(imageId.value)
         .exec()
-    ) *> Slf4jLogger
-      .getLogger[IO]
-      .info(s"Removed $imageId")
+    ) *> logger.info(s"Removed $imageId")
 
   /**
     * Resource of a docker container.
@@ -128,7 +125,7 @@ object DockerContainer {
                        cmd: ContainerCommand,
                        imageId: ImageId): Resource[IO, ContainerId] =
     Resource.make(for {
-      containerId <- DockerContainer
+      containerId <- DockerOps
         .createContainer(containerEnv, cmd, imageId)
       _ <- startContainer(containerId)
     } yield containerId)(removeContainer)
@@ -146,37 +143,28 @@ object DockerContainer {
                               imageId: ImageId): IO[ContainerId] = {
     for {
       dockerCommand <- IO {
+        import runner.container.docker.Docker.implicits._
         dockerClient
           .createContainerCmd(imageId.value)
           .withNetworkDisabled(command.secureContainer)
-          .withHostConfig(
-            new HostConfig().withBinds(
-              List(
-                containerEnv.codeArtifact.asBind(AccessMode.ro),
-                containerEnv.dataArtifact.asBind(AccessMode.ro),
-                containerEnv.outputArtifact.asBind(AccessMode.rw)
-              ).asJava
-            )
-          )
+          .withHostConfig(containerEnv.hostConfig)
           .withCmd(command.toArgs.asJava)
           .withAttachStdin(true)
           .withAttachStderr(true)
       }
       containerId <- IO(ContainerId(dockerCommand.exec().getId))
-      _ <- Slf4jLogger.getLogger[IO].debug(s"Created $containerId")
+      _ <- logger.info(s"Created $containerId")
     } yield containerId
   }
 
   private def startContainer(containerId: ContainerId): IO[ContainerId] =
     IO(dockerClient.startContainerCmd(containerId.value).exec()) *>
-      Slf4jLogger
-        .getLogger[IO]
-        .info(s"Started $containerId") *>
+      logger.info(s"Started $containerId") *>
       IO.pure(containerId)
 
   private def removeContainer(containerId: ContainerId): IO[Unit] =
     IO {
       dockerClient.removeContainerCmd(containerId.value).exec()
-    } *> Slf4jLogger.getLogger[IO].info(s"Removed $containerId")
+    } *> logger.info(s"Removed $containerId")
 
 }

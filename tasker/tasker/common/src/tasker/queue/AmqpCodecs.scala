@@ -4,13 +4,15 @@ import cats.data.Kleisli
 import cats.effect.IO
 import dev.profunktor.fs2rabbit.effects.{EnvelopeDecoder, MessageEncoder}
 import dev.profunktor.fs2rabbit.model.{AmqpEnvelope, AmqpMessage}
-import io.chrisdavenport.log4cats.Logger
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe
 import io.circe.parser.decode
 import io.circe.syntax._
 import io.circe.{Decoder, Encoder}
 
 object AmqpCodecs {
+
+  private val logger = Slf4jLogger.getLogger[IO]
 
   type DecodedMessage[P] = Either[circe.Error, P]
 
@@ -30,16 +32,14 @@ object AmqpCodecs {
   /**
     * Pipe that filters out successfully decoded messages and logs the bad ones via provided logger.
     */
-  def filterAndLogErrors[P](
-    logger: Logger[IO]
-  ): fs2.Pipe[IO, DecodedMessage[P], P] =
+  def filterAndLogErrors[P]: fs2.Pipe[IO, DecodedMessage[P], P] =
     _.evalTap {
       case Left(error) =>
         logger.error(error)("Could not decode incoming message")
       case Right(_) =>
         IO.unit
     }.collect {
-        case Right(payload) => payload
-      }
+      case Right(payload) => payload
+    }
 
 }

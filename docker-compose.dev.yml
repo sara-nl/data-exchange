@@ -9,6 +9,7 @@ services:
             dockerfile: "docker/dev.Dockerfile"
         environment:
             ENVIRONMENT: "development"
+            LOG_LEVEL: "trace"
 
     backend_listen:
         build:

@@ -25,7 +25,8 @@ object SharesService {
   val uri =
     uri"https://researchdrive.surfsara.nl/ocs/v1.php/apps/files_sharing/api/v1/shares?format=json&shared_with_me=true"
 
-  val creds = BasicCredentials("f_data_exchange", "KCVNI-VBXWR-NLGMO-POQNO")
+  private val creds =
+    BasicCredentials(TaskerConfig.webdav.username, TaskerConfig.webdav.password)
 
   private def withMetadata(share: Share): IO[ShareMetadata] = share match {
     case Share(_, _, path, "file", _) =>

@@ -6,7 +6,7 @@ Tasker is a decoupled component, which executes long-running tasks and notifies 
 
 See also: [Spike Asynchrony](https://www.notion.so/Spike-Asynchrony-71c015cc8e6645689a16f35b59bd45bb).
 
-## Messaging protocol v0.1
+## Messaging protocol v0.2
 
 Also see in `tasker/src/Messages.scala`
 
@@ -24,29 +24,96 @@ Example:
 
 ### Done (`[T] -> tasker_done`)
 
+The response type has the following structure. Before you judge it for verbocity, think about the following:
+- Different states often have very different data associated with them;
+- Actual data objects are smaller, as this is a description of all possible combinations of data attributes.
+
+```typescript
+type TaskProgress {
+    taskId: string
+    state: State
+}
+
+type State = RejectedStateData |
+              RunningStateData | 
+              SuccessStateData | 
+              ErrorStateData
+
+type RunningStateData = {
+    name: "Running",
+    currentStepIndex: number,
+    currentStep : {
+        name: "VerifyingAlgorithm" |
+              "DownloadingFiles"  | 
+              "InstallingDependencies" |
+              "CreatingContainer" |
+              "ExecutingAlgorithm" |
+              "CleaningUp"  
+    }
+}
+
+type SuccessStateData = {
+    name: "Success",
+    output: Output
+}
+
+type ErrorStateData = {
+    name: "Error",
+    message: String,
+    output: Output,
+    failedStep: Step
+}
+
+type RejectedStateData = {
+    name: "Rejected",
+    reason: string
+}
+
+type Output {
+  stdout: string,
+  stderr: string,
+  strace: string
+}
+```
+
+Some examples of JSON:
 
 ```json
 {
   "taskId" : "123",
-  "state" : "success",
-  "output" : "Foo",
-  "containerOutput" : {
-    "stdout" : "Average fortune: 100350000000.0 of 4 people",
-    "stderr" : "",
-    "strace" : "execve(\"/bin/sh\", [\"sh\", \"-c\", \"python /tmp/code/demo1_code/run.\"...], 0x7ffe8a712338 ...."
+  "state" : {
+    "currentStepIndex" : 1,
+    "currentStep" : {
+      "name" : "DownloadingFiles"
+    },
+    "name" : "Running"
+  }
+}
+```
+
+```json
+{
+  "taskId" : "123",
+  "state" : {
+    "output":  {
+      "stdout": "Hello, world",
+      "stderr": "Oops",
+      "strace": "RACESTRACESTRACESTRACEST",
+    },
+    "name" : "Success"
   }
 }
 ```
 
 ## Log level
 
-There are three default loggers configured: for `tasker`, `watcher` and `runner`. The log level of those can be changed by adding an appropriate JVM system property. E.g.:
+There are three default loggers configured: for `tasker`, `watcher`, `runner` and `cacher`. The log level of those can be changed by adding an appropriate JVM system property. E.g.:
 
 ```
--DtaskerLogLevel=info -DwatcherLogLevel=trace -DrunnerLogLevel=debug
+-DtaskerLogLevel=info -DwatcherLogLevel=trace -DrunnerLogLevel=debug -Dcacher   LogLevel=debug
 ```
 
-Note, that `tasker` is merely a wrapper and most of the stuff will be happening in `watcher` and `runner`, so most likely you want to change the level of those loggers. 
+Note, that `tasker` is merely a wrapper and most of the stuff will be happening in `watcher`, `runner` and `cacher`, so most likely you want to change the level of those loggers. 
 
 ## Debugging container contents
 
@@ -84,3 +151,4 @@ Either [configure IntelliJ to do it on save](https://scalameta.org/scalafmt/docs
 
 * Cats Effect
 * [fs2-rabbit](https://fs2-rabbit.profunktor.dev/guide.html)
+* [doobie: Functional JDBC layer for Scala](https://github.com/tpolecat/doobie)

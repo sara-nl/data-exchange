@@ -5,7 +5,7 @@ import scalafmt._
 object tasker extends ScalaModule with ScalafmtModule {
   
   val http4sVersion = "0.21.0-M5"
-  val circeVersion = "0.12.3"
+  val circeVersion = "0.12.2"
   val circeOpticsVersion = "0.12.0"
 
   object watcher extends ScalaModule with ScalafmtModule {
@@ -36,7 +36,6 @@ object tasker extends ScalaModule with ScalafmtModule {
       ivy"org.http4s::http4s-circe:$http4sVersion",
       ivy"org.http4s::http4s-blaze-client:$http4sVersion",
       ivy"org.http4s::http4s-blaze-server:$http4sVersion",
-      ivy"io.circe::circe-generic:$circeVersion",
       ivy"io.circe::circe-optics:$circeOpticsVersion"
     )
   }
@@ -55,6 +54,8 @@ object tasker extends ScalaModule with ScalafmtModule {
 
         ivy"dev.profunktor::fs2-rabbit:2.0.0",
         ivy"dev.profunktor::fs2-rabbit-circe:2.0.0",
+        ivy"io.circe::circe-generic-extras:$circeVersion",
+        ivy"io.circe::circe-generic:$circeVersion",
         ivy"co.fs2::fs2-core:2.0.0",
 
         ivy"io.chrisdavenport::log4cats-slf4j:1.0.0",

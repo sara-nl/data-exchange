@@ -4,15 +4,21 @@ import java.nio.file.Path
 
 object ContainerCommand {
   def runWithStrace(env: ContainerEnv) =
-    for { codeEntryPoint <- env.codeArtifact.executablePath } yield
+    for {
+      algorithmContainerPath <- env.algorithm.executable.containerPath
+      inputContainerPath <- env.input.location.containerPath
+      stdoutContainerPath <- env.stdout.flatMap(_.containerPath)
+      stderrContainerPath <- env.stderr.flatMap(_.containerPath)
+      straceContainerPath <- env.strace.flatMap(_.containerPath)
+    } yield
       ContainerCommand(
         "/app/tracerun.sh",
         List(
-          codeEntryPoint.toString,
-          env.dataArtifact.containerPath.toString,
-          env.outputArtifact.containerStdoutFilePath.toString,
-          env.outputArtifact.containerStderrFilePath.toString,
-          env.outputArtifact.containerStraceFilePath.toString
+          algorithmContainerPath.toString,
+          inputContainerPath.toString,
+          stdoutContainerPath.toString,
+          stderrContainerPath.toString,
+          straceContainerPath.toString
         )
       )
 

@@ -6,15 +6,11 @@
         case "output_released":
             return "text-success";
 
-        case "request_rejected":
         case "release_rejected":
             return "text-danger";
 
         case "running":
             return "text-info";
-
-        case "algorithm_changed":
-            return "text-warning"
         default:
             return "";
         }
@@ -37,7 +33,6 @@
         case "output_released":
             return "Passed";
 
-        case "request_rejected":
         case "release_rejected":
             return "Rejected";
 

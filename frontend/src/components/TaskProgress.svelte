@@ -10,28 +10,22 @@
   Run algorithm
 </div>
 <div class="Row ml-2">
-  <Spinner small loading={currentStep <= 1} text="Creating container" />
+  <Spinner small loading={currentStep <= 1} text="Verifying algorithm version" />
 </div>
 <div class="Row ml-2">
-  <Spinner small loading={currentStep <= 2} text="Installing dependencies" />
+  <Spinner small loading={currentStep <= 2} text="Downloading data and algorithm to container" />
 </div>
 <div class="Row ml-2">
-  <Spinner small loading={currentStep <= 3} text="Downloading data and algorithm to container" />
+  <Spinner small loading={currentStep <= 3} text="Installing dependencies" />
 </div>
 <div class="Row ml-2">
-  <Spinner small loading={currentStep <= 4} text="Blocking all outside access to container" />
+  <Spinner small loading={currentStep <= 4} text="Creating container" />
 </div>
 <div class="Row ml-2">
-  <Spinner small loading={currentStep <= 5} text="Verifying algorithm" />
+  <Spinner small loading={currentStep <= 5} text="Running algorithm on data" />
 </div>
 <div class="Row ml-2">
-  <Spinner small loading={currentStep <= 6} text="Running algorithm on data" />
-</div>
-<div class="Row ml-2">
-  <Spinner small loading={currentStep <= 7} text="Saving output" />
-</div>
-<div class="Row ml-2">
-  <Spinner small loading={currentStep <= 8} text="Deleting container including data and algorithm" />
+  <Spinner small loading={currentStep <= 6} text="Deleting container including data and algorithm" />
 </div>
 <div class="Row ml-2">
 <!-- Never stop showing this state. When everything is done, task progress 

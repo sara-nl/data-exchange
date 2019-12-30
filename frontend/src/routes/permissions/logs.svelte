@@ -6,7 +6,6 @@
   import dayjs from "dayjs";
 
   let state_color = {
-    request_rejected: "danger",
     release_rejected: "warning",
     output_released: "success",
     running: "info",

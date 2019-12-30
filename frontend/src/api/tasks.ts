@@ -3,7 +3,7 @@ import Controller from "./controller";
 
 export interface Task {
     id: number,
-    state: 'running' | 'success' | 'error' | 'algorithm_changed' | 'request_rejected' | 'release_rejected' | 'output_released',
+    state: 'running' | 'success' | 'error' | 'release_rejected' | 'output_released',
     author_email: string,
     approver_email: string,
     algorithm: string,

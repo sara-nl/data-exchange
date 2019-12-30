@@ -25,13 +25,14 @@
   onMount(async () => {
     task = await Tasks.retrieve(taskId);
     if (task.state === 'running') {
-      currentStep = 1;
+      currentStep = 0;
       const timerId = setInterval(async () => {
         task = await Tasks.retrieve(taskId);
-        currentStep = currentStep + 1
         if(task.state !== 'running') {
           clearInterval(timerId);
           currentStep = 1000; // Makes sure all spinners have stopped
+        } else {
+          currentStep = task.progress_state.currentStepIndex + 1
         }
       }, 2000)
     }
@@ -66,11 +67,8 @@
       </div>
       {/if}
 
-    {#if (task.state === 'algorithm_changed')}
-        <ErrorMessage error={"Execution aborted because algorithm changed"} />
-    {/if}    
-    {#if (task.state === 'error' && $mode === "data")}
-        <ErrorMessage error={"Execution failed with an error"} />
+    {#if (task.state === 'error')}
+        <ErrorMessage error={task.progress_state.reason || 'Execution failed with an error.'} />
     {/if}
 
     {#if task.state === 'running'}

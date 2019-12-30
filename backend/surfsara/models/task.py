@@ -9,9 +9,7 @@ class Task(models.Model):
     RUNNING = "running"
     SUCCESS = "success"
     ERROR = "error"
-    ALGORITHM_CHANGED = "algorithm_changed"
     OUTPUT_RELEASED = "output_released"
-    REQUEST_REJECTED = "request_rejected"
     RELEASE_REJECTED = "release_rejected"
 
     TASK_STATES = (
@@ -21,12 +19,12 @@ class Task(models.Model):
         (SUCCESS, "Success"),
         (ERROR, "Error"),
         (OUTPUT_RELEASED, "Output Released"),
-        (REQUEST_REJECTED, "Request Rejected"),
         (RELEASE_REJECTED, "Release Rejected"),
     )
 
     id = models.AutoField(primary_key=True)
     state = models.CharField(max_length=255, choices=TASK_STATES)
+    progress_state = JSONField(null=True)
     author_email = models.EmailField()
     approver_email = models.EmailField()
     algorithm = models.TextField()

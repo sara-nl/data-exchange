@@ -3,7 +3,7 @@ package tasker.webdav
 import java.io.InputStream
 import java.nio.file.{Files, Path, Paths}
 
-import cats.effect.{IO, Resource}
+import cats.effect.{Concurrent, IO, Resource}
 import com.github.sardine.{DavResource, SardineFactory}
 import fs2.Pipe
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
@@ -85,10 +85,12 @@ object Webdav {
   /**
     * Downloads artifacts into their locations on the host.
     */
-  def downloadToHost(map: Map[WebdavPath, Path]): IO[Unit] =
+  def downloadToHost(
+    map: Map[WebdavPath, Path]
+  )(implicit F: Concurrent[IO]): IO[Unit] =
     fs2.Stream
-      .emits(map.view.toList)
-      .through(Webdav.downloadFilesPipe)
+      .emits[IO, (WebdavPath, Path)](map.view.toList)
+      .balanceThrough(4)(Webdav.downloadFilesPipe)
       .compile
       .drain
 

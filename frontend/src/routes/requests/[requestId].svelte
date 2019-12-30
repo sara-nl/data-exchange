@@ -3,7 +3,7 @@
   	import { onMount } from 'svelte';
 
     import { getPermission, rejectPermission, headTaskId, approvePermission, Permission } from "../../api/permissions";
-    import { spawnTaskFromPermission, Task } from "../../api/tasks";
+    import { spawnTaskFromPermission, startWithUserPermisson, Task } from "../../api/tasks";
     import { goto, stores } from "@sapper/app";
     import Spinner from "../../components/Spinner.svelte";
     import TaskInfo from "../../components/TaskInfo.svelte";
@@ -55,9 +55,13 @@
       if (currentPermission.permission_type === 'stream permission') {
         alert(`Streaming request has been approved. Every new dataset added to ${currentPermission.dataset} will automatically execute the algorithm (unless its code has changed).`)
         goto("/manage_data")
+      } else if (currentPermission.permission_type === 'One specific user permission') {
+        currentTask = await startWithUserPermisson(currentPermission!.id)
+        goto(`/tasks/${currentTask.id}`)
+      } else {
+        currentTask = await spawnTaskFromPermission(currentPermission!.id)
+        goto(`/tasks/${currentTask.id}`)
       }
-      currentTask = await spawnTaskFromPermission(currentPermission!.id)
-      goto(`/tasks/${currentTask.id}`)
     }   
     
     

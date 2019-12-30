@@ -1,11 +1,12 @@
 import pika
 import os
+import sys
+import json
 from django.core.management.base import BaseCommand, CommandError
 
 from surfsara.models import Permission
 from surfsara.models import Task
 from surfsara.messages import AnalyzeArtifact
-from surfsara.messages import TaskCompleted
 from surfsara.services import mail_service
 from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 from surfsara import logger
@@ -32,29 +33,39 @@ class TaskerDoneListener(Listener):
 
     queue_name = "tasker_done"
 
+    # Constants for encoding of states in incoming messages
+    TASKER_STATE_REJECTED = "Rejected"
+    TASKER_STATE_SUCCESS = "Success"
+
     def callback(self, ch, method, properties, body):
         logger.debug(f"New message {body}")
-        task_completed = TaskCompleted.from_json(body)
-        logger.debug(f"Successfully parsed message {task_completed}")
-        task = Task.objects.get(pk=task_completed.task_id)
-        logger.debug(f"Updating task with state='{task.state}'")
-
-        if task_completed.state == "rejected":
+        task_progress = json.loads(body)
+        logger.debug(f"Successfully parsed message {task_progress}")
+        task = Task.objects.get(pk=int(task_progress["taskId"]))
+        logger.debug(f"Updating task '{task}'")
+        task.progress_state = task_progress["state"]
+        if task_progress["state"]["name"] == self.TASKER_STATE_REJECTED:
+            logger.debug(f"Task has been rejected")
             task.permission.state = Permission.ABORTED
             task.permission.status_description = (
-                "Algorithm changed after approval. Revoking permission automatically."
+                f"Revoking permission automatically: {task_progress['state']['reason']}"
             )
             task.permission.save()
-            task.state = Task.ALGORITHM_CHANGED
+            task.state = Task.ERROR
             task.save()
             return
 
-        task.output = task_completed.output
+        if "output" in task_progress["state"]:
+            task.output = f"{task_progress['state']['output']['stdout']}\n{task_progress['state']['output']['stderr']}"
 
-        if not task.review_output and task_completed.state == "success":
+        if (
+            not task.review_output
+            and task_progress["state"]["name"] == self.TASKER_STATE_SUCCESS
+        ):
             task.state = Task.OUTPUT_RELEASED
         else:
-            task.state = task_completed.state
+            task.state = task_progress["state"]["name"].lower()
+
         task.save()
 
         # TODO: Actually show the URL in the email. Currently, we can't really know
@@ -66,7 +77,7 @@ class TaskerDoneListener(Listener):
             subject="Task output is ready for approval",
         )
 
-        logger.info(f"Successfully updated task {task_completed.task_id}")
+        logger.info(f"Successfully updated task {task_progress['taskId']}")
 
 
 class AnalyzeListener(Listener):
@@ -122,4 +133,5 @@ class Command(BaseCommand):
         try:
             self.channel.start_consuming()
         except:
+            logger.exception(sys.exc_info()[0])
             self.connection.close()

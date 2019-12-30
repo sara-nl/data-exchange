@@ -2,14 +2,21 @@ package runner
 
 import java.nio.file.{Files, Path, Paths}
 
-import cats.effect.{ConcurrentEffect, IO, Resource}
+import cats.effect.{Concurrent, ConcurrentEffect, IO, Resource}
 import org.apache.commons.io.FileUtils
-import runner.clients.DockerContainer
-import runner.container.ContainerEnv.Artifact
-import runner.container.Ids.ImageId
-import runner.container.{ContainerCommand, ContainerEnv, ContainerState, Ids}
+import runner.container.Artifact.Location
+import runner.container.docker.Ids.ImageId
+import runner.container.docker.{DockerOps, Ids}
+import runner.container.{
+  Artifact,
+  ContainerCommand,
+  ContainerEnv,
+  ContainerState
+}
 import tasker.config.TaskerConfig
+import tasker.config.TaskerConfig.docker
 import tasker.queue.Messages
+import tasker.webdav.Webdav
 
 object Resources {
 
@@ -24,21 +31,48 @@ object Resources {
     */
   def containerEnv(
     startContainerCmd: Messages.StartContainer
-  ): Resource[IO, ContainerEnv] =
+  )(implicit F: Concurrent[IO]): Resource[IO, ContainerEnv] =
     tempDirResource.evalMap { tempHome =>
       import cats.implicits._
-      val hostCodePath = Paths.get(tempHome.toString, "code")
-      val hostDataPath = Paths.get(tempHome.toString, "data")
-      val hostOutPath = Paths.get(tempHome.toString, "out")
 
-      IO(hostCodePath.toFile.mkdirs()) *>
-        IO(hostDataPath.toFile.mkdirs()) *>
-        IO(hostOutPath.toFile.mkdirs()) *>
-        ContainerEnv(
-          codeArtifact = Artifact.code(hostCodePath, startContainerCmd.codePath),
-          dataArtifact = Artifact.data(hostDataPath, startContainerCmd.dataPath),
-          outputArtifact = Artifact.output(hostOutPath)
-        ).pure[IO]
+      // TODO: move to `common` WebdavPath apply method
+      def webdavPath(location: Location) =
+        TaskerConfig.webdav.serverPath.change(location.userPath)
+
+      val algorithmLocation = Location(
+        Paths.get(tempHome.toString, "code"),
+        Path.of(docker.containerCodePath),
+        startContainerCmd.codePath
+      )
+
+      val inputLocation = Location(
+        Paths.get(tempHome.toString, "data"),
+        Path.of(docker.containerDataPath),
+        startContainerCmd.dataPath
+      )
+
+      val outputLocation =
+        Location(
+          Paths.get(tempHome.toString, "out"),
+          Path.of(docker.containerOutPath),
+          "."
+        )
+
+      val downloads = Map(
+        webdavPath(algorithmLocation) -> algorithmLocation.localHome,
+        webdavPath(inputLocation) -> inputLocation.localHome
+      )
+
+      val newDirs = List(algorithmLocation, inputLocation, outputLocation)
+
+      for {
+        _ <- newDirs.map(l => IO(l.localHome.toFile.mkdirs())).sequence
+        _ <- Webdav.downloadToHost(downloads)
+        algorithm <- Artifact.algorithm(algorithmLocation)
+        input <- Artifact.data(inputLocation)
+        output <- Artifact.output(outputLocation)
+      } yield ContainerEnv(algorithm, input, output)
+
     }
 
   /**
@@ -46,25 +80,25 @@ object Resources {
     * Acquire: If necessary - container is created, dependencies installed, image created.
     * Release: If necessary - container and image removed.
     */
-  def bakedImageWithDeps(containerEnv: ContainerEnv,
-                         requirementsTxtOption: Option[Path])(
+  def bakedImageWithDeps(containerEnv: ContainerEnv)(
     implicit F: ConcurrentEffect[IO]
   ): Resource[IO, Either[ContainerState, ImageId]] =
-    requirementsTxtOption match {
-      case Some(requirementsTxtContainerPath) =>
+    containerEnv.algorithm.requirements match {
+      case Some(requirementsLocation) =>
         for {
-          containerId <- DockerContainer
+          reqContainerPath <- Resource.liftF(requirementsLocation.containerPath)
+          containerId <- DockerOps
             .startedContainer(
               containerEnv,
-              ContainerCommand.installDeps(requirementsTxtContainerPath),
+              ContainerCommand.installDeps(reqContainerPath),
               Ids.ImageId(TaskerConfig.docker.image)
             )
           containerState <- Resource.liftF(
-            DockerContainer.terminalStateIO(containerId)
+            DockerOps.terminalStateIO(containerId)
           )
           result <- containerState match {
             case ContainerState.Exited(0, _, _) =>
-              DockerContainer
+              DockerOps
                 .imageFromContainer(containerId)
                 .map(Right(_).withLeft[ContainerState])
             case otherState =>

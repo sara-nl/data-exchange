@@ -3,7 +3,7 @@ package runner
 import cats.effect.{ExitCode, IO, IOApp}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import tasker.config.TaskerConfig.queues
-import tasker.queue.Messages.{Done, StartContainer}
+import tasker.queue.Messages.{StartContainer, TaskProgress}
 import tasker.queue.{AmqpCodecs, QueueResources}
 
 object RunnerApp extends IOApp {
@@ -13,8 +13,7 @@ object RunnerApp extends IOApp {
   override def run(args: List[String]): IO[ExitCode] =
     QueueResources.rabbitClientResource.use { rabbit =>
       rabbit.createConnectionChannel.use { implicit channel =>
-        import io.circe.generic.auto._
-
+        import tasker.queue.Messages.implicits._
         for {
           _ <- logger.info("Runner started")
           _ <- rabbit.declareQueue(queues.todo.config)
@@ -39,7 +38,7 @@ object RunnerApp extends IOApp {
           publisher <- rabbit.createPublisher(
             queues.done.exchangeConfig.exchangeName,
             queues.done.routingKey
-          )(channel, AmqpCodecs.encoder[Done])
+          )(channel, AmqpCodecs.encoder[TaskProgress])
           _ <- new SecureContainerFlow(consumer, publisher).flow.compile.drain
         } yield ExitCode.Success
       }

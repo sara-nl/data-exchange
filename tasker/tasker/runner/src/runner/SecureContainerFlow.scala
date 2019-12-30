@@ -1,140 +1,151 @@
 package runner
 
 import cats.effect._
-import clients.DockerContainer
-import tasker.config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
+import cats.implicits._
+import dev.profunktor.fs2rabbit.model._
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import runner.container.Artifact.Location
+import runner.container.docker.DockerOps
 import runner.container.{
   ContainerCommand,
   ContainerEnv,
   ContainerState,
   LogMessages
 }
-import cats.implicits._
-import dev.profunktor.fs2rabbit.model._
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import tasker.queue.Messages.{AlgorithmOutput, Done, ETag, StartContainer}
 import runner.utils.FilesIO
+import tasker.config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
+import tasker.queue.Messages.{
+  AlgorithmOutput,
+  ETag,
+  StartContainer,
+  Step,
+  TaskProgress
+}
 import tasker.queue.{AmqpCodecs, Messages}
 import tasker.webdav.{Webdav, WebdavPath}
 
 class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
                             AmqpCodecs.DecodedMessage[StartContainer]
                           ]],
-                          publisher: Done => IO[Unit]) {
+                          publisher: TaskProgress => IO[Unit]) {
 
   private val logger = Slf4jLogger.getLogger[IO]
 
-  private def runAlgorithm(
-    containerEnv: ContainerEnv,
-    runAlgorithmCmd: ContainerCommand
-  ): IO[ContainerState] =
+  private def runAlgorithm(containerEnv: ContainerEnv,
+                           taskId: String): IO[ContainerState] =
     for {
-      requirementsFileOption <- containerEnv.codeArtifact.requirementsFile
+      _ <- publisher(TaskProgress.running(taskId, Step.InstallingDependencies))
+      runAlgorithmCmd <- ContainerCommand.runWithStrace(containerEnv)
       result <- Resources
-        .bakedImageWithDeps(containerEnv, requirementsFileOption)
+        .bakedImageWithDeps(containerEnv)
         .use {
           case Right(imageId) =>
-            DockerContainer
-              .startedContainer(containerEnv, runAlgorithmCmd, imageId)
-              .use(containerId => {
-                for {
-                  state <- DockerContainer.terminalStateIO(containerId)
-                  _ <- logger
-                    .info(s"$containerId execution stopped with $state")
-                } yield state
-              })
+            publisher(TaskProgress.running(taskId, Step.ExecutingAlgorithm)) *>
+              DockerOps
+                .startedContainer(containerEnv, runAlgorithmCmd, imageId)
+                .use(containerId => {
+                  for {
+                    state <- DockerOps.terminalStateIO(containerId)
+                    _ <- logger
+                      .info(s"$containerId execution stopped with $state")
+                  } yield state
+                })
           case Left(containerState) => IO.pure(containerState)
         }
     } yield result
 
   private def verifyETag(path: WebdavPath, expectedETag: ETag): IO[Boolean] = {
     import Webdav.implicits._
+    import WebdavPath.implicits._
     for {
       resources <- Webdav.list(path)
-      _ <- IO(
-        resources.foreach(r => println(s"${r.getPath} ---> ${r.getEtag}"))
-      )
-      pathOption <- IO.pure(
-        resources.find(resource => WebdavPath(resource) == path)
-      )
-    } yield pathOption.exists(_.getSafeETag == expectedETag)
+      _ <- resources
+        .map(r => logger.debug(s"${r.getPath} ---> ${r.getSafeETag}"))
+        .sequence
+      pathOption <- resources
+        .find(resource => WebdavPath(resource) === path)
+        .toRight(new RuntimeException(s"Could not find resource $path"))
+        .liftTo[IO]
+    } yield pathOption.getSafeETag == expectedETag
   }
 
-  private def processMessage(msg: Messages.StartContainer): IO[Done] = {
-    Resources.containerEnv(msg).use { containerEnv =>
-      val toBeDownloaded = Map(
-        WebdavPath(msg.codePath) -> containerEnv.codeArtifact.hostHome,
-        WebdavPath(msg.dataPath) -> containerEnv.dataArtifact.hostHome
-      )
+  private def readText(locationIO: IO[Location]): IO[String] =
+    for {
+      location <- locationIO
+      localPath <- location.localPath
+      contentOrError <- FilesIO
+        .readFileContent(localPath)
+        .attempt
+    } yield contentOrError.toOption.getOrElse("")
 
-      for {
-        _ <- logger.debug(s"Container environment: $containerEnv")
-        _ <- Webdav.downloadToHost(toBeDownloaded)
-        runAlgorithmCmd <- ContainerCommand.runWithStrace(containerEnv)
-        endState <- runAlgorithm(containerEnv, runAlgorithmCmd)
-        stdoutContent <- FilesIO
-          .readFileContent(containerEnv.outputArtifact.hostStdoutFilePath)
-          .attempt
-          .map(_.toOption.getOrElse(""))
-        stderrContent <- FilesIO
-          .readFileContent(containerEnv.outputArtifact.hostStderrFilePath)
-          .attempt
-          .map(_.toOption.getOrElse(""))
-        straceContent <- FilesIO
-          .readFileContent(containerEnv.outputArtifact.hostStraceFilePath)
-          .attempt
-          .map(_.toOption.getOrElse(""))
-        _ <- logger
-          .info(LogMessages.largeOutputWithNewlines("STDOUT", stdoutContent))
-        _ <- logger
-          .info(LogMessages.largeOutputWithNewlines("STDERR", stderrContent))
-        _ <- logger
-          .trace(LogMessages.largeOutputWithNewlines("STRACE", straceContent))
-        algorithmOutput = AlgorithmOutput(
-          stdoutContent,
-          stderrContent,
-          straceContent
-        )
-      } yield
-        endState match {
-          case ContainerState.Exited(0, _, output) =>
-            val taskUserOutput = s"$output\n$stdoutContent\n$stderrContent"
-            Messages.Done
-              .success(msg.taskId, taskUserOutput, algorithmOutput)
-          case ContainerState.Exited(x, _, output) =>
-            val taskUserOutput =
-              s"Container exited with an error. Status code: $x\n$output\n$stdoutContent\n$stderrContent"
-            Messages.Done
-              .error(msg.taskId, taskUserOutput, algorithmOutput)
-          case ContainerState.Unknown =>
-            Messages.Done.error(
-              msg.taskId,
-              "Container ended up in an unknown state. Please contact the development team.",
-              algorithmOutput
-            )
-        }
-    }
+  private def processMessage(msg: Messages.StartContainer): IO[TaskProgress] = {
+    publisher(TaskProgress.running(msg.taskId, Step.DownloadingFiles)) *>
+      Resources.containerEnv(msg).use { containerEnv =>
+        for {
+          _ <- logger.debug(s"Container environment: $containerEnv")
+          _ <- publisher(
+            TaskProgress.running(msg.taskId, Step.CreatingContainer)
+          )
+          endState <- runAlgorithm(containerEnv, msg.taskId)
+          stdoutContent <- readText(containerEnv.stdout)
+          stderrContent <- readText(containerEnv.stderr)
+          straceContent <- readText(containerEnv.strace)
+          _ <- logger
+            .debug(LogMessages.largeOutputWithNewlines("STDOUT", stdoutContent))
+          _ <- logger
+            .debug(LogMessages.largeOutputWithNewlines("STDERR", stderrContent))
+          _ <- logger
+            .trace(LogMessages.largeOutputWithNewlines("STRACE", straceContent))
+          algorithmOutput = AlgorithmOutput(
+            stdoutContent,
+            stderrContent,
+            straceContent
+          )
+          _ <- publisher(TaskProgress.running(msg.taskId, Step.CleaningUp))
+        } yield
+          endState match {
+            case ContainerState.Exited(0, _, _) =>
+              Messages.TaskProgress
+                .success(msg.taskId, algorithmOutput)
+            case ContainerState.Exited(x, _, _) =>
+              Messages.TaskProgress
+                .error(
+                  msg.taskId,
+                  s"Container exited with a non-zero code $x.",
+                  algorithmOutput,
+                  Step.ExecutingAlgorithm
+                )
+            case ContainerState.Unknown =>
+              Messages.TaskProgress.error(
+                msg.taskId,
+                "Container ended up in an unknown state. Please contact the development team.",
+                algorithmOutput,
+                Step.ExecutingAlgorithm
+              )
+          }
+      }
   }
 
   val flow: fs2.Stream[IO, Unit] =
     consumer
       .map(_.payload)
-      .through(AmqpCodecs.filterAndLogErrors(logger))
-      .evalTap(msg => logger.info(s"Processing incoming message $msg"))
+      .through(AmqpCodecs.filterAndLogErrors)
+      .evalTap(msg => logger.debug(s"Processing incoming message $msg"))
       .evalMap {
         case msg @ StartContainer(taskId, _, codePath, eTag) =>
           for {
-            eTagValid <- verifyETag(WebdavPath(codePath), eTag)
-            doneMsg <- if (eTagValid)
-              processMessage(msg)
-            else
-              Done
-                .rejected(
-                  taskId,
-                  "The algorithm mush have changed since approval. ETag doesn't match."
-                )
-                .pure[IO]
-            _ <- logger.info(s"The state of Done message is ${doneMsg.state}")
+            _ <- publisher(
+              TaskProgress.running(taskId, Step.VerifyingAlgorithm)
+            )
+            eTagValidOrError <- verifyETag(WebdavPath(codePath), eTag).attempt
+            doneMsg <- eTagValidOrError match {
+              case Right(true)  => processMessage(msg)
+              case Right(false) => TaskProgress.rejectedEtag(taskId).pure[IO]
+              case Left(ex)     => TaskProgress.rejected(taskId, ex).pure[IO]
+            }
+            _ <- logger.debug(
+              s"The final state of $taskId is encoded as ${doneMsg.state}"
+            )
             _ <- publisher(doneMsg)
           } yield ()
       }

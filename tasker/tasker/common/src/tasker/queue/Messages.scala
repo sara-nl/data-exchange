@@ -1,11 +1,18 @@
 package tasker.queue
 
-import cats.implicits._
+import io.circe.generic.extras.AutoDerivation
 
 /**
   * Messages used in the DataExchange messaging protocol
   */
 object Messages {
+
+  object implicits extends AutoDerivation {
+
+    import io.circe.generic.extras.Configuration
+    implicit val customConfig: Configuration = Configuration.default
+      .withDiscriminator("name")
+  }
 
   case class ETag(eTag: String)
 
@@ -29,21 +36,52 @@ object Messages {
                               */
                             codeHash: ETag)
 
-  object Done {
-    def success(taskId: String,
-                output: String,
-                containerOutput: AlgorithmOutput) =
-      Done(taskId, "success", output, containerOutput.some)
-    def error(taskId: String,
-              output: String,
-              containerOutput: AlgorithmOutput) =
-      Done(taskId, "error", output, containerOutput.some)
+  case class TaskProgress(
+                          /**
+                            * Id of the task.
+                            */
+                          taskId: String,
+                          /**
+                            * Current state of the task.
+                            */
+                          state: State)
 
-    def rejected(taskId: String, reason: String) =
-      Done(taskId, "rejected", s"Task has been rejected: '$reason'", None)
+  object TaskProgress {
+
+    def running(taskId: String, step: Step): TaskProgress =
+      TaskProgress(
+        taskId,
+        State.Running(Step.stepsOrder.indexOf(step, 0), step)
+      )
+
+    def success(taskId: String,
+                containerOutput: AlgorithmOutput): TaskProgress =
+      TaskProgress(taskId, State.Success(containerOutput))
+
+    def error(taskId: String,
+              message: String,
+              containerOutput: AlgorithmOutput,
+              failedStep: Step): TaskProgress =
+      TaskProgress(taskId, State.Error(message, containerOutput, failedStep))
+
+    def rejected(taskId: String, reason: String): TaskProgress =
+      TaskProgress(taskId, State.Rejected(s"Task has been rejected: '$reason'"))
+
+    def rejected(taskId: String, reason: Throwable): TaskProgress =
+      TaskProgress(
+        taskId,
+        State.Rejected(s"Task has been rejected: '${reason.getMessage}'")
+      )
+
+    def rejectedEtag(taskId: String): TaskProgress =
+      rejected(
+        taskId,
+        "The algorithm mush have changed since approval. ETag doesn't match."
+      )
   }
 
-  case class AlgorithmOutput( /**
+  case class AlgorithmOutput(
+                             /**
                                * Standard output produced by the user Python script
                                */
                              stdout: String,
@@ -56,22 +94,35 @@ object Messages {
                                */
                              strace: String)
 
-  case class Done(
-                  /**
-                    * The task id from [[StartContainer]] command
-                    */
-                  taskId: String,
-                  /**
-                    * "success" | "error" | "rejected"
-                    */
-                  state: String,
-                  /**
-                    * Output produced by the wrapper script (doesn't include the output of the user script).
-                    */
-                  output: String,
-                  /**
-                    * An object, which contains different types of container output
-                    */
-                  containerOutput: Option[AlgorithmOutput])
+  sealed trait Step
+
+  object Step {
+
+    case object VerifyingAlgorithm extends Step
+    case object DownloadingFiles extends Step
+    case object InstallingDependencies extends Step
+    case object CreatingContainer extends Step
+    case object ExecutingAlgorithm extends Step
+    case object CleaningUp extends Step
+
+    val stepsOrder: List[Step] = List(
+      VerifyingAlgorithm,
+      DownloadingFiles,
+      InstallingDependencies,
+      CreatingContainer,
+      ExecutingAlgorithm,
+      CleaningUp
+    )
+  }
+
+  sealed trait State
+
+  object State {
+    case class Rejected(reason: String) extends State
+    case class Running(currentStepIndex: Int, currentStep: Step) extends State
+    case class Success(output: AlgorithmOutput) extends State
+    case class Error(message: String, output: AlgorithmOutput, failedStep: Step)
+        extends State
+  }
 
 }

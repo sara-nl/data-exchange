@@ -75,7 +75,6 @@ class Tasks(viewsets.ViewSet):
             Q(state=Task.RUNNING)
             | Q(state=Task.OUTPUT_RELEASED)
             | Q(state=Task.RELEASE_REJECTED)
-            | Q(state=Task.REQUEST_REJECTED)
             | Q(state=Task.SUCCESS, review_output=False)
             | Q(state=Task.ERROR, review_output=False),
         ).order_by("-registered_on")
@@ -244,7 +243,7 @@ class Tasks(viewsets.ViewSet):
             state=Task.RUNNING,
             author_email=perm.algorithm_provider,
             approver_email=perm.dataset_provider,
-            algorithm=request.data["algorithm"],
+            algorithm=perm.algorithm,
             dataset=perm.dataset,
             review_output=False,  # Because it's User Permission
             permission=perm,

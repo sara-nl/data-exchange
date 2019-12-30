@@ -126,7 +126,7 @@
                             <a
                               class="text-danger"
                               href="#0"
-                              on:click={() => remove_permission(permission.id, file.name)}>
+                              on:click|preventDefault={() => remove_permission(permission.id, file.name)}>
                               Reject Permission
                             </a>
                           </td>

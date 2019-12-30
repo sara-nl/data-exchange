@@ -12,15 +12,6 @@ class StartContainer:
 
 
 @dataclass
-@dataclass_json(letter_case=LetterCase.CAMEL)
-class TaskCompleted:
-    task_id: str
-    state: str
-    output: str
-    container_output: object
-
-
-@dataclass
 @dataclass_json
 class AnalyzeArtifact:
     permission_id: str

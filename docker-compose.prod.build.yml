@@ -10,6 +10,7 @@ services:
         restart: "always"
         environment:
             ENVIRONMENT: "production"
+            LOG_LEVEL: "info"
 
     backend_listen:
         image: git.ia.surfsara.nl:5050/soil/secure-container/backend_listen${DOCKER_COMPOSE_VERSION_SUFFIX}

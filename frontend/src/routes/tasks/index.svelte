@@ -9,7 +9,6 @@
     import { token, mode } from "../../stores";
 
     let state_color = {
-        "request_rejected": "danger",
         "release_rejected": "warning",
         "output_released": "success",
         "running": "info",

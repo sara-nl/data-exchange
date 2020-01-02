@@ -243,7 +243,7 @@ class Tasks(viewsets.ViewSet):
             state=Task.RUNNING,
             author_email=perm.algorithm_provider,
             approver_email=perm.dataset_provider,
-            algorithm=perm.algorithm,
+            algorithm=request.data["algorithm"],
             dataset=perm.dataset,
             review_output=False,  # Because it's User Permission
             permission=perm,

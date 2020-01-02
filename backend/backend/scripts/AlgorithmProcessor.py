@@ -23,7 +23,7 @@ class AlgorithmProcessor:
             characters += algorithm["algorithm_characters"]
             newline += algorithm["algorithm_newline"]
             words += algorithm["algorithm_words"]
-            dependencies = dependencies + algorithm["algorithm_dependencies"]
+            dependencies = list(set(dependencies + algorithm["algorithm_dependencies"]))
         self.all_files = {
             "algorithm_dependencies": dependencies,
             "algorithm_newline": newline,
@@ -110,7 +110,7 @@ class AlgorithmProcessor:
                 [word for word in stripped_newline.split(" ") if len(word) > 1]
             )
 
-        return characters, newline, words, imports
+        return characters, newline, words, list(set(imports))
 
     def get_etag(self):
         if self.is_folder:

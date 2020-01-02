@@ -13,15 +13,8 @@ This is the list of known ~issues~ limitations.
 * Algorithm folder can contain auxiliary files, including binary files (e.g. images or compiled code), but binary files are not shown for review.
 
 ## Known security issues
-* Edge case; if:
-  - Malicious algorithm A is uploaded.
-  - Etag captured
-  - Benevolent algorithm B is uploaded.
-  - Data owner opens page on algorithm B.
-  - When the data owner is done reviewing, algorithm A gets uploaded again (in order for this to work the this action needs to happen within a few seconds after the data owner accepted algorithm). See [#29](https://git.ia.surfsara.nl/SOIL/secure-container/issues/29) for more info.
-
-  The ETag should be checked for changes when a data owner approves an
-  algorithm.
+* At the moment we mount data and algorithm during installation of dependencies. We should only mount the algorithm at this stage.
+* 
 
 ## File sharing
 * Maximal level of nested directories in code/data folders is 50;

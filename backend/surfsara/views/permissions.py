@@ -44,6 +44,7 @@ class Permissions(viewsets.ViewSet):
             model.review_output = (
                 model.permission_type == Permission.ONE_TIME_PERMISSION
             )
+            model.save()
             task_service.analyze(model.id)
             return JsonResponse(PermissionSerializer(model).data)
 

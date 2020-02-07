@@ -83,12 +83,8 @@ deploy_all:
     - chmod 0600 "${TEST2_SSH_KEY}"
     # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
     # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
-<<<<<<< HEAD
     - ssh -oStrictHostKeyChecking=no -i "$TEST2_SSH_KEY" "$TEST2_SSH_ADDRESS" \
         "export DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\" CI_COMMIT_SHA=\"$CI_COMMIT_SHA\" &&
           cd surfsara && git fetch --all && git checkout $CI_COMMIT_SHA &&
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
         "
-=======
-    - ssh -oStrictHostKeyChecking=no -i "${TEST2_SSH_KEY}" "${TEST2_SSH_ADDRESS}" 'cd surfsara && git pull --ff-only && ./scripts/build-install.sh'
->>>>>>> Updated command

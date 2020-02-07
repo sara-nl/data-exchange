@@ -38,11 +38,7 @@ export default class Tasks extends Controller {
         return this.client.get("/tasks/")
     }
 
-    public static async get_data_requests(): Promise<AxiosResponse> {
-        return this.client.get("/tasks/get_data_requests")
-    }
-
-    public static async get_logs(): Promise<AxiosResponse> {
+    public static async getLogs(): Promise<AxiosResponse> {
         return this.client.get("/tasks/list_logs/");
     }
 

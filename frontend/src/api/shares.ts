@@ -14,7 +14,7 @@ export function getShares(): Promise<SharesResponse> {
 }
 
 export default class RemoveShare extends Controller {
-    public static async remove(file_id: string): Promise<AxiosResponse> {
-        return this.client.delete(`/shares/${file_id}/remove/`)
+    public static async remove(fileId: string): Promise<AxiosResponse> {
+        return this.client.delete(`/shares/${fileId}/remove/`)
     }
 }

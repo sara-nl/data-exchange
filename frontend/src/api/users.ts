@@ -4,8 +4,8 @@ import Controller from "./controller";
 export type UserRole = "algorithm" | "data"
 
 export class RegisterRequest {
-    public email: string = "";
-    public password: string = "";
+    public email = "";
+    public password = "";
 
     constructor(email: string, password: string) {
         this.email = email;
@@ -14,7 +14,7 @@ export class RegisterRequest {
 }
 
 export class ActivateRequest {
-    public token: string = "";
+    public token = "";
 
     constructor(token: string) {
         this.token = token;
@@ -22,8 +22,8 @@ export class ActivateRequest {
 }
 
 export class LoginRequest {
-    public username: string = "";
-    public password: string = "";
+    public username = "";
+    public password = "";
 
     constructor(username: string, password: string) {
         this.username = username;

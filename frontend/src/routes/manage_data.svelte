@@ -20,11 +20,11 @@
   onMount(async () => {
     updateUserFiles();
     
-    dataset_tasks = await Tasks.get_logs().then(r => r.data.data_tasks);
+    dataset_tasks = await Tasks.getLogs().then(r => r.data.data_tasks);
 
     console.log('dataset_tasks', dataset_tasks)
     
-    givenPermissions = await Permissions.get_given_per_file().then(r => r.data.given_permissions);
+    givenPermissions = await Permissions.getGivenPerFile().then(r => r.data.given_permissions);
 
     console.log('givenPermissions', givenPermissions)
     datasets = Object.keys(givenPermissions);

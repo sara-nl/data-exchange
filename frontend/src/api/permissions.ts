@@ -29,8 +29,8 @@ export type Permission = {
 export type PermissionRequest = {
     algorithm: string,
     request_description: string,
-    permission_type: string
-    dataset_provider: string,
+    permission_type: string,
+    dataset_provider: string
 }
 
 export async function requestPermission(ar: PermissionRequest): Promise<Permission> {
@@ -79,7 +79,7 @@ export default class Permissions extends Controller {
         return this.client.get("/permissions/")
     }
 
-    public static async get_given_per_file(): Promise<AxiosResponse> {
+    public static async getGivenPerFile(): Promise<AxiosResponse> {
         return this.client.get("/permissions/given_per_file/")
     }
 

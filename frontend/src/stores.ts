@@ -1,29 +1,32 @@
-import { writable } from "svelte/store";
+import { writable, Writable } from "svelte/store";
 
-function createWritableStore(key: string, startValue: any) {
-    const { subscribe, set } = writable(startValue);
+export type WritableStore<T> = Writable<T | null> & {
+    useLocalStorage: () => void
+}
+
+function createWritableStore<T>(key: string, startValue: T | null): WritableStore<T> {
+    const { subscribe, set, update } = writable(startValue);
 
     return {
         subscribe,
-        set(value: string | null) {
-            set(value);
-        },
-        useLocalStorage() {
+        set,
+        update,
+        useLocalStorage(): void {
             const json = localStorage.getItem(key);
             if (json) {
                 try {
-                    set(JSON.parse(json));
+                    set(JSON.parse(json))
                 } catch (error) {
-                    set(null);
+                    set(null)
                 }
             }
 
-            subscribe((current: string | null) => {
+            subscribe((current: T | null) => {
                 localStorage.setItem(key, JSON.stringify(current));
             });
         },
     };
-};
+}
 
 
 export const fromUrl = writable(null);

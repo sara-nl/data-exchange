@@ -1,5 +1,5 @@
 # Base docker-compose file. No build configuration should be specified here,
-# because this file is used as a base for `build` and `run` flows.
+# because this file is used as a base for `dev` and `prod` flows.
 
 version: "3"
 services:

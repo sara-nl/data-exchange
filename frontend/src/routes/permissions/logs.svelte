@@ -23,7 +23,7 @@
 
   async function getUserTasks() {
     try {
-      let { data: response } = await Tasks.get_logs();
+      let { data: response } = await Tasks.getLogs();
       dataset_tasks = response.data_tasks;
       datasets = Object.keys(dataset_tasks);
       alg_tasks = response.algorithm_tasks;

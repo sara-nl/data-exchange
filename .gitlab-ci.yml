@@ -73,7 +73,7 @@ frontend_build:
     - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:latest"
 
 
-deploy_all:
+deploy_test2:
   stage: deploy
   image: alpine:3
   only:
@@ -86,5 +86,6 @@ deploy_all:
     - ssh -oStrictHostKeyChecking=no -i "$TEST2_SSH_KEY" "$TEST2_SSH_ADDRESS" \
         "export DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\" CI_COMMIT_SHA=\"$CI_COMMIT_SHA\" &&
           cd surfsara && git fetch --all && git checkout $CI_COMMIT_SHA &&
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d &&
+          docker system prune -a
         "

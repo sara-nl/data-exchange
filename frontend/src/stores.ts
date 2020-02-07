@@ -1,23 +1,35 @@
 import { writable, Writable } from "svelte/store";
 
-function createPersistent<T>(key: string, startValue: T | null): Writable<T | null> {
-    const svelteStore = writable(startValue);
-    const json = localStorage.getItem(key);
-    if (json) {
-        try {
-            svelteStore.set(JSON.parse(json))
-        } catch (error) {
-            console.error(`There was an error parsing value for key ${key}`)
-            svelteStore.set(null)
-        }
-    }
+export type WritableStore<T> = Writable<T | null> & {
+    useLocalStorage: () => void
+}
 
-    svelteStore.subscribe(current => localStorage.setItem(key, JSON.stringify(current)));
-    return svelteStore;
+function createWritableStore<T>(key: string, startValue: T | null): WritableStore<T> {
+    const { subscribe, set, update } = writable(startValue);
+
+    return {
+        subscribe,
+        set,
+        update,
+        useLocalStorage(): void {
+            const json = localStorage.getItem(key);
+            if (json) {
+                try {
+                    set(JSON.parse(json))
+                } catch (error) {
+                    set(null)
+                }
+            }
+
+            subscribe((current: T | null) => {
+                localStorage.setItem(key, JSON.stringify(current));
+            });
+        },
+    };
 }
 
 
 export const fromUrl = writable(null);
-export const token = createPersistent("token", null);
-export const email = createPersistent("email", null);
-export const mode = createPersistent("mode", null);
+export const token = createWritableStore("token", null);
+export const email = createWritableStore("email", null);
+export const mode = createWritableStore("mode", null);

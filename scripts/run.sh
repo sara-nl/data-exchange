@@ -17,6 +17,7 @@ if [[ -z "$CI_COMMIT_SHORT_SHA" ]]; then
     exit 1
 fi
 
-DOCKER_IMAGE_TAG=":$CI_COMMIT_SHORT_SHA.$CI_COMMIT_REF_NAME" \
+DOCKER_IMAGE_TAG=":$CI_COMMIT_SHORT_SHA" \
+DOCKER_IMAGE_REF_NAME="$CI_COMMIT_REF_NAME" \
 docker-compose -f docker-compose.yml -f docker-compose.prod.yml \
 up -d

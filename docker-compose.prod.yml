@@ -3,21 +3,21 @@
 version: "3"
 services:
     tasker:
-        image: git.ia.surfsara.nl:5050/soil/secure-container/tasker:${DOCKER_IMAGE_TAG}
+        image: git.ia.surfsara.nl:5050/soil/secure-container/tasker/${DOCKER_IMAGE_REF_NAME}:${DOCKER_IMAGE_TAG}
         restart: "always"
         environment:
             ENVIRONMENT: "production"
             LOG_LEVEL: "info"
 
     backend_listen:
-        image: git.ia.surfsara.nl:5050/soil/secure-container/backend:${DOCKER_IMAGE_TAG}
+        image: git.ia.surfsara.nl:5050/soil/secure-container/backend/${DOCKER_IMAGE_REF_NAME}:${DOCKER_IMAGE_TAG}
         environment:
             DJANGO_DEBUG: 0
         restart: "always"
         command: "./docker/entrypoint.sh listen"
 
     backend:
-        image: git.ia.surfsara.nl:5050/soil/secure-container/backend:${DOCKER_IMAGE_TAG}
+        image: git.ia.surfsara.nl:5050/soil/secure-container/backend/${DOCKER_IMAGE_REF_NAME}:${DOCKER_IMAGE_TAG}
         environment:
             DJANGO_DEBUG: 0
         volumes:
@@ -26,7 +26,7 @@ services:
         command: "./docker/entrypoint.sh runserver"
 
     frontend:
-        image: git.ia.surfsara.nl:5050/soil/secure-container/frontend:${DOCKER_IMAGE_TAG}
+        image: git.ia.surfsara.nl:5050/soil/secure-container/frontend/${DOCKER_IMAGE_REF_NAME}:${DOCKER_IMAGE_TAG}
         environment:
             NODE_ENV: "production"
         restart: "always"

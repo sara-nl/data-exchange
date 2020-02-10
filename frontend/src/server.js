@@ -8,6 +8,9 @@ const { PORT, NODE_ENV, BACKEND_BASE_URI } = process.env;
 const dev = NODE_ENV === 'development';
 const backendBaseUri = BACKEND_BASE_URI || 'http://localhost:8000'
 
+console.log(`Backend base URI: ${backendBaseUri}`)
+console.log(`Dev mode: ${dev}`)
+
 // Handle SIGTERM, to immediately quit when Docker asks us to.
 process.on("SIGTERM", () => process.exit(128 + 15));
 

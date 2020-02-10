@@ -64,6 +64,6 @@ Obviously, you should replace `cee5658` and `43-deploy-to-dataexchange` with som
 
 ## Cleanup
 
-Unfortunatelly, there is no straightforward way to configure cleanup in Gitlab CR. It needs to be done manually according to the following rules:
+Unfortunately, there is no straightforward way to configure cleanup in Gitlab CR. It needs to be done manually according to the following rules:
 * `<repository>/<service-name>/<branch-name>` can be deleted when the git branch <branch-name> is deleted;
 * `<repository>/<service-name>/<tag>` all tags besides "latest" (and perhaps a few most recent ones) can be deleted.

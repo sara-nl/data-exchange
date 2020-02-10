@@ -3,7 +3,7 @@ Currently, DataExchnge project implements the following:
 * Every commit to `master` automatically goes to `staging` (a.k.a. `Test 2`).
 * It's possible to update `production` (a.k.a. `Demo`) by running a single script.
 
-⚠️ The version on `Demo` is usually a few development days behind `Test 2`.
+⚠️ The version on `Demo` is usually a few development days/weeks behind `Test 2`.
 
 ## Glossary
 
@@ -21,14 +21,14 @@ Data Exchange follows this naming convention for images so that it's always simp
 * `repository` - Constant: `git.ia.surfsara.nl:5050/soil/secure-container`
 * `service` - Name of the service. Corresponds to one of the `Dockerfile`s in our monorepo.
 * `short-sha` – Git SHA, which shows the revision used for building this set of images.
-* `branch-name` - Git branch name. Only images with `master` can be used for production deployments.
+* `branch-name` - Git branch name.
 
 ```
-<repository>/<service-name>:<short-sha>.<branch-name>
+<repository>/<service-name>/<branch-name>:<short-sha>
 
 //Examples:
-git.ia.surfsara.nl:5050/soil/secure-container/tasker:438befd.43-deploy-to-dataexchange
-git.ia.surfsara.nl:5050/soil/secure-container/backend:438befd.43-deploy-to-dataexchange
+git.ia.surfsara.nl:5050/soil/secure-container/tasker/43-deploy-to-dataexchange:438befd
+git.ia.surfsara.nl:5050/soil/secure-container/backend/43-deploy-to-dataexchange:438befd
 ```
 
 ## Pre-reqisites for build and application servers
@@ -52,19 +52,18 @@ Application servers should be fine with [Deploy Token](https://docs.gitlab.com/e
 * [Installing Docker](https://docs.docker.com/install/)
 * [Installing Docker Compose](https://docs.docker.com/compose/install/)
 
+## Deploying the latest version of the app
 
-
-## Triggering pipeline locally
-
-On build machine:
-```
-CI_COMMIT_SHORT_SHA=cee5658 CI_COMMIT_REF_NAME=43-deploy-to-dataexchange ./scripts/deploy-ci.sh
-```
-
-On application server (using the same `CI_COMMIT_SHORT_SHA` and `CI_COMMIT_REF_NAME`):
+Assuming the containers are available in the [Gitlab Container Registry](https://git.ia.surfsara.nl/SOIL/secure-container/container_registry):
 
 ```
-CI_COMMIT_SHORT_SHA=cee5658 CI_COMMIT_REF_NAME=43-deploy-to-dataexchange ./scripts/install-ci.sh
+DOCKER_IMAGE_TAG=cee5658 DOCKER_IMAGE_REF_NAME=43-deploy-to-dataexchange ./scripts/run.sh
 ```
 
 Obviously, you should replace `cee5658` and `43-deploy-to-dataexchange` with something suitable to your current situation!
+
+## Cleanup
+
+Unfortunatelly, there is no straightforward way to configure cleanup in Gitlab CR. It needs to be done manually according to the following rules:
+* `<repository>/<service-name>/<branch-name>` can be deleted when the git branch <branch-name> is deleted;
+* `<repository>/<service-name>/<tag>` all tags besides "latest" (and perhaps a few most recent ones) can be deleted.

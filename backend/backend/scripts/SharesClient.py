@@ -14,3 +14,11 @@ class SharesClient:
         response.raise_for_status()
         logger.debug(f"Response: {response.status_code}")
         return response.json()
+
+    def algorithms_shared_by_user(self, email: str):
+        all_shares = self.all()
+        return [
+            s["share"]["path"]
+            for s in all_shares
+            if s["isAlgorithm"] == True and s["share"]["uid_owner"] == email
+        ]

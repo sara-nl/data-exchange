@@ -13,6 +13,7 @@ from surfsara.services import task_service
 from django.http import HttpResponse, JsonResponse
 from django.db.models import Q
 from surfsara import logger
+from backend.scripts.SharesClient import SharesClient
 
 import datetime
 
@@ -32,23 +33,30 @@ class TaskSerializer(serializers.ModelSerializer):
 class Permissions(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
+    shares_client = SharesClient()
+
     def create(self, request):
         """
         Request a new permission
         """
         data = JSONParser().parse(request)
         data["algorithm_provider"] = request.user.email
-        serializer = PermissionSerializer(data=data)
-        if serializer.is_valid():
-            model = serializer.save()
-            model.review_output = (
-                model.permission_type == Permission.ONE_TIME_PERMISSION
-            )
-            model.save()
-            task_service.analyze(model.id)
-            return JsonResponse(PermissionSerializer(model).data)
 
-        return JsonResponse(serializer.errors, status=400)
+        shared_algorithms = self.shares_client.algorithms_shared_by_user(
+            request.user.email
+        )
+        if not f"/{data['algorithm']}" in shared_algorithms:
+            return Response("The algorithm is not shared by the user", status=403)
+
+        serializer = PermissionSerializer(data=data)
+        if not serializer.is_valid():
+            return JsonResponse(serializer.errors, status=400)
+
+        model = serializer.save()
+        model.review_output = model.permission_type == Permission.ONE_TIME_PERMISSION
+        model.save()
+        task_service.analyze(model.id)
+        return JsonResponse(PermissionSerializer(model).data)
 
     def retrieve(self, request, pk=None):
         permission = Permission.objects.get(pk=pk)

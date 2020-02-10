@@ -9,6 +9,7 @@ from surfsara.models import User, Task, Permission
 from surfsara.services import task_service, mail_service
 from surfsara.views import permissions
 from surfsara import logger
+from backend.scripts.SharesClient import SharesClient
 
 
 class TaskSerializer(serializers.ModelSerializer):
@@ -21,6 +22,8 @@ class TaskSerializer(serializers.ModelSerializer):
 
 class Tasks(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
+
+    shares_client = SharesClient()
 
     def list(self, request):
         """
@@ -198,9 +201,10 @@ class Tasks(viewsets.ViewSet):
                 status=406,
             )
 
-        if perm.permission_type == Permission.USER_PERMISSION:
+        if "algorithm" in request.data:
             return Response(
-                "This endpoint can be used only for One time permissions", status=406
+                "This endpoint can be used only for starting algorithms defined in permissions",
+                status=406,
             )
 
         task = Task(
@@ -228,16 +232,20 @@ class Tasks(viewsets.ViewSet):
     )
     def start_with_user_perm(self, request, pk=None):
         perm = Permission.objects.get(
-            id=pk, algorithm_provider=request.user.email, state=Permission.ACTIVE
+            id=pk,
+            algorithm_provider=request.user.email,
+            state=Permission.ACTIVE,
+            permission_type=Permission.USER_PERMISSION,
         )
 
         if not perm:
-            return Response(status=403)
+            return Response("Can not find appropriate permissions", status=403)
 
-        if perm.permission_type != Permission.USER_PERMISSION:
-            return Response(
-                "This endpoint can be used only for User permissions", status=406
-            )
+        shared_algorithms = self.shares_client.algorithms_shared_by_user(
+            request.user.email
+        )
+        if not f"/{request.data['algorithm']}" in shared_algorithms:
+            return Response("The algorithm is not shared by the user", status=403)
 
         task = Task(
             state=Task.RUNNING,

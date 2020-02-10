@@ -55,9 +55,6 @@
       if (currentPermission.permission_type === 'stream permission') {
         alert(`Streaming request has been approved. Every new dataset added to ${currentPermission.dataset} will automatically execute the algorithm (unless its code has changed).`)
         goto("/manage_data")
-      } else if (currentPermission.permission_type === 'One specific user permission') {
-        currentTask = await startWithUserPermisson(currentPermission!.id)
-        goto(`/tasks/${currentTask.id}`)
       } else {
         currentTask = await spawnTaskFromPermission(currentPermission!.id)
         goto(`/tasks/${currentTask.id}`)

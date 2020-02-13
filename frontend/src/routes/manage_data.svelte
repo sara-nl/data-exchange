@@ -21,13 +21,8 @@
     updateUserFiles();
     
     dataset_tasks = await Tasks.getLogs().then(r => r.data.data_tasks);
-
-    console.log('dataset_tasks', dataset_tasks)
     
     givenPermissions = await Permissions.getGivenPerFile().then(r => r.data.given_permissions);
-
-    console.log('givenPermissions', givenPermissions)
-    datasets = Object.keys(givenPermissions);
   });
 
   async function updateUserFiles() {

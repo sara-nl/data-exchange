@@ -23,7 +23,7 @@ class ViewShares(viewsets.ViewSet):
         def as_name_id(share):
             return {
                 "name": share.get("file_target").strip("/"),
-                "id": share.get("file_source"),
+                "id": share.get("id"),
                 "isDirectory": share.get("item_type") == "folder",
             }
 
@@ -43,8 +43,7 @@ class ViewShares(viewsets.ViewSet):
         permission_classes=[IsAuthenticated],
     )
     def remove(self, request, pk=None):
-        rd_client = ResearchdriveClient()
-        if rd_client.remove_share_by_id(rd_client.get_share_id(pk)):
+        if self.rd_client.remove_share_by_id(pk):
             return Response(status=status.HTTP_200_OK)
         else:
             return Response(status=status.HTTP_404_NOT_FOUND)

@@ -4,6 +4,7 @@ import webdav3.client as wc
 import lxml.etree as etree
 import os
 import json
+from surfsara import logger
 
 
 class ResearchdriveClient:
@@ -168,6 +169,7 @@ class ResearchdriveClient:
     def remove_share_by_id(self, share_id):
         endpoint = f"{ResearchdriveClient.share_api_endpoint}/{share_id}"
         response = self.__execute_request(endpoint, "DELETE")
+        logger.debug(f"Remove share response {response}")
         return self.parse_revoke_share_xml(response) == "100"
 
     def remove_share(self, remote_path):
@@ -231,13 +233,6 @@ class ResearchdriveClient:
         for share in shares:
             if str(share["item_source"]) == str(file_id):
                 return share["path"]
-        return False
-
-    def get_share_id(self, file_id):
-        shares = self.get_shares()
-        for share in shares:
-            if str(share["item_source"]) == str(file_id):
-                return share["id"]
         return False
 
     def get_file_versions(self, remote_path):

@@ -148,20 +148,14 @@ logging.config.dictConfig(
         "version": 1,
         "disable_existing_loggers": False,
         "formatters": {
-            "console": {
-                "format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s",
-            },
+            "console": {"format": "%(asctime)s %(name)-12s %(levelname)-8s %(message)s"}
         },
         "handlers": {
-            "console": {"class": "logging.StreamHandler", "formatter": "console",},
+            "console": {"class": "logging.StreamHandler", "formatter": "console"}
         },
         "loggers": {
-            "": {"level": "WARNING", "handlers": ["console"],},  # root logger
-            "surfsara": {
-                "propagate": False,
-                "level": "DEBUG",
-                "handlers": ["console"],
-            },
+            "": {"level": "WARNING", "handlers": ["console"]},  # root logger
+            "surfsara": {"propagate": False, "level": "DEBUG", "handlers": ["console"]},
         },
     }
 )

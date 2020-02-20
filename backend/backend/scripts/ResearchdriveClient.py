@@ -22,8 +22,8 @@ class ResearchdriveClient:
         self.options = {
             "webdav_hostname": ResearchdriveClient.webdav_hostname,
             "webdav_root": "/remote.php/nonshib-webdav/",
-            "webdav_login": "f_data_exchange",
-            "webdav_password": "KCVNI-VBXWR-NLGMO-POQNO",
+            "webdav_login": os.environ.get("RD_WEBDAV_USERNAME"),
+            "webdav_password": os.environ.get("RD_WEBDAV_PASSWORD"),
         }
 
         self.client = None
@@ -171,13 +171,6 @@ class ResearchdriveClient:
         response = self.__execute_request(endpoint, "DELETE")
         logger.debug(f"Remove share response {response}")
         return self.parse_revoke_share_xml(response) == "100"
-
-    def remove_share(self, remote_path):
-        shares = self.get_shares()
-        share = self.__compare_tag(remote_path, shares, "file_target")
-        if share:
-            return self.remove_share_by_id(share["id"])
-        return True
 
     def __filter_shares_owner(self, owner):
         """

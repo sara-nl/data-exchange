@@ -29,7 +29,8 @@ object Permission {
   /**
     * Fetches permissions of type streaming from the DB along with happened algorithm runs
     */
-  def findAllPermissions(xa: Transactor[IO]): IO[List[PermissionWithRuns]] =
+  def findAllPermissions(xa: Transactor[IO],
+                         webdavBase: WebdavPath): IO[List[PermissionWithRuns]] =
     for {
       queryResults <- query
         .query[QueryResult]
@@ -53,12 +54,12 @@ object Permission {
               permissionId,
               algorithmProvider,
               datasetProvider,
-              WebdavPath(algorithm),
+              webdavBase.change(algorithm),
               algorithmETag,
-              WebdavPath(permissionDataset)
+              webdavBase.change(permissionDataset)
             ),
             taskDatasetOption.map(
-              taskDataset => AlgorithmRun(WebdavPath(taskDataset))
+              taskDataset => AlgorithmRun(webdavBase.change(taskDataset))
             )
           )
       }

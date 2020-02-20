@@ -4,7 +4,7 @@ import cacher.CacherApp
 import cats.effect.{ExitCode, IO, IOApp}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import runner.RunnerApp
-import tasker.config.TaskerConfig
+import tasker.concurrency.ConcurrencyResources
 import watcher.WatcherApp
 
 object TaskerApp extends IOApp {
@@ -16,13 +16,13 @@ object TaskerApp extends IOApp {
       _ <- logger.info("Tasker started")
       runner <- RunnerApp
         .run(Nil)
-        .start(TaskerConfig.concurrency.newFixedContextShift("runner"))
+        .start(ConcurrencyResources.newFixedContextShift("runner"))
       watcher <- WatcherApp
         .run(Nil)
-        .start(TaskerConfig.concurrency.newFixedContextShift("watcher"))
+        .start(ConcurrencyResources.newFixedContextShift("watcher"))
       cacher <- CacherApp
         .run(Nil)
-        .start(TaskerConfig.concurrency.newFixedContextShift("cacher"))
+        .start(ConcurrencyResources.newFixedContextShift("cacher"))
       runnerExitCode <- runner.join
       watcherExitCode <- watcher.join
       cacherExitCode <- cacher.join

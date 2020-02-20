@@ -14,28 +14,31 @@ object DataSet {
 
   private val logger = Slf4jLogger.getLogger[IO]
 
-  val newDatasetsPipe
-    : fs2.Pipe[IO, PermissionWithRuns, (WebdavPath, ETag, Permission)] =
+  def newDatasetsPipe(
+    webdavBase: WebdavPath
+  ): fs2.Pipe[IO, PermissionWithRuns, (WebdavPath, ETag, Permission)] =
     _.flatMap {
       case (permission, permissionRuns) =>
         val oldDataSetPaths = permissionRuns.map(_.dataSetPath)
         fs2.Stream
           .evalSeq({
-            Webdav
-              .list(permission.dataSetPath)
-              .handleErrorWith { t =>
-                logger.error(t)(
-                  s"Could not retrieve resource ${permission.dataSetPath}. Skipping."
-                )
-                IO(Nil)
-              }
+            Webdav.makeClient
+              .flatMap(
+                _.list(permission.dataSetPath)
+                  .handleErrorWith { t =>
+                    logger.error(t)(
+                      s"Could not retrieve resource ${permission.dataSetPath}. Skipping."
+                    )
+                    IO(Nil)
+                  }
+              )
               .flatMap {
                 case resources if resources.length > 1 =>
                   IO(
                     resources.tail.map(
                       resource =>
                         (
-                          WebdavPath(resource),
+                          webdavBase.change(resource),
                           ETag(resource.getEtag),
                           permission
                       )

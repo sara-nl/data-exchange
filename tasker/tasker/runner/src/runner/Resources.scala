@@ -4,6 +4,7 @@ import java.nio.file.{Files, Path, Paths}
 
 import cats.effect.{Concurrent, ConcurrentEffect, IO, Resource}
 import org.apache.commons.io.FileUtils
+import runner.RunnerConf.DockerConf
 import runner.container.Artifact.Location
 import runner.container.docker.Ids.ImageId
 import runner.container.docker.{DockerOps, Ids}
@@ -13,10 +14,8 @@ import runner.container.{
   ContainerEnv,
   ContainerState
 }
-import tasker.config.TaskerConfig
-import tasker.config.TaskerConfig.docker
 import tasker.queue.Messages
-import tasker.webdav.Webdav
+import tasker.webdav.{Webdav, WebdavPath}
 
 object Resources {
 
@@ -30,31 +29,32 @@ object Resources {
     * Release: temp dir recursively deleted.
     */
   def containerEnv(
-    startContainerCmd: Messages.StartContainer
+    startContainerCmd: Messages.StartContainer,
+    dockerConf: DockerConf,
+    webdavBase: WebdavPath
   )(implicit F: Concurrent[IO]): Resource[IO, ContainerEnv] =
     tempDirResource.evalMap { tempHome =>
       import cats.implicits._
 
       // TODO: move to `common` WebdavPath apply method
-      def webdavPath(location: Location) =
-        TaskerConfig.webdav.serverPath.change(location.userPath)
+      def webdavPath(location: Location) = webdavBase.change(location.userPath)
 
       val algorithmLocation = Location(
         Paths.get(tempHome.toString, "code"),
-        Path.of(docker.containerCodePath),
+        Path.of(dockerConf.containerCodePath),
         startContainerCmd.codePath
       )
 
       val inputLocation = Location(
         Paths.get(tempHome.toString, "data"),
-        Path.of(docker.containerDataPath),
+        Path.of(dockerConf.containerDataPath),
         startContainerCmd.dataPath
       )
 
       val outputLocation =
         Location(
           Paths.get(tempHome.toString, "out"),
-          Path.of(docker.containerOutPath),
+          Path.of(dockerConf.containerOutPath),
           "."
         )
 
@@ -66,8 +66,9 @@ object Resources {
       val newDirs = List(algorithmLocation, inputLocation, outputLocation)
 
       for {
+        webdav <- Webdav.makeClient
         _ <- newDirs.map(l => IO(l.localHome.toFile.mkdirs())).sequence
-        _ <- Webdav.downloadToHost(downloads)
+        _ <- webdav.downloadToHost(downloads)
         algorithm <- Artifact.algorithm(algorithmLocation)
         input <- Artifact.data(inputLocation)
         output <- Artifact.output(outputLocation)
@@ -80,7 +81,7 @@ object Resources {
     * Acquire: If necessary - container is created, dependencies installed, image created.
     * Release: If necessary - container and image removed.
     */
-  def bakedImageWithDeps(containerEnv: ContainerEnv)(
+  def bakedImageWithDeps(containerEnv: ContainerEnv, dockerConf: DockerConf)(
     implicit F: ConcurrentEffect[IO]
   ): Resource[IO, Either[ContainerState, ImageId]] =
     containerEnv.algorithm.requirements match {
@@ -91,7 +92,7 @@ object Resources {
             .startedContainer(
               containerEnv,
               ContainerCommand.installDeps(reqContainerPath),
-              Ids.ImageId(TaskerConfig.docker.image)
+              Ids.ImageId(dockerConf.image)
             )
           containerState <- Resource.liftF(
             DockerOps.terminalStateIO(containerId)
@@ -107,7 +108,7 @@ object Resources {
         } yield result
       case None =>
         Resource.pure[IO, Either[ContainerState, ImageId]](
-          Right(Ids.ImageId(TaskerConfig.docker.image))
+          Right(Ids.ImageId(dockerConf.image))
         )
     }
 

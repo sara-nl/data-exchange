@@ -84,7 +84,11 @@ deploy_test2:
     # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
     # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
     - ssh -oStrictHostKeyChecking=no -i "$TEST2_SSH_KEY" "$TEST2_SSH_ADDRESS" \
-        "export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_REF_NAME\" DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\" CI_COMMIT_SHA=\"$CI_COMMIT_SHA\" &&
+        "export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_REF_NAME\" \
+                DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\" \
+                CI_COMMIT_SHA=\"$CI_COMMIT_SHA\" \ 
+                RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\" \
+                RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\" &&
           cd surfsara && git fetch --all && git checkout $CI_COMMIT_SHA &&
           docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d &&
           docker system prune -a -f

@@ -11,6 +11,8 @@ venv/
 .mypy_cache/
 __pycache__/
 
+.metals
+
 tasker/project
 tasker/target
 

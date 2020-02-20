@@ -3,10 +3,11 @@ import scalalib._
 import scalafmt._
 
 object tasker extends ScalaModule with ScalafmtModule {
-  
+
   val http4sVersion = "0.21.0-M5"
   val circeVersion = "0.12.2"
   val circeOpticsVersion = "0.12.0"
+  val pureconfigVersion = "0.12.2"
 
   object watcher extends ScalaModule with ScalafmtModule {
     override def scalaVersion = tasker.scalaVersion
@@ -61,7 +62,10 @@ object tasker extends ScalaModule with ScalafmtModule {
         ivy"io.chrisdavenport::log4cats-slf4j:1.0.0",
         ivy"ch.qos.logback:logback-classic:1.2.3",
 
-        ivy"com.github.docker-java:docker-java:3.2.0-rc1"
+        ivy"com.github.docker-java:docker-java:3.2.0-rc1",
+
+        ivy"com.github.pureconfig::pureconfig:$pureconfigVersion",
+        ivy"com.github.pureconfig::pureconfig-cats-effect:$pureconfigVersion"
       )
   }
 

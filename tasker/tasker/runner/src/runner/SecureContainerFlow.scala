@@ -4,6 +4,7 @@ import cats.effect._
 import cats.implicits._
 import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import runner.RunnerConf.DockerConf
 import runner.container.Artifact.Location
 import runner.container.docker.DockerOps
 import runner.container.{
@@ -13,7 +14,7 @@ import runner.container.{
   LogMessages
 }
 import runner.utils.FilesIO
-import tasker.config.TaskerConfig.concurrency.implicits.ctxShiftGlobal
+import tasker.concurrency.ConcurrencyResources.implicits.ctxShiftGlobal
 import tasker.queue.Messages.{
   AlgorithmOutput,
   ETag,
@@ -27,7 +28,9 @@ import tasker.webdav.{Webdav, WebdavPath}
 class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
                             AmqpCodecs.DecodedMessage[StartContainer]
                           ]],
-                          publisher: TaskProgress => IO[Unit]) {
+                          publisher: TaskProgress => IO[Unit],
+                          webdavBase: WebdavPath,
+                          dockerConf: DockerConf) {
 
   private val logger = Slf4jLogger.getLogger[IO]
 
@@ -37,7 +40,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
       _ <- publisher(TaskProgress.running(taskId, Step.InstallingDependencies))
       runAlgorithmCmd <- ContainerCommand.runWithStrace(containerEnv)
       result <- Resources
-        .bakedImageWithDeps(containerEnv)
+        .bakedImageWithDeps(containerEnv, dockerConf)
         .use {
           case Right(imageId) =>
             publisher(TaskProgress.running(taskId, Step.ExecutingAlgorithm)) *>
@@ -58,12 +61,13 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
     import Webdav.implicits._
     import WebdavPath.implicits._
     for {
-      resources <- Webdav.list(path)
+      webdav <- Webdav.makeClient
+      resources <- webdav.list(path)
       _ <- resources
         .map(r => logger.debug(s"${r.getPath} ---> ${r.getSafeETag}"))
         .sequence
       pathOption <- resources
-        .find(resource => WebdavPath(resource) === path)
+        .find(resource => webdavBase.change(resource) === path)
         .toRight(new RuntimeException(s"Could not find resource $path"))
         .liftTo[IO]
     } yield pathOption.getSafeETag == expectedETag
@@ -80,7 +84,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
 
   private def processMessage(msg: Messages.StartContainer): IO[TaskProgress] = {
     publisher(TaskProgress.running(msg.taskId, Step.DownloadingFiles)) *>
-      Resources.containerEnv(msg).use { containerEnv =>
+      Resources.containerEnv(msg, dockerConf, webdavBase).use { containerEnv =>
         for {
           _ <- logger.debug(s"Container environment: $containerEnv")
           _ <- publisher(
@@ -137,7 +141,7 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
             _ <- publisher(
               TaskProgress.running(taskId, Step.VerifyingAlgorithm)
             )
-            eTagValidOrError <- verifyETag(WebdavPath(codePath), eTag).attempt
+            eTagValidOrError <- verifyETag(webdavBase.change(codePath), eTag).attempt
             doneMsg <- eTagValidOrError match {
               case Right(true)  => processMessage(msg)
               case Right(false) => TaskProgress.rejectedEtag(taskId).pure[IO]

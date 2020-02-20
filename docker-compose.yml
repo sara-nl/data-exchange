@@ -8,6 +8,8 @@ services:
             RABBITMQ_HOST: rabbitmq
             RABBITMQ_USERNAME: guest
             RABBITMQ_PASSWORD: guest
+            RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
+            RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
             DB_JDBC_URL: "jdbc:postgresql://postgres:5432/surfsara"
             DB_USER: surfsara
             DB_PASSWORD: ""
@@ -28,6 +30,8 @@ services:
             DJANGO_DB_HOST: postgres
             DJANGO_DB_NAME: surfsara
             DJANGO_DB_USER: surfsara
+            RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
+            RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
         depends_on:
             - rabbitmq
             - postgres
@@ -41,6 +45,8 @@ services:
             DJANGO_DB_HOST: postgres
             DJANGO_DB_NAME: surfsara
             DJANGO_DB_USER: surfsara
+            RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
+            RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
             SHARES_API_URL: http://tasker:8088/shares/all
         depends_on:
             - rabbitmq

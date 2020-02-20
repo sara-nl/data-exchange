@@ -12,6 +12,18 @@ Currently, DataExchnge project implements the following:
 * Docker: Container, Image - see [Docker Overview](https://docs.docker.com/engine/docker-overview/).
 * Build server – a role, which can be taken by a VM in the cloud or local development machine. In order to fulfill this role, a machine should be capable of: building Docker images, pushing them into the GitLab Container Registry.
 * Application server – a role, which can be taken by a VM in the cloud or local development machine. A machine with this role should be able to fetch Docker images from the GitlabContainer Registry and start containers from this images.
+* Gitlab CI/CD - a tool built into GitLab for software development through the continuous methodologies metioned above.
+
+
+## Setting up Gitlab CI/CD for this project
+
+GitLab CI/CD is configured by a file called .gitlab-ci.yml placed at the repository’s root. The scripts set in this file are executed by the GitLab Runner. Typically those scipts execute actions upon the source code from the git repository.
+
+Both: the scripts and the source code depend upon environment variables stored in the configuration section "Vaiables" of [Gitlab CI/CD settings](https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd). At the moment the following variables must be configured there:
+* `RD_WEBDAV_PASSWORD`
+* `RD_WEBDAV_USERNAME`
+* `TEST2_SSH_ADDRESS`
+* `TEST2_SSH_KEY`
 
 
 ## Image Versioning
@@ -31,7 +43,7 @@ git.ia.surfsara.nl:5050/soil/secure-container/tasker/43-deploy-to-dataexchange:4
 git.ia.surfsara.nl:5050/soil/secure-container/backend/43-deploy-to-dataexchange:438befd
 ```
 
-## Pre-reqisites for build and application servers
+## Pre-reqisites for the build and application servers
 
 ### Authenticate at Gitlab CR
 

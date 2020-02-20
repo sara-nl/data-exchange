@@ -5,7 +5,6 @@ import java.net.URI
 import cats.Eq
 import com.github.sardine.DavResource
 import javax.ws.rs.core.UriBuilder
-import tasker.config.TaskerConfig
 import tasker.webdav.WebdavPath.WithToUrl
 
 object WebdavPath {
@@ -18,15 +17,6 @@ object WebdavPath {
   trait WithToUrl {
     def toURI: URI
   }
-
-  def apply(davResource: DavResource): WebdavPath =
-    TaskerConfig.webdav.serverPath.change(davResource)
-
-  /**
-    * Returns a WebDav path with the default server base path.
-    */
-  def apply(userPath: String): WebdavPath =
-    TaskerConfig.webdav.serverPath.change(userPath)
 
 }
 

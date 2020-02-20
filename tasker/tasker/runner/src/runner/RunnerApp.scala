@@ -1,8 +1,9 @@
 package runner
 
 import cats.effect.{ExitCode, IO, IOApp}
+import cats.implicits._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import tasker.config.TaskerConfig.queues
+import tasker.config.CommonConf
 import tasker.queue.Messages.{StartContainer, TaskProgress}
 import tasker.queue.{AmqpCodecs, QueueResources}
 
@@ -10,37 +11,49 @@ object RunnerApp extends IOApp {
 
   private val logger = Slf4jLogger.getLogger[IO]
 
-  override def run(args: List[String]): IO[ExitCode] =
-    QueueResources.rabbitClientResource.use { rabbit =>
+  private def handleMessages(commonConf: CommonConf, runnerConf: RunnerConf) =
+    QueueResources.rabbitClientResource(commonConf.rabbitmq).use { rabbit =>
       rabbit.createConnectionChannel.use { implicit channel =>
+        import tasker.config.conversions._
         import tasker.queue.Messages.implicits._
         for {
-          _ <- logger.info("Runner started")
-          _ <- rabbit.declareQueue(queues.todo.config)
-          _ <- rabbit.declareExchange(queues.todo.exchangeConfig)
-          _ <- rabbit.bindQueue(
-            queues.todo.config.queueName,
-            queues.todo.exchangeConfig.exchangeName,
-            queues.todo.routingKey
-          )
-          _ <- rabbit.declareQueue(queues.done.config)
-          _ <- rabbit.declareExchange(queues.done.exchangeConfig)
-          _ <- rabbit.bindQueue(
-            queues.done.config.queueName,
-            queues.done.exchangeConfig.exchangeName,
-            queues.done.routingKey
-          )
-          consumer <- rabbit
-            .createAutoAckConsumer(queues.todo.config.queueName)(
-              channel,
-              AmqpCodecs.decoder[StartContainer]
-            )
-          publisher <- rabbit.createPublisher(
-            queues.done.exchangeConfig.exchangeName,
-            queues.done.routingKey
-          )(channel, AmqpCodecs.encoder[TaskProgress])
-          _ <- new SecureContainerFlow(consumer, publisher).flow.compile.drain
-        } yield ExitCode.Success
+          _ <- rabbit.declareQueue(commonConf.queues.todo.queueConfig)
+          _ <- rabbit.declareExchange(commonConf.queues.todo.exchangeConfig)
+          consumer <- {
+            val (queueName, exchangeName, routingKey) =
+              commonConf.queues.todo.asTuple
+            rabbit.bindQueue(queueName, exchangeName, routingKey) *>
+              rabbit.createAutoAckConsumer(queueName)(
+                channel,
+                AmqpCodecs.decoder[StartContainer]
+              )
+          }
+          _ <- rabbit.declareQueue(commonConf.queues.done.queueConfig)
+          _ <- rabbit.declareExchange(commonConf.queues.done.exchangeConfig)
+          publisher <- {
+            val (queueName, exchangeName, routingKey) =
+              commonConf.queues.done.asTuple
+            rabbit.bindQueue(queueName, exchangeName, routingKey) *>
+              rabbit.createPublisher(exchangeName, routingKey)(
+                channel,
+                AmqpCodecs.encoder[TaskProgress]
+              )
+          }
+          _ <- new SecureContainerFlow(
+            consumer,
+            publisher,
+            commonConf.webdavBase,
+            runnerConf.docker
+          ).flow.compile.drain
+        } yield ()
       }
     }
+
+  override def run(args: List[String]): IO[ExitCode] =
+    for {
+      _ <- logger.info("Runner started")
+      commonConf <- CommonConf.loadF
+      conf <- RunnerConf.loadF
+      _ <- handleMessages(commonConf, conf)
+    } yield ExitCode.Success
 }

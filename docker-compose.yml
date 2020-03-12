@@ -48,10 +48,7 @@ services:
             RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
             RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
             SHARES_API_URL: http://tasker:8088/shares/all
-        depends_on:
-            - rabbitmq
-            - postgres
-            - tasker
+        depends_on: [rabbitmq, postgres, tasker]
 
     frontend:
         environment:
@@ -61,6 +58,7 @@ services:
         image: postgres:11-alpine
         environment:
             POSTGRES_USER: surfsara
+            POSTGRES_HOST_AUTH_METHOD: trust
 
     rabbitmq:
         image: rabbitmq:3-management-alpine

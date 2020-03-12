@@ -22,13 +22,18 @@ services:
             DJANGO_DEBUG: 0
         volumes:
             - "static:/var/www/html/static"
+        ports:
+            - "127.0.0.1:5000:5000"
         restart: "always"
         command: "./docker/entrypoint.sh runserver"
+        depends_on: [rabbitmq, postgres, tasker, mailcatcher ]
 
     frontend:
         image: git.ia.surfsara.nl:5050/soil/secure-container/frontend/${DOCKER_IMAGE_REF_NAME}:${DOCKER_IMAGE_TAG}
         environment:
             NODE_ENV: "production"
+        ports:
+            - "127.0.0.1:3000:3000"            
         restart: "always"
 
     postgres:
@@ -37,23 +42,10 @@ services:
     rabbitmq:
         restart: "always"
 
-    nginx:
-        image: "nginx:1-alpine"
-        ports:
-            - "127.0.0.1:3000:80"
-        depends_on:
-            - "frontend"
-            - "backend"
-        volumes:
-            - "static:/var/www/html/static:ro"
-            - "./nginx.conf:/etc/nginx/nginx.conf:ro"
-            - "./htpasswd:/etc/nginx/.htpasswd:ro"
-        restart: "always"
-
     mailcatcher:
         image: "jeanberu/mailcatcher"
         ports:
-            - "1025:1025"
+            - "1080:1080"
         restart: "always"
 
 volumes:

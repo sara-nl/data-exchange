@@ -9,7 +9,7 @@ Applications consists of a few main components packaged as one or a few docker c
 * frontend (TypeScript/JS, Svelte)
 * tasker (Scala) ([README](tasker/README.md))
 
-<img src="./docs/topology.png" alt="Containers topology" title="Containers topology" />
+<img src="./docs/docker-ports.png" alt="Containers topology" title="Containers topology" />
 
 # Developing
 * Install `docker` and `docker-compose` locally.

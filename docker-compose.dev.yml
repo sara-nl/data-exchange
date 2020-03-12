@@ -37,8 +37,6 @@ services:
         build:
             context: "frontend/"
             dockerfile: "docker/dev.Dockerfile"
-        environment:
-            BACKEND_BASE_URI: 'http://backend:8000'
         volumes:
             - "./frontend:/app"
         ports:

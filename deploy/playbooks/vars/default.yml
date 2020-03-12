@@ -1,0 +1,28 @@
+---
+    ansible_python_interpreter: /usr/bin/python3
+    git_surfsara_repo: https://{{ gitlab_username }}:{{ gitlab_password }}@git.ia.surfsara.nl/SOIL/secure-container.git
+    branch: master
+
+    docker_surfsara_repo: git.ia.surfsara.nl:5050/soil/secure-container
+    http_basic_auth:
+        demo: dex
+    docker_images:
+        - nginx
+        - rabbitmq
+        - postgres
+        - "jeanberu/mailcatcher"
+        - git.ia.surfsara.nl:5050/soil/secure-container/datex
+
+    docker_compose_env:
+        RABBITMQ_HOST: rabbitmq
+        RABBITMQ_USERNAME: guest
+        RABBITMQ_PASSWORD: guest
+        RD_WEBDAV_USERNAME: "{{ RD_WEBDAV_USERNAME }}"
+        RD_WEBDAV_PASSWORD: "{{ RD_WEBDAV_PASSWORD }}"
+        DB_JDBC_URL: jdbc:postgresql://postgres:5432/surfsara
+        DB_USER: surfsara
+        DB_PASSWORD: ''
+        DOCKER_IMAGE_REF_NAME: "{{branch}}"
+        DOCKER_IMAGE_TAG: latest
+
+

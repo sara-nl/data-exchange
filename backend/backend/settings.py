@@ -137,7 +137,7 @@ STATIC_ROOT = "/var/www/html/static"
 AUTH_USER_MODEL = "surfsara.User"
 
 EMAIL_USE_TLS = False
-EMAIL_HOST = "dataexchange.surfsara.nl"
+EMAIL_HOST = "mailcatcher"
 EMAIL_PORT = 1025
 
 import logging.config

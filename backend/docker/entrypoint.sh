@@ -11,7 +11,7 @@ done
 
 if [[ "$DJANGO_DEBUG" -eq 0 && "$1" == "runserver" ]]; then
   python -u manage.py migrate
-  python -u manage.py collectstatic
+  python -u manage.py collectstatic --noinput
 
   exec uwsgi --ini uwsgi.ini
 else

@@ -1,0 +1,30 @@
+server {
+    listen 80;
+    server_name {{inventory_hostname}};
+
+    root /var/www/html;
+
+    location / {
+        proxy_set_header Host $http_host;
+        proxy_pass http://localhost:3000;
+        auth_basic "Restricted content";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+    }
+
+    location ~ ^/(api|admin) {
+        uwsgi_pass localhost:5000;
+        include uwsgi_params;
+    }
+
+    location /mail {
+        proxy_pass http://localhost:1080/;
+        auth_basic "Restricted content";
+        auth_basic_user_file /etc/nginx/.htpasswd;
+    }
+
+    location ~ ^/(assets|messages) {
+        proxy_pass http://localhost:1080;
+        auth_basic "Restricted content";
+        auth_basic_user_file /etc/nginx/.htpasswd;          
+    }
+}

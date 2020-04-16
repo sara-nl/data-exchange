@@ -80,7 +80,7 @@ There are the same challenges as in the single-node case plus *cluster managemen
 
 The idea is to replace the docker host with a cluster manager, which would provide more or less the same abstraction for creating and monitoring processes. It's important, though, to study the implementation of the cluster manager we want to use in order to understand its process isolation guarantees.
 
-####Docker Swarm ([docs](https://docs.docker.com/engine/swarm/))
+#### Docker Swarm ([docs](https://docs.docker.com/engine/swarm/))
 
 * First impression: more intended for long running services rather than for one-shot jobs.
 * Risk: The library we're using to control docker may not support swarm.
@@ -95,7 +95,7 @@ Kubernetes is an open source container orchestration engine for automating deplo
 
 
 
-####Apache OpenWhisk ([link](https://openwhisk.apache.org/documentation.html)) and OpenFaaS ([link](https://docs.openfaas.com/))
+#### Apache OpenWhisk ([link](https://openwhisk.apache.org/documentation.html)) and OpenFaaS ([link](https://docs.openfaas.com/))
 
 * Serverless (*Function-as-a-Service*) execution model;
 * Used by: IBM Cloud Functions, Adobe, RedHat;
@@ -120,7 +120,7 @@ Kubernetes is an open source container orchestration engine for automating deplo
 
 
 
-###See also:
+### See also:
 
 - [Gitlab issue #55](https://git.ia.surfsara.nl/SOIL/secure-container/issues/55)
 - [Apache Openwhisk](https://github.com/apache/openwhisk)

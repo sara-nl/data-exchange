@@ -2,7 +2,8 @@ package cacher
 
 import cacher.conf.CacherConf
 import cacher.conf.CacherConf.ServerConf
-import cacher.service.SharesCachingService
+import cacher.model.Share
+import cacher.service.SharesService
 import cats.effect.{ExitCode, IO, IOApp}
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import org.http4s._
@@ -11,7 +12,9 @@ import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeServerBuilder
 import org.http4s.implicits._
 import io.circe.generic.auto._
+import io.github.mkotsur.artc.ActiveReadThroughCache
 import org.http4s.circe.CirceEntityEncoder._
+import cats.implicits._
 
 object CacherApp extends IOApp {
 
@@ -19,12 +22,13 @@ object CacherApp extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] = {
 
-    def server(scs: SharesCachingService, config: ServerConf) = {
+    def server(scs: ActiveReadThroughCache[List[Share.ShareMetadata]],
+               config: ServerConf) = {
       val sharesRoutes = HttpRoutes.of[IO] {
         case GET -> Root / "all" =>
           Ok(for {
             _ <- scs.reset().start
-            shares <- scs.sharesRef.get
+            shares <- scs.mostRecent
           } yield shares)
       }
 
@@ -39,7 +43,13 @@ object CacherApp extends IOApp {
 
     for {
       config <- CacherConf.loadF
-      sharesCachingService <- SharesCachingService.create(config)
+      sharesCachingService <- ActiveReadThroughCache.create(
+        settings = config.update,
+        fetchValue = SharesService.getShares.handleErrorWith { e =>
+          logger.error(e)("Could not fetch shares") >>
+            IO.raiseError(e)
+        }
+      )
       _ <- logger.info("Cacher started")
       serverFiber <- server(sharesCachingService, config.server).start
       updateSharesFiber <- sharesCachingService.scheduleUpdates.start

@@ -65,7 +65,9 @@ object SharesService {
             result <- shares
               .map(withMetadata(commonConf.webdavBase))
               .parSequence
-            _ <- logger.debug(s"Retrieved ${result.length} from Research Drive")
+            _ <- logger.debug(
+              s"Retrieved ${result.length} shares from Research Drive"
+            )
           } yield result
       }
     } yield sharesWithMetadata

@@ -9,8 +9,10 @@ services:
             dockerfile: "docker/dev.Dockerfile"
         environment:
             ENVIRONMENT: "development"
-            LOG_LEVEL: "trace"
-
+            LOG_LEVEL: "debug"
+        ports:
+            - "127.0.0.1:8088:8088"
+ 
     backend_listen:
         build:
             context: "backend/"

@@ -4,7 +4,7 @@
 
     import { getShares } from "../../api/shares";
     import Tasks from "../../api/tasks"
-    import { permissionTypeDict, permissionTypeLabels, requestPermission, getAllPermissions, getObtainerPerFile, PermissionRequest, Permission } from "../../api/permissions";
+    import { permissionTypeDict, permissionTypeLabels, requestPermission, getAllPermissions, PermissionRequest, Permission } from "../../api/permissions";
     import Spinner from "../../components/Spinner.svelte";
     import RunWithUserPermission from "../../components/RunWithUserPermission.svelte";
     import PermissionInfo from "../../components/PermissionInfo.svelte";

@@ -4,7 +4,7 @@ import scalafmt._
 
 object tasker extends ScalaModule with ScalafmtModule {
 
-  val http4sVersion = "0.21.0-M5"
+  val http4sVersion = "0.21.3"
   val circeVersion = "0.12.2"
   val circeOpticsVersion = "0.12.0"
   val pureconfigVersion = "0.12.2"
@@ -37,8 +37,16 @@ object tasker extends ScalaModule with ScalafmtModule {
       ivy"org.http4s::http4s-circe:$http4sVersion",
       ivy"org.http4s::http4s-blaze-client:$http4sVersion",
       ivy"org.http4s::http4s-blaze-server:$http4sVersion",
-      ivy"io.circe::circe-optics:$circeOpticsVersion"
+      ivy"io.circe::circe-optics:$circeOpticsVersion",
+      ivy"io.github.mkotsur::artc:0.1.0"
     )
+
+//    object test extends Tests {
+//      def ivyDeps = Agg(
+//        ivy"org.scalatest::scalatest:3.1.1",
+//        ivy"com.codecommit::cats-effect-testing-scalatest:0.4.0")
+//      def testFrameworks = Seq("org.scalatest.tools.Framework")
+//    }
   }
 
   object common extends ScalaModule with ScalafmtModule {

@@ -1,17 +1,11 @@
-from django.db.models import Q
-
 from rest_framework import viewsets, serializers, status
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from backend.scripts.ResearchdriveClient import ResearchdriveClient
-
-import json
-from functools import reduce
 
 from backend.scripts.ResearchdriveClient import ResearchdriveClient
-from surfsara.services.files_service import OwnShares
+from backend.scripts.SharesClient import SharesClient
 
 
 class ViewShares(viewsets.ViewSet):
@@ -20,21 +14,8 @@ class ViewShares(viewsets.ViewSet):
     rd_client = ResearchdriveClient()
 
     def list(self, request):
-        def as_name_id(share):
-            return {
-                "name": share.get("file_target").strip("/"),
-                "id": share.get("id"),
-                "isDirectory": share.get("item_type") == "folder",
-            }
-
-        alg_shares, data_shares = OwnShares(str(request.user)).return_own_shares()
-
-        return Response(
-            {
-                "own_algorithms": map(as_name_id, alg_shares),
-                "own_datasets": map(as_name_id, data_shares),
-            }
-        )
+        algorithms, datasets = SharesClient().user_shares_grouped(str(request.user))
+        return Response({"own_algorithms": algorithms, "own_datasets": datasets})
 
     @action(
         detail=True,

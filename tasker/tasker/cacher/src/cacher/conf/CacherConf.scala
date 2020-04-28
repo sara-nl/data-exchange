@@ -1,12 +1,13 @@
 package cacher.conf
 import java.net.URI
 
-import cacher.conf.CacherConf.{ClientConf, ServerConf, UpdateConf}
+import cacher.conf.CacherConf.{ClientConf, ServerConf}
 import cats.effect.IO
+import io.github.mkotsur.artc.ActiveReadThroughCache
 import pureconfig.generic.ProductHint
-import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
+import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
 
 import scala.concurrent.duration._
 
@@ -25,13 +26,9 @@ object CacherConf {
                         requestTimeout: FiniteDuration,
                         connectionTimeout: FiniteDuration,
                         responseHeaderTimeout: FiniteDuration)
-
-  case class UpdateConf(initialInterval: FiniteDuration,
-                        ceilingInterval: FiniteDuration)
-
 }
 
 case class CacherConf(server: ServerConf,
                       client: ClientConf,
-                      update: UpdateConf,
+                      update: ActiveReadThroughCache.Settings,
                       sharesSource: URI)

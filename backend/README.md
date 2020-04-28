@@ -16,8 +16,7 @@ this with `sudo chown $USER backend/surfsara/migrations`*
 ## Solving installation problems
 
 
-### Problem istalling `psycopg2`
-
-```
-export LDFLAGS="-I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib"
-```
+### Problem installing `psycopg2`
+* Install Postgres.app: `brew cask install postgres`
+* `export PATH=$PATH:/Applications/Postgres.app/Contents/Versions/12/bin/`
+* `export LDFLAGS="-I/usr/local/opt/openssl/include -L/usr/local/opt/openssl/lib`

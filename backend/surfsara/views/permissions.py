@@ -1,21 +1,19 @@
+import datetime
 from collections import defaultdict
 
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, serializers
 from rest_framework.decorators import action
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.response import Response
 from rest_framework.parsers import JSONParser
-from surfsara.models import Permission, User, Task
-from surfsara.services import mail_service
-from surfsara.services.files_service import OwnShares
-from surfsara.services import task_service
-from django.http import HttpResponse, JsonResponse
-from django.db.models import Q
-from surfsara import logger
-from backend.scripts.SharesClient import SharesClient
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-import datetime
+from backend.scripts.SharesClient import SharesClient
+from surfsara import logger
+from surfsara.models import Permission, Task
+from surfsara.services import mail_service
+from surfsara.services import task_service
 
 
 class PermissionSerializer(serializers.ModelSerializer):
@@ -197,7 +195,7 @@ class Permissions(viewsets.ViewSet):
         Returns list permissions per file in dict
         """
 
-        alg_shares, _ = OwnShares(str(request.user)).return_own_shares()
+        alg_shares, _ = SharesClient().user_shares_grouped(str(request.user))
         data = defaultdict(lambda: {"permissions": [], "tasks": []})
 
         permissions = PermissionSerializer(
@@ -209,7 +207,7 @@ class Permissions(viewsets.ViewSet):
 
         for permission in permissions:
             if permission["permission_type"] == Permission.USER_PERMISSION:
-                for algorithm in alg_shares:
+                for algorithm in alg_shares or []:
                     file_ = algorithm["file_target"].strip("/")
                     data[file_]["permissions"].append(permission)
             else:

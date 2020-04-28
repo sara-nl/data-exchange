@@ -3,7 +3,7 @@ import Controller from "./controller";
 
 export type Share = {id: number, name: string, isDirectory: boolean}
 
-type SharesResponse = { 
+export type SharesResponse = { 
     own_algorithms: Share[],
     own_datasets: Share[]
 }

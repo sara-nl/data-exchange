@@ -40,13 +40,6 @@ object tasker extends ScalaModule with ScalafmtModule {
       ivy"io.circe::circe-optics:$circeOpticsVersion",
       ivy"io.github.mkotsur::artc:0.1.0"
     )
-
-//    object test extends Tests {
-//      def ivyDeps = Agg(
-//        ivy"org.scalatest::scalatest:3.1.1",
-//        ivy"com.codecommit::cats-effect-testing-scalatest:0.4.0")
-//      def testFrameworks = Seq("org.scalatest.tools.Framework")
-//    }
   }
 
   object common extends ScalaModule with ScalafmtModule {

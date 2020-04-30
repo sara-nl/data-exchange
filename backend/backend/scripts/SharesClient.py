@@ -26,11 +26,10 @@ class SharesClient:
 
     # Fetches shares from the cache and selects only the ones
     # shared by the user with `email`.
-    # Returns a tuple each member whereof contains a list of shares.
+    # Returns a tuple each member whereof contains a list of shares or None.
     # Order: algorithm shares, data shares
     def user_shares_grouped(self, email: str):
         all_shares = self.all()
-        logger.debug(f"all_shares = {all_shares}")
 
         if all_shares is None:
             return None, None

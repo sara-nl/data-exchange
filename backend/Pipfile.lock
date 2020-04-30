@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "a42e1aea17f0c81459c04003a66dbbfd62be7beb5534b6e7b72fb9821768bd4d"
+            "sha256": "dfc3377a9a144c247adc573359fc7f398dbe8ceaeea7c6b42c15685ff5a8f6de"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -44,11 +44,11 @@
         },
         "dataclasses-json": {
             "hashes": [
-                "sha256:4f22d698e1326e02863e513dda52a4760a5ffedf1a2c22cd2a15840d1cae82ae",
-                "sha256:6c0582aecce40c48bddb03d577ed20980eeae6d84bff1880a6cd730f6daf4294"
+                "sha256:65ac9ae2f7ec152ee01bf42c8c024736d4cd6f6fb761502dec92bd553931e3d9",
+                "sha256:dbb53ebbac30ef45f44f5f436b21bd5726a80a14e1a193958864229100271372"
             ],
             "index": "pypi",
-            "version": "==0.3.8"
+            "version": "==0.4.2"
         },
         "django": {
             "hashes": [
@@ -185,10 +185,10 @@
         },
         "pytz": {
             "hashes": [
-                "sha256:1c557d7d0e871de1f5ccd5833f60fb2550652da6be2693c1e02300743d21500d",
-                "sha256:b02c06db6cf09c12dd25137e563b31700d3b80fcc4ad23abb7a315f2789819be"
+                "sha256:a494d53b6d39c3c6e44c3bec237336e14305e4f29bbf800b599253057fbb79ed",
+                "sha256:c35965d010ce31b23eeb663ed3cc8c906275d6be1a34393a1d73a41febf4a048"
             ],
-            "version": "==2019.3"
+            "version": "==2020.1"
         },
         "requests": {
             "hashes": [
@@ -282,10 +282,10 @@
         },
         "click": {
             "hashes": [
-                "sha256:8a18b4ea89d8820c5d0c7da8a64b2c324b4dabb695804dbfea19b9be9d88c0cc",
-                "sha256:e345d143d80bf5ee7534056164e5e112ea5e22716bbb1ce727941f4c8b471b9a"
+                "sha256:d2b5255c7c6349bc1bd1e59e08cd12acbbd63ce649f2588755783aa94dfb6b1a",
+                "sha256:dacca89f4bfadd5de3d7489b7c8a566eee0d3676333fbb50030263894c38c0dc"
             ],
-            "version": "==7.1.1"
+            "version": "==7.1.2"
         },
         "isort": {
             "hashes": [

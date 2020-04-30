@@ -1,5 +1,4 @@
 import os
-import logging
 import pika
 from surfsara.models import Task
 from surfsara.messages import StartContainer, AnalyzeArtifact
@@ -45,12 +44,14 @@ def start(task: Task):
     connection.close()
 
 
-def analyze(permission_id: int):
+def analyze(permission_id: str):
     connection, channel = __connect()
+    command = AnalyzeArtifact(permission_id)
+
     channel.basic_publish(
         exchange="",
         routing_key=AnalyzeListener.queue_name,
-        body=AnalyzeArtifact(permission_id).to_json(),
+        body=command.to_json(),
         properties=PROPERTIES,
     )
     connection.close()

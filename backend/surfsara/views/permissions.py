@@ -53,7 +53,9 @@ class Permissions(viewsets.ViewSet):
         model = serializer.save()
         model.review_output = model.permission_type == Permission.ONE_TIME_PERMISSION
         model.save()
-        task_service.analyze(model.id)
+
+        logger.debug(f"Sending permission {model.id} to analysis")
+        task_service.analyze(str(model.id))
         return JsonResponse(PermissionSerializer(model).data)
 
     def retrieve(self, request, pk=None):

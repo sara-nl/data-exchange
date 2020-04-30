@@ -19,5 +19,5 @@ else
     python -u manage.py migrate
   fi
 
-  exec python -u manage.py "$*"
+  exec python -u manage.py $*
 fi

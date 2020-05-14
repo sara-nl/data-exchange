@@ -29,11 +29,13 @@ services:
             dockerfile: "docker/dev.Dockerfile"
         environment:
             DJANGO_DEBUG: 1
+            DJANGO_EMAIL_URL: "smtp://mailcatcher:1025"
         volumes:
             - "./backend:/app"
         ports:
             - "127.0.0.1:8000:8000"
         command: "./docker/entrypoint.sh runserver 0.0.0.0:8000"
+        depends_on: [rabbitmq, postgres, tasker, mailcatcher]
 
     frontend:
         build:
@@ -53,3 +55,9 @@ services:
         ports:
             - 127.0.0.1:8080:15672
             - 127.0.0.1:5672:5672
+
+    mailcatcher:
+        image: "jeanberu/mailcatcher"
+        ports:
+            - "1080:1080"
+        restart: "always"

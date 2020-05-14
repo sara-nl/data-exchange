@@ -20,13 +20,14 @@ services:
         image: git.ia.surfsara.nl:5050/soil/secure-container/backend/${DOCKER_IMAGE_REF_NAME}:${DOCKER_IMAGE_TAG}
         environment:
             DJANGO_DEBUG: 0
+            DJANGO_EMAIL_URL: "smtp://mh.surfsara.nl:25"
         volumes:
             - "static:/var/www/html/static"
         ports:
             - "127.0.0.1:5000:5000"
         restart: "always"
         command: "./docker/entrypoint.sh runserver"
-        depends_on: [rabbitmq, postgres, tasker, mailcatcher ]
+        depends_on: [rabbitmq, postgres, tasker]
 
     frontend:
         image: git.ia.surfsara.nl:5050/soil/secure-container/frontend/${DOCKER_IMAGE_REF_NAME}:${DOCKER_IMAGE_TAG}
@@ -40,12 +41,6 @@ services:
         restart: "always"
 
     rabbitmq:
-        restart: "always"
-
-    mailcatcher:
-        image: "jeanberu/mailcatcher"
-        ports:
-            - "1080:1080"
         restart: "always"
 
 volumes:

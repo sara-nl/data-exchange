@@ -11,6 +11,10 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import environ
+import logging.config
+
+env = environ.Env()
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -23,7 +27,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # TODO: Move to environment variable
 SECRET_KEY = "7^j#=nisv%m3%m_kx=ro54dc71!r+(9juh%p=r9t-+76-*&d^i"
 
-DEBUG = os.environ.get("DJANGO_DEBUG", "1") == "1"
+DEBUG = env.bool("DJANGO_DEBUG", False)
 
 ALLOWED_HOSTS = [
     ".dataex-sara.surf-hosted.nl",
@@ -136,11 +140,9 @@ STATIC_ROOT = "/var/www/html/static"
 
 AUTH_USER_MODEL = "surfsara.User"
 
-EMAIL_USE_TLS = False
-EMAIL_HOST = "mailcatcher"
-EMAIL_PORT = 1025
-
-import logging.config
+# See: https://django-environ.readthedocs.io/en/latest/#email-settings
+EMAIL_CONFIG = env.email_url("DJANGO_EMAIL_URL", default="smtp://mailcatcher:1025")
+vars().update(EMAIL_CONFIG)
 
 LOGGING_CONFIG = None
 logging.config.dictConfig(
@@ -159,3 +161,6 @@ logging.config.dictConfig(
         },
     }
 )
+
+
+logging.getLogger("surfsara").info(EMAIL_CONFIG)

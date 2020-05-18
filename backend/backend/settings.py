@@ -141,7 +141,7 @@ STATIC_ROOT = "/var/www/html/static"
 AUTH_USER_MODEL = "surfsara.User"
 
 # See: https://docs.djangoproject.com/en/2.2/ref/settings/#std:setting-DEFAULT_FROM_EMAIL
-DEFAULT_FROM_EMAIL = "noreply@surfsara.nl"
+DEFAULT_FROM_EMAIL = "Data Exchange <noreply@surfsara.nl>"
 
 # See: https://django-environ.readthedocs.io/en/latest/#email-settings
 EMAIL_CONFIG = env.email_url("DJANGO_EMAIL_URL", default="smtp://mailcatcher:1025")

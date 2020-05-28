@@ -1,157 +1,165 @@
 ---
-    - hosts: all
-      vars_files:
-        - vars/default.yml
-    
-      tasks:
+- hosts: all
+  vars_files:
+    - vars/default.yml
 
-        - name: Upgrade System
-          become: true
-          tags: [system]
-          apt: upgrade=dist update_cache=yes
+  tasks:
+    - name: Upgrade System
+      become: true
+      tags: [system]
+      apt: upgrade=dist update_cache=yes
 
-        - name: Install aptitude using apt
-          become: true
-          tags: [system]
-          apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
-    
-        - name: Install required system packages
-          become: true
-          tags: [system]
-          apt: name="{{ item }}" state=latest update_cache=yes
-          loop: [ 'apt-transport-https', 'gpg-agent', 'ca-certificates', 'curl', 'software-properties-common', 'python3-pip', 'virtualenv', 'python3-setuptools', 'dirmngr']        
+    - name: Install aptitude using apt
+      become: true
+      tags: [system]
+      apt: name=aptitude state=latest update_cache=yes force_apt_get=yes
 
-        - name: Install nginx
-          become: true
-          tags: [system]
-          apt: name="{{ item }}" state=present
-          loop: ['nginx', 'nginx-core', 'nginx-common']
+    - name: Install required system packages
+      become: true
+      tags: [system]
+      apt: name="{{ item }}" state=latest update_cache=yes
+      loop:
+        [
+          "apt-transport-https",
+          "gpg-agent",
+          "ca-certificates",
+          "curl",
+          "software-properties-common",
+          "python3-pip",
+          "virtualenv",
+          "python3-setuptools",
+          "dirmngr",
+        ]
 
-        - name: "Start Nginx Services"
-          tags: ['system', 'nginx']
-          become: true
-          service:
-            name: nginx
-            state: started          
-    
-        - name: Add Docker GPG apt Key
-          become: true
-          tags: [docker]
-          apt_key:
-            url: https://download.docker.com/linux/ubuntu/gpg
-            state: present
-    
+    - name: Install nginx
+      become: true
+      tags: [system]
+      apt: name="{{ item }}" state=present
+      loop: ["nginx", "nginx-core", "nginx-common"]
 
-        - name: Add Docker Repository
-          become: true
-          tags: [docker]
-          apt_repository:
-            repo: deb https://download.docker.com/linux/ubuntu bionic stable
-            state: present
-    
-        - name: Update apt and install docker-ce
-          become: true
-          tags: [docker]
-          apt: update_cache=yes name=docker-ce state=latest
-    
-        - name: Install Docker packages for Python
-          tags: [docker]
-          pip: 
-            name: [docker, docker-compose]
-            extra_args: --user
+    - name: "Start Nginx Services"
+      tags: ["system", "nginx"]
+      become: true
+      service:
+        name: nginx
+        state: started
 
-        - name: Add the default user to the docker group
-          become: true
-          tags: [docker]
-          user: name=ubuntu group=docker append=yes
+    - name: Add Docker GPG apt Key
+      become: true
+      tags: [docker]
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
 
-        - name: Reset ssh connection for the user change to take place
-          meta: reset_connection          
+    - name: Add Docker Repository
+      become: true
+      tags: [docker]
+      apt_repository:
+        repo: deb https://download.docker.com/linux/ubuntu bionic stable
+        state: present
 
-        - name: Log into Gitlab Docker Repository
-          tags: [docker]        
-          docker_login:
-            debug: yes
-            registry: "{{ docker_surfsara_repo }}"
-            username: "{{ gitlab_username }}"
-            password: "{{ gitlab_password }}"
-          
-        - name: Pull Docker images
-          tags: [docker]   
-          docker_image: name="{{ item }}" source=pull
-          loop: "{{ docker_images }}"    
+    - name: Update apt and install docker-ce
+      become: true
+      tags: [docker]
+      apt: update_cache=yes name=docker-ce state=latest
 
-        - name: Install passlib for Python
-          become: true
-          tags: [nginx]
-          pip: name=passlib
+    - name: Install Docker packages for Python
+      tags: [docker]
+      pip:
+        name: [docker, docker-compose]
+        extra_args: --user
 
-        - name: Generate .htpasswd
-          become: true
-          tags: [nginx]
-          htpasswd:
-            path: /etc/nginx/.htpasswd
-            name: "{{ item.key }}"
-            password: "{{ item.value }}"
-          loop: "{{ http_basic_auth | dict2items }}"
+    - name: Add the default user to the docker group
+      become: true
+      tags: [docker]
+      user: name=ubuntu group=docker append=yes
 
-        - name: Copy nginx config
-          become: true
-          tags: [nginx]
-          template:
-            src: ../files/default.j2
-            dest: /etc/nginx/sites-available/default
-            mode: '0644'          
+    - name: Reset ssh connection for the user change to take place
+      meta: reset_connection
 
-        - name: Install Git
-          become: true
-          tags: [git]
-          apt: name=git state=latest
+    - name: Log into Gitlab Docker Repository
+      tags: [docker]
+      docker_login:
+        debug: yes
+        registry: "{{ docker_surfsara_repo }}"
+        username: "{{ gitlab_username }}"
+        password: "{{ gitlab_password }}"
 
-        # See: 
-        # https://docs.gitlab.com/ee/user/project/deploy_tokens/#git-clone-a-repository
-        - name: "Clone {{branch}} of the source repo"
-          tags: [git]
-          git: repo="{{git_surfsara_repo}}" dest=./data-exchange version="{{branch}}"
+    - name: Pull Docker images
+      tags: [docker]
+      docker_image: name="{{ item }}" source=pull
+      loop: "{{ docker_images }}"
 
-        - name: "[Re-]Start application services"
-          tags: [docker, app, compose]
-          docker_compose:
-              pull: yes
-              restarted: yes
-              project_src: ~/data-exchange
-              files: [docker-compose.yml, docker-compose.prod.yml]
-          # You'll need to pass some variables to the `ansible` command
-          environment: "{{ docker_compose_env }}"
+    - name: Install passlib for Python
+      become: true
+      tags: [nginx]
+      pip: name=passlib
 
-        - name: Add certbot repository
-          become: true
-          tags: [nginx, certbot]
-          apt_repository: repo='ppa:certbot/certbot' update_cache=yes
-          
-        - name: Install certbot
-          become: true
-          tags: [nginx, certbot]          
-          apt: name="{{item}}" state=latest
-          loop: [ 'certbot', 'python-certbot-nginx']
+    - name: Generate .htpasswd
+      become: true
+      tags: [nginx]
+      htpasswd:
+        path: /etc/nginx/.htpasswd
+        name: "{{ item.key }}"
+        password: "{{ item.value }}"
+      loop: "{{ http_basic_auth | dict2items }}"
 
-        - name: Allow all access to tcp ports 80 and 443
-          become: true
-          tags: [nginx, system]          
-          ufw:
-            rule: allow
-            port: "{{item}}"
-            proto: tcp          
-          loop: ["80", "443"]
+    - name: Copy nginx config
+      become: true
+      tags: [nginx]
+      template:
+        src: ../files/default.j2
+        dest: /etc/nginx/sites-available/default
+        mode: "0644"
 
-        - name: Install certificates
-          become: true
-          tags: [nginx, certbot]
-          command: |
-              certbot --nginx --agree-tos -n \
-              -m mikek@surfsara.nl \
-              -d "{{inventory_hostname}}" --redirect
+    - name: Install Git
+      become: true
+      tags: [git]
+      apt: name=git state=latest
 
-        # - name: Schedule renewal of certificates
-        # The job is scheduled automatically, when the certbot is installed
-        # check: /etc/cron.d/certbot.       
+    # See:
+    # https://docs.gitlab.com/ee/user/project/deploy_tokens/#git-clone-a-repository
+    - name: "Clone {{branch}} of the source repo"
+      tags: [git]
+      git: repo="{{git_surfsara_repo}}" dest=./data-exchange version="{{branch}}"
+
+    - name: "[Re-]Start application services"
+      tags: [docker, app, compose]
+      docker_compose:
+        pull: yes
+        restarted: yes
+        project_src: ~/data-exchange
+        files: [docker-compose.yml, docker-compose.prod.yml]
+      # You'll need to pass some variables to the `ansible` command
+      environment: "{{ docker_compose_env }}"
+
+    - name: Add certbot repository
+      become: true
+      tags: [nginx, certbot]
+      apt_repository: repo='ppa:certbot/certbot' update_cache=yes
+
+    - name: Install certbot
+      become: true
+      tags: [nginx, certbot]
+      apt: name="{{item}}" state=latest
+      loop: ["certbot", "python-certbot-nginx"]
+
+    - name: Allow all access to tcp ports 80 and 443
+      become: true
+      tags: [nginx, system]
+      ufw:
+        rule: allow
+        port: "{{item}}"
+        proto: tcp
+      loop: ["80", "443"]
+
+    - name: Install certificates
+      become: true
+      tags: [nginx, certbot]
+      command: |
+        certbot --nginx --agree-tos -n \
+        -m mikek@surfsara.nl \
+        -d "{{inventory_hostname}}" --redirect
+    # - name: Schedule renewal of certificates
+    # The job is scheduled automatically, when the certbot is installed
+    # check: /etc/cron.d/certbot.

@@ -1,3 +1,2 @@
 all:
-    hosts:
-      test-5.dataex-sara.surf-hosted.nl
+  hosts: dataexchange.surfsara.nl

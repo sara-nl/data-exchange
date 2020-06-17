@@ -8,7 +8,6 @@ from surfsara.models import Permission
 from surfsara.models import Task
 from surfsara.messages import AnalyzeArtifact
 from surfsara.services import mail_service
-from backend.scripts.AlgorithmProcessor import AlgorithmProcessor
 from surfsara import logger
 
 
@@ -80,32 +79,6 @@ class TaskerDoneListener(Listener):
         logger.info(f"Successfully updated task {task_progress['taskId']}")
 
 
-class AnalyzeListener(Listener):
-
-    queue_name = "analyze"
-
-    def callback(self, ch, method, properties, body):
-        command: AnalyzeArtifact = AnalyzeArtifact.from_json(body)
-        logger.debug(f"Received {command}")
-
-        permission: Permission = Permission.objects.get(pk=command.permission_id)
-
-        processor = AlgorithmProcessor(
-            permission.algorithm, permission.algorithm_provider
-        )
-        info = processor.start_processing()
-        logger.debug(f"Info found: {info}")
-        totals = processor.calculate_algorithm_total()
-        logger.debug(f"Totals found: {totals}")
-        etag = processor.get_etag()
-        logger.debug(f"Etag found: {etag}")
-
-        permission.algorithm_report = {"info": info, "totals": totals}
-        permission.algorithm_etag = etag
-        permission.state = Permission.PENDING
-        permission.save()
-
-
 class Command(BaseCommand):
     help = "Starts listening for finished task and analisys requests"
 
@@ -128,7 +101,6 @@ class Command(BaseCommand):
         )
 
         TaskerDoneListener(self.stdout, self.stderr, self.channel).listen()
-        AnalyzeListener(self.stdout, self.stderr, self.channel).listen()
 
         try:
             self.channel.start_consuming()

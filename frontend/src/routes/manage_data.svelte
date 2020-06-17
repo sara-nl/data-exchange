@@ -1,66 +1,57 @@
 <script lang="ts">
-  import { onMount } from "svelte";
-  import dayjs from "dayjs";
-  import RemoveShare, {Share, getShares} from "../api/shares";
-  import Tasks from "../api/tasks";
-  import Permissions from "../api/permissions";
-    import File from "../components/File.svelte";
-  import State from "../components/State.svelte";
+  import { onMount } from 'svelte'
+  import dayjs from 'dayjs'
+  import { Share, getShares } from '../api/shares'
+  import Tasks from '../api/tasks'
+  import Permissions from '../api/permissions'
+  import File from '../components/File.svelte'
+  import State from '../components/State.svelte'
 
-  import Spinner from "../components/Spinner.svelte";
+  import Spinner from '../components/Spinner.svelte'
 
-  let own_datasets: any[] | null = null;
-  let data = {};
-  let dataset_tasks = {};
+  let own_datasets: any[] | null = null
+  let data = {}
+  let dataset_tasks = {}
 
-  let datasets = {};
-  let algorithms = {};
-  let givenPermissions: { [index: string]: any } = {};
+  let datasets = {}
+  let algorithms = {}
+  let givenPermissions: { [index: string]: any } = {}
 
   onMount(async () => {
-    updateUserFiles();
-    
-    dataset_tasks = await Tasks.getLogs().then(r => r.data.data_tasks);
-    
-    givenPermissions = await Permissions.getGivenPerFile().then(r => r.data.given_permissions);
-  });
+    updateUserFiles()
+
+    dataset_tasks = await Tasks.getLogs().then(r => r.data.data_tasks)
+
+    givenPermissions = await Permissions.getGivenPerFile().then(
+      r => r.data.given_permissions
+    )
+  })
 
   async function updateUserFiles() {
-    own_datasets = await getShares().then(r => r.own_datasets);
+    own_datasets = await getShares().then(r => r.own_datasets)
   }
 
   async function remove_permission(id: string, filename: string) {
-    let { data: response } = await Permissions.remove(Number(id));
+    let { data: response } = await Permissions.remove(Number(id))
 
-    let removed_permission = removeFromList(givenPermissions[filename], id);
+    let removed_permission = removeFromList(givenPermissions[filename], id)
 
     if (removed_permission.length === 0) {
-      delete givenPermissions[filename];
+      delete givenPermissions[filename]
 
-      givenPermissions = givenPermissions;
+      givenPermissions = givenPermissions
     } else {
-      givenPermissions[filename] = removed_permission;
+      givenPermissions[filename] = removed_permission
     }
   }
 
   function removeFromList(fileList: any[], fileId: string) {
     for (let i = 0; i < fileList.length; i++) {
-      if (fileList[i]["id"] === fileId) {
-        fileList.splice(i, 1);
+      if (fileList[i]['id'] === fileId) {
+        fileList.splice(i, 1)
       }
     }
-    return fileList;
-  }
-
-  function quickUpdate(fileId: string) {
-    if (own_datasets !== null) {
-      own_datasets = removeFromList(own_datasets, fileId);
-    }
-  }
-
-  async function revokeFileShare(fileId: string) {
-    quickUpdate(fileId);
-    RemoveShare.remove(fileId).then(updateUserFiles);
+    return fileList
   }
 </script>
 
@@ -88,7 +79,7 @@
           <div class="col">
             <button
               class="btn btn-danger rounded-xl font-weight-bold"
-              on:click={() => revokeFileShare(file.id)}>
+              on:click={() => alert(`Can not withdraw access to dataset from here. Please do it directly via ResearchDrive`)}>
               <div class="px-4">Withdraw Data</div>
             </button>
 
@@ -116,7 +107,7 @@
                         <td>{permission.algorithm_provider}</td>
                         <td>{permission.algorithm}</td>
                         <td>{permission.permission_type}</td>
-                        {#if permission.permission_type != "one time permission"}
+                        {#if permission.permission_type != 'one time permission'}
                           <td class="text-danger font-weight-bold">
                             <a
                               class="text-danger"
@@ -148,23 +139,25 @@
                   </thead>
                   <tbody>
                     {#each dataset_tasks[file.name] as task}
-                    {#if task.state !== "stream_permission_request"}
-                      <tr class="my-1">
-                        <td>{task.author_email}</td>
-                        <!-- {#if task.state === 'data_requested' || task.state === 'running'}
+                      {#if task.state !== 'stream_permission_request'}
+                        <tr class="my-1">
+                          <td>{task.author_email}</td>
+                          <!-- {#if task.state === 'data_requested' || task.state === 'running'}
                           <td class="text-danger font-weight-bold">False</td>
                         {:else}
                           <td class="text-success font-weight-bold">True</td>
                         {/if} -->
-                        <td><State state={task.state} /></td>
+                          <td>
+                            <State state={task.state} />
+                          </td>
 
-                        <td>
-                          {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
-                        </td>
-                        <td class="text-primary font-weight-bold">
-                          <a href={`/tasks/${task.id}`}>See log</a>
-                        </td>
-                      </tr>
+                          <td>
+                            {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
+                          </td>
+                          <td class="text-primary font-weight-bold">
+                            <a href={`/tasks/${task.id}`}>See log</a>
+                          </td>
+                        </tr>
                       {/if}
                     {/each}
                   </tbody>

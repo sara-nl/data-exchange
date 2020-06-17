@@ -3,6 +3,8 @@ package runner
 import java.nio.file.{Files, Path, Paths}
 
 import cats.effect.{Concurrent, ConcurrentEffect, IO, Resource}
+import nl.surf.dex.messaging.Messages
+import nl.surf.dex.storage.owncloud.{Webdav, WebdavPath}
 import org.apache.commons.io.FileUtils
 import runner.RunnerConf.DockerConf
 import runner.container.Artifact.Location
@@ -14,8 +16,6 @@ import runner.container.{
   ContainerEnv,
   ContainerState
 }
-import tasker.queue.Messages
-import tasker.webdav.{Webdav, WebdavPath}
 
 object Resources {
 

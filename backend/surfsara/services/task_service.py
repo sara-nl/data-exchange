@@ -2,7 +2,6 @@ import os
 import pika
 from surfsara.models import Task
 from surfsara.messages import StartContainer, AnalyzeArtifact
-from surfsara.management.commands.listen import AnalyzeListener
 
 
 def __connect():
@@ -31,7 +30,7 @@ def start(task: Task):
         task_id=str(task.id),
         data_path=task.dataset,
         code_path=task.algorithm,
-        code_hash={"eTag": task.permission.algorithm_etag},
+        code_hash=task.permission.algorithm_etag,
     )
 
     channel.basic_publish(
@@ -46,12 +45,12 @@ def start(task: Task):
 
 def analyze(permission_id: str):
     connection, channel = __connect()
-    command = AnalyzeArtifact(permission_id)
 
     channel.basic_publish(
         exchange="",
-        routing_key=AnalyzeListener.queue_name,
-        body=command.to_json(),
+        routing_key="tasker_analyze",
+        body=AnalyzeArtifact(permission_id).to_json(),
         properties=PROPERTIES,
     )
+
     connection.close()

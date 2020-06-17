@@ -2,11 +2,12 @@ package watcher
 
 import cats.effect.IO
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
-import tasker.webdav.{Webdav, WebdavPath}
 import cats.implicits._
-import WebdavPath.implicits._
-import tasker.queue.Messages.ETag
-import watcher.Permission.PermissionWithRuns
+import nl.surf.dex.database.Permission
+import nl.surf.dex.storage.owncloud.implicits._
+import nl.surf.dex.storage.ETag
+import nl.surf.dex.storage.owncloud.{Webdav, WebdavPath}
+import watcher.Permissions.PermissionWithRuns
 
 case class DataSet(path: WebdavPath)
 
@@ -19,12 +20,14 @@ object DataSet {
   ): fs2.Pipe[IO, PermissionWithRuns, (WebdavPath, ETag, Permission)] =
     _.flatMap {
       case (permission, permissionRuns) =>
-        val oldDataSetPaths = permissionRuns.map(_.dataSetPath)
+        val dataSetPath = webdavBase.change(permission.dataSetPath)
+        val oldDataSetPaths =
+          permissionRuns.map(run => webdavBase.change(run.dataSetPath))
         fs2.Stream
           .evalSeq({
             Webdav.makeClient
               .flatMap(
-                _.list(permission.dataSetPath)
+                _.list(dataSetPath)
                   .handleErrorWith { t =>
                     logger.error(t)(
                       s"Could not retrieve resource ${permission.dataSetPath}. Skipping."
@@ -55,6 +58,6 @@ object DataSet {
               }
           })
           .filter(path => !oldDataSetPaths.contains(path._1))
-          .filter(_._1 =!= permission.dataSetPath)
+          .filter(_._1 =!= dataSetPath)
     }
 }

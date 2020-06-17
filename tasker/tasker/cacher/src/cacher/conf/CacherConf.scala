@@ -2,22 +2,18 @@ package cacher.conf
 import java.net.URI
 
 import cacher.conf.CacherConf.{ClientConf, ServerConf}
-import cats.effect.IO
+import cats.effect.{ContextShift, IO}
 import io.github.mkotsur.artc.ActiveReadThroughCache
-import pureconfig.generic.ProductHint
-import pureconfig.generic.auto._
-import pureconfig.module.catseffect.syntax._
-import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
+import nl.surf.dex.config.DexConfig
 
 import scala.concurrent.duration._
 
-object CacherConf {
+object CacherConf extends DexConfig("cacher") {
 
-  implicit def hint[T]: ProductHint[T] =
-    ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
-
-  def loadF: IO[CacherConf] =
-    ConfigSource.default.at("cacher").loadF[IO, CacherConf]
+  def loadIO(implicit cs: ContextShift[IO]): IO[CacherConf] = {
+    import pureconfig.generic.auto._
+    blocker.use(configSrc.loadF[IO, CacherConf])
+  }
 
   case class ServerConf(idleTimeout: FiniteDuration,
                         responseHeaderTimeout: FiniteDuration)

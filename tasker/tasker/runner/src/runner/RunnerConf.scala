@@ -1,18 +1,15 @@
 package runner
 
-import cats.effect.IO
-import pureconfig.generic.ProductHint
-import pureconfig.generic.auto._
-import pureconfig.module.catseffect.syntax._
-import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
+import cats.effect.{Blocker, ContextShift, IO}
+import nl.surf.dex.config.DexConfig
 import runner.RunnerConf.DockerConf
 
-object RunnerConf {
-  implicit def hint[T]: ProductHint[T] =
-    ProductHint[T](ConfigFieldMapping(CamelCase, CamelCase))
+object RunnerConf extends DexConfig("runner") {
 
-  def loadF: IO[RunnerConf] =
-    ConfigSource.default.at("runner").loadF[IO, RunnerConf]
+  def loadIO(implicit cs: ContextShift[IO]): IO[RunnerConf] = {
+    import pureconfig.generic.auto._
+    Blocker[IO].use(configSrc.loadF[IO, RunnerConf])
+  }
 
   case class DockerConf(image: String,
                         indexFile: String,

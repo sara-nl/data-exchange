@@ -9,12 +9,12 @@ import cats.implicits._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.Json
 import io.circe.generic.auto._
+import nl.surf.dex.storage.config.DexStorageConf
+import nl.surf.dex.storage.owncloud.{Webdav, WebdavPath}
 import org.http4s.circe.CirceEntityDecoder._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.headers.Authorization
 import org.http4s.{Request, _}
-import tasker.config.CommonConf
-import tasker.webdav.{Webdav, WebdavPath}
 
 import scala.concurrent.ExecutionContext.global
 
@@ -37,8 +37,8 @@ object SharesService {
 
   def getShares(implicit ec: ContextShift[IO]): IO[List[ShareMetadata]] =
     for {
-      cacherConf <- CacherConf.loadF
-      commonConf <- CommonConf.loadF
+      cacherConf <- CacherConf.loadIO
+      storageConf <- DexStorageConf.loadIO
       sharesWithMetadata <- prepareBlazeClient(cacherConf.client).use {
         client =>
           for {
@@ -48,8 +48,8 @@ object SharesService {
                 headers = Headers.of(
                   Authorization(
                     BasicCredentials(
-                      commonConf.researchDrive.webdavUsername,
-                      commonConf.researchDrive.webdavPassword
+                      storageConf.researchDrive.webdavUsername,
+                      storageConf.researchDrive.webdavPassword
                     )
                   )
                 )
@@ -63,7 +63,7 @@ object SharesService {
                 .as[List[Share]]
             )
             result <- shares
-              .map(withMetadata(commonConf.webdavBase))
+              .map(withMetadata(storageConf.webdavBase))
               .parSequence
             _ <- logger.debug(
               s"Retrieved ${result.length} shares from Research Drive"

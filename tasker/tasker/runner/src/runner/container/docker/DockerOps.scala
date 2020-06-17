@@ -1,7 +1,6 @@
 package runner.container.docker
 
 import cats.effect.{ConcurrentEffect, IO, Resource}
-import cats.implicits._
 import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.core.DockerClientBuilder
 import com.github.dockerjava.core.command.LogContainerResultCallback

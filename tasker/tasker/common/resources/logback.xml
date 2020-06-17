@@ -25,4 +25,9 @@
     <logger name="cacher" level="${cacherLogLevel:-info}" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
+
+
+    <logger name="nl.surf.dex.figurer" level="${figurerLogLevel:-info}" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
 </configuration>

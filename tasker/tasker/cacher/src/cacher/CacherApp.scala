@@ -42,7 +42,7 @@ object CacherApp extends IOApp {
     }
 
     for {
-      config <- CacherConf.loadF
+      config <- CacherConf.loadIO
       sharesCachingService <- ActiveReadThroughCache.create(
         settings = config.update,
         fetchValue = SharesService.getShares.handleErrorWith { e =>
@@ -52,7 +52,7 @@ object CacherApp extends IOApp {
       )
       _ <- logger.info("Cacher started")
       serverFiber <- server(sharesCachingService, config.server).start
-      updateSharesFiber <- sharesCachingService.scheduleUpdates.start
+      updateSharesFiber <- sharesCachingService.scheduleUpdates
       _ <- updateSharesFiber.join
       _ <- serverFiber.join
     } yield ExitCode.Success

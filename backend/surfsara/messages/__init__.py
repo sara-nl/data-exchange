@@ -8,7 +8,7 @@ class StartContainer:
     task_id: str
     data_path: str
     code_path: str
-    code_hash: dict
+    code_hash: str
 
 
 @dataclass_json

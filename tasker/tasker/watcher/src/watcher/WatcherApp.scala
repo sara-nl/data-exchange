@@ -4,14 +4,16 @@ import cats.effect.{ExitCode, IO, IOApp, Resource, Timer}
 import doobie.util.transactor.Transactor
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import io.circe.generic.auto._
+import nl.surf.dex.database.Tasks
+import nl.surf.dex.database.config.{DbConf, DexTransactor}
+import nl.surf.dex.messaging.Messages
+import nl.surf.dex.messaging.QueueResources.rabbitClientResource
+import nl.surf.dex.messaging.config.DexMessagingConf
+import nl.surf.dex.messaging.patterns.Direct
+import nl.surf.dex.storage.config.DexStorageConf
+import nl.surf.dex.storage.owncloud.WebdavPath
 import tasker.concurrency.ConcurrencyResources
-import tasker.config.CommonConf
-import tasker.config.CommonConf.{QueuesConf, RabbitmqConf}
-import tasker.queue.Messages.StartContainer
-import tasker.queue.{AmqpCodecs, Messages}
-import tasker.queue.QueueResources.rabbitClientResource
-import tasker.webdav.WebdavPath
-import watcher.WatcherConf.DbConf
+import Messages.StartContainer
 
 import scala.concurrent.duration.FiniteDuration
 
@@ -19,34 +21,16 @@ object WatcherApp extends IOApp {
 
   private val logger = Slf4jLogger.getLogger[IO]
 
-  private def xaTransactor(dbConf: DbConf) = Transactor.fromDriverManager[IO](
-    "org.postgresql.Driver",
-    dbConf.jdbcUrl,
-    dbConf.username,
-    dbConf.password
-  )
-
   override protected implicit def timer: Timer[IO] =
     ConcurrencyResources.newTimer("watcher-timer")
 
-  private def todoPublisherResource(queuesConf: QueuesConf,
-                                    rabbitmqConf: RabbitmqConf) = {
-    import tasker.config.conversions._
-    for {
-      rabbit <- rabbitClientResource(rabbitmqConf)
-      publisher <- rabbit.createConnectionChannel.evalMap { implicit channel =>
-        for {
-          _ <- rabbit.declareQueue(queuesConf.todo.queueConfig)
-          _ <- rabbit.declareExchange(queuesConf.todo.exchangeConfig)
-          (queueName, exchangeName, routingKey) = queuesConf.todo.asTuple
-          _ <- rabbit.bindQueue(queueName, exchangeName, routingKey)
-          publisher <- rabbit.createPublisher(exchangeName, routingKey)(
-            channel,
-            AmqpCodecs.encoder[StartContainer]
-          )
-        } yield publisher
+  private def todoPublisherResource(conf: DexMessagingConf) = {
+    rabbitClientResource(conf.broker).flatMap { implicit rabbit =>
+      rabbit.createConnectionChannel.evalMap { implicit channel =>
+        Direct.declareAndBind(conf.todo) *>
+          Direct.publisher[StartContainer](conf.todo)
       }
-    } yield publisher
+    }
   }
 
   private def scheduleWatcher(
@@ -61,7 +45,7 @@ object WatcherApp extends IOApp {
         .evalTap(_ => logger.debug(s"Fetching eligible permissions from DB"))
         .through(_.flatMap { _ =>
           fs2.Stream
-            .evalSeq(Permission.findAllPermissions(xa, webdavBase))
+            .evalSeq(Permissions.findAllPermissions(xa))
             .evalTap(
               p =>
                 logger.debug(
@@ -70,22 +54,22 @@ object WatcherApp extends IOApp {
             )
             .through(DataSet.newDatasetsPipe(webdavBase))
             .evalTap {
-              case (newDataset, eTag, permission) =>
+              case (newDataset, _, permission) =>
                 for {
                   _ <- logger
                     .info(s"Processing new data set ${newDataset.userPath}")
-                  taskId <- Task.insert(xa)(
-                    permission,
-                    newDataset.userPath.getOrElse("/"),
-                    eTag
-                  )
+                  taskId <- Tasks
+                    .insert(xa)(permission, newDataset.userPath.getOrElse("/"))
                   _ <- logger.info(s"Created a new task in the DB $taskId")
                   _ <- publisher(
                     Messages.StartContainer(
                       s"$taskId",
                       newDataset.userPath.getOrElse("/"),
-                      permission.algorithmPath.userPath.getOrElse("/"),
-                      Messages.ETag(permission.algorithmETag)
+                      webdavBase
+                        .change(permission.algorithmPath)
+                        .userPath
+                        .getOrElse("/"),
+                      permission.algorithmETag
                     )
                   )
                 } yield ()
@@ -99,14 +83,16 @@ object WatcherApp extends IOApp {
 
   override def run(args: List[String]): IO[ExitCode] =
     for {
-      config <- WatcherConf.loadF
-      commonConfig <- CommonConf.loadF
+      config <- WatcherConf.loadIO
+      storageConf <- DexStorageConf.loadF
+      messagingConf <- DexMessagingConf.loadIO
+      dbConf <- DbConf.loadIO
       _ <- logger.info(s"Watcher started: (interval ${config.awakeInterval})")
       _ <- scheduleWatcher(
-        todoPublisherResource(commonConfig.queues, commonConfig.rabbitmq),
-        xaTransactor(config.db),
+        todoPublisherResource(messagingConf),
+        DexTransactor.create(dbConf),
         config.awakeInterval,
-        commonConfig.webdavBase
+        storageConf.webdavBase
       )
     } yield ExitCode.Success
 }

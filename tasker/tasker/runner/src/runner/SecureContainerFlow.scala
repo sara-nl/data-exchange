@@ -2,8 +2,9 @@ package runner
 
 import cats.effect._
 import cats.implicits._
-import dev.profunktor.fs2rabbit.model._
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import nl.surf.dex.messaging.Messages
+import nl.surf.dex.storage.owncloud.{Webdav, WebdavPath}
 import runner.RunnerConf.DockerConf
 import runner.container.Artifact.Location
 import runner.container.docker.DockerOps
@@ -15,19 +16,10 @@ import runner.container.{
 }
 import runner.utils.FilesIO
 import tasker.concurrency.ConcurrencyResources.implicits.ctxShiftGlobal
-import tasker.queue.Messages.{
-  AlgorithmOutput,
-  ETag,
-  StartContainer,
-  Step,
-  TaskProgress
-}
-import tasker.queue.{AmqpCodecs, Messages}
-import tasker.webdav.{Webdav, WebdavPath}
+import Messages._
+import nl.surf.dex.storage.ETag
 
-class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
-                            AmqpCodecs.DecodedMessage[StartContainer]
-                          ]],
+class SecureContainerFlow(consumer: fs2.Stream[IO, StartContainer],
                           publisher: TaskProgress => IO[Unit],
                           webdavBase: WebdavPath,
                           dockerConf: DockerConf) {
@@ -58,8 +50,8 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
     } yield result
 
   private def verifyETag(path: WebdavPath, expectedETag: ETag): IO[Boolean] = {
-    import Webdav.implicits._
-    import WebdavPath.implicits._
+
+    import nl.surf.dex.storage.owncloud.implicits._
     for {
       webdav <- Webdav.makeClient
       resources <- webdav.list(path)
@@ -132,8 +124,6 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
 
   val flow: fs2.Stream[IO, Unit] =
     consumer
-      .map(_.payload)
-      .through(AmqpCodecs.filterAndLogErrors)
       .evalTap(msg => logger.debug(s"Processing incoming message $msg"))
       .evalMap {
         case msg @ StartContainer(taskId, _, codePath, eTag) =>
@@ -141,7 +131,10 @@ class SecureContainerFlow(consumer: fs2.Stream[IO, AmqpEnvelope[
             _ <- publisher(
               TaskProgress.running(taskId, Step.VerifyingAlgorithm)
             )
-            eTagValidOrError <- verifyETag(webdavBase.change(codePath), eTag).attempt
+            eTagValidOrError <- verifyETag(
+              webdavBase.change(codePath),
+              ETag(eTag)
+            ).attempt
             doneMsg <- eTagValidOrError match {
               case Right(true)  => processMessage(msg)
               case Right(false) => TaskProgress.rejectedEtag(taskId).pure[IO]

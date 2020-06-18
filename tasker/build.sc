@@ -17,15 +17,16 @@ object dex {
     override def scalacOptions = Seq("-feature", "-language:reflectiveCalls", "-language:implicitConversions", "-deprecation", "-Xlint", "-Xfatal-warnings")
     override def forkArgs = Seq("-Djava.io.tmpdir=/tmp/tasker")
 
-  }
 
-  trait DexTestModule extends DexModule {
-    override def ivyDeps = Agg(
-      ivy"org.scalatest::scalatest:$scalatest",
-      ivy"org.typelevel::cats-testkit-scalatest:1.0.1"
+    trait DexTests extends Tests {
 
-    )
-    def testFrameworks =  Seq("org.scalatest.tools.Framework")
+      override def ivyDeps = Agg(
+        ivy"org.scalatest::scalatest:$scalatest",
+        ivy"org.typelevel::cats-testkit-scalatest:1.0.1"
+      )
+      def testFrameworks =  Seq("org.scalatest.tools.Framework")
+    }
+
   }
 
   object versions {
@@ -66,7 +67,7 @@ object tasker extends dex.DexModule {
     override def ivyDeps = Agg(ivy"org.python:jython-slim:2.7.2")
     override def scalacPluginIvyDeps = tasker.scalacPluginIvyDeps
 
-    object test extends dex.DexTestModule
+    object test extends DexTests
   }
 
   object cacher extends dex.DexModule {
@@ -138,7 +139,7 @@ object tasker extends dex.DexModule {
         ivy"com.github.pathikrit::better-files:$betterFiles"
       )
 
-      object test extends dex.DexTestModule
+      object test extends DexTests
     }
 
     object config extends dex.DexModule {

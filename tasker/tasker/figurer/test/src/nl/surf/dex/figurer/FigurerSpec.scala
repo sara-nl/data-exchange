@@ -63,6 +63,28 @@ class FigurerSpec extends AsyncFunSpecLike {
       }
     }
 
+    it("should return good stats for a single-dir project") {
+      val root = BFile(Resource.getUrl("kitpes"))
+      val program = PythonProgram(root, root.list.toSet)
+      (for {
+        stats <- collectStats(program)
+      } yield stats).unsafeToFuture().map { res =>
+        res.lines shouldEqual 422
+        res.words shouldEqual 2320
+        res.chars shouldEqual 16816
+        res.imports shouldEqual Set(
+          "os",
+          "os.path",
+          "numpy",
+          "__future__",
+          "tensorflow.keras.preprocessing.image",
+          "tensorflow",
+          "sys",
+          "keras.preprocessing.image"
+        )
+      }
+    }
+
     it("should de-duplicate packages") {
       val file1 = BFile(Resource.getUrl("imports-scattered.py"))
       val file2 = BFile(Resource.getUrl("imports-top.py"))
@@ -77,14 +99,14 @@ class FigurerSpec extends AsyncFunSpecLike {
     it("should resolve an import") {
       val program = "import foo"
       moduleDeps(program).unsafeToFuture().map { res =>
-        res.all shouldEqual Set("foo")
+        res.foundImports shouldEqual Set("foo")
       }
     }
 
     it("should resolve an import as") {
       val program = "import foo as bar"
       moduleDeps(program).unsafeToFuture().map { res =>
-        res.all shouldEqual Set("foo")
+        res.foundImports shouldEqual Set("foo")
       }
     }
     it("should resolve non-top level imports") {
@@ -95,25 +117,25 @@ class FigurerSpec extends AsyncFunSpecLike {
           |except ImportError:  # For Python 2.5-2.7
           |    from httplib import responses  # NOQA""".stripMargin
       moduleDeps(program).unsafeToFuture().map { res =>
-        res.all shouldEqual Set("http.client", "httplib")
+        res.foundImports shouldEqual Set("http.client", "httplib")
       }
     }
     it("should resolve a partial import") {
       val program = "from time import gmtime, strftime"
       moduleDeps(program).unsafeToFuture().map { res =>
-        res.all shouldEqual Set("time")
+        res.foundImports shouldEqual Set("time")
       }
     }
     it("should find no imports in an empty line") {
       val program = ""
       moduleDeps(program).unsafeToFuture().map { res =>
-        res.all shouldEqual Set.empty
+        res.foundImports shouldEqual Set.empty
       }
     }
     it("should find no imports in a line with a non-import statement") {
       val program = "print('Hello')"
       moduleDeps(program).unsafeToFuture().map { res =>
-        res.all shouldEqual Set.empty
+        res.foundImports shouldEqual Set.empty
       }
     }
 

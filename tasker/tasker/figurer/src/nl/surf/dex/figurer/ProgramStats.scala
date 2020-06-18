@@ -10,10 +10,11 @@ import scala.collection.immutable
 
 object ProgramStats {
   // Constructors
-  val nothing = ProgramStats(0, 0, 0, Set.empty, Map.empty)
+  val nothing = ProgramStats(0, 0, 0, Set.empty, Map.empty, Map.empty)
 
   // Internals
-  case class Imports(all: immutable.Set[String])
+  case class Imports(foundImports: immutable.Set[String],
+                     skippedFiles: List[String] = Nil)
 
   // Persistence
   def storeStats(id: Int,
@@ -39,6 +40,7 @@ case class ProgramStats(lines: Int,
                         words: Int,
                         chars: Int,
                         imports: Set[String],
+                        skippedImports: Map[String, String],
                         //This is probably not a very good idea
                         // to store contents of the file here,
                         // but since the rest of the app heavily depends on it,

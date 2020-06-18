@@ -4,6 +4,7 @@ import java.io.FileNotFoundException
 
 import better.files.Resource
 import cats.effect.IO
+import cats.implicits._
 import nl.surf.dex.figurer.ProgramStats.Imports
 import nl.surf.dex.figurer.program.PythonProgram
 import org.python.core.PyList
@@ -34,31 +35,33 @@ package object figurer {
   }
 
   def collectStats(program: PythonProgram): IO[ProgramStats] =
-    program.file.foldLeft(IO.pure(ProgramStats.nothing)) {
-      case (pStatsIO, file) =>
-        file.lineIterator
-          .foldLeft(pStatsIO) {
-            case (lStatsIO, line) =>
-              for {
-                lStats <- lStatsIO
-                deps <- moduleDeps(line)
-              } yield
-                lStats.copy(
-                  lines = lStats.lines + 1,
-                  words = lStats.words + line.split("\\W+").length,
-                  chars = lStats.chars + line.length,
-                  imports = lStats.imports ++ deps.all
+    program.files
+      .foldLeft(ProgramStats.nothing.pure[IO]) {
+        case (pStatsIO, file) =>
+          val userPath = program.rootDir.relativize(file).toString
+          val fileContent = file.contentAsString
+          for {
+            pStats <- pStatsIO
+            pStats <- moduleDeps(file.contentAsString).attempt.map {
+              case Right(imports) =>
+                pStats.copy(imports = imports.foundImports)
+              case Left(reason) =>
+                pStats.copy(
+                  skippedImports = pStats.skippedImports
+                    .updated(userPath, reason.getMessage)
                 )
-          }
-          .map(
-            ps =>
-              ps.copy(
-                contents = ps.contents.updated(
-                  program.rootDir.relativize(file).toString,
-                  file.contentAsString
-                )
-            )
-          )
-    }
+            }
+          } yield
+            if (fileContent.isEmpty)
+              pStats.copy(contents = pStats.contents.updated(userPath, ""))
+            else
+              pStats.copy(
+                lines = pStats.lines + fileContent.split("\r\n|\r|\n").length,
+                words = pStats.words + fileContent.split("\\W+").length,
+                chars = pStats.chars + fileContent.length,
+                contents =
+                  pStats.contents.updated(userPath, file.contentAsString)
+              )
+      }
 
 }

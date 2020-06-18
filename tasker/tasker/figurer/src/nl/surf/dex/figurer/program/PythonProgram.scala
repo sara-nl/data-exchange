@@ -31,4 +31,4 @@ object PythonProgram {
       }
   }
 }
-case class PythonProgram(rootDir: BFile, file: Set[BFile])
+case class PythonProgram(rootDir: BFile, files: Set[BFile])

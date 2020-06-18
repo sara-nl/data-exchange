@@ -1,7 +1,7 @@
 import ast
 
 modules = []
-for node in ast.iter_child_nodes(ast.parse(program_string)):
+for node in ast.walk(ast.parse(program_string)):
     if isinstance(node, ast.ImportFrom):
         modules.append(node.module)
     elif isinstance(node, ast.Import):

@@ -87,6 +87,17 @@ class FigurerSpec extends AsyncFunSpecLike {
         res.all shouldEqual Set("foo")
       }
     }
+    it("should resolve non-top level imports") {
+      val program =
+        """
+          |try:
+          |    from http.client import responses # For Python 3
+          |except ImportError:  # For Python 2.5-2.7
+          |    from httplib import responses  # NOQA""".stripMargin
+      moduleDeps(program).unsafeToFuture().map { res =>
+        res.all shouldEqual Set("http.client", "httplib")
+      }
+    }
     it("should resolve a partial import") {
       val program = "from time import gmtime, strftime"
       moduleDeps(program).unsafeToFuture().map { res =>

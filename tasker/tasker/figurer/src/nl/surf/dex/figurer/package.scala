@@ -44,7 +44,7 @@ package object figurer {
             pStats <- pStatsIO
             pStats <- moduleDeps(file.contentAsString).attempt.map {
               case Right(imports) =>
-                pStats.copy(imports = imports.foundImports)
+                pStats.copy(imports = pStats.imports ++ imports.foundImports)
               case Left(reason) =>
                 pStats.copy(
                   skippedImports = pStats.skippedImports

@@ -21,6 +21,7 @@
   import RequestActions from '../../components/RequestActions.svelte'
   import { UserRole } from '../../api/users'
   import { mode, token, email } from '../../stores'
+  import { Share } from '../../api/shares'
 
   let currentPermission: Permission | null = null
   let currentTask: Task | null = null
@@ -61,7 +62,7 @@
     currentPermission = newPermission
   }
 
-  const onApproved = async (event: { detail: string }) => {
+  const onApproved = async (event: { detail: Share }) => {
     const selectedDataset = event.detail
     currentPermission = await approvePermission(
       currentPermission!.id,

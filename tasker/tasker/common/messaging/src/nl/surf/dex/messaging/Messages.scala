@@ -1,19 +1,13 @@
 package nl.surf.dex.messaging
 
-import io.circe.generic.extras.AutoDerivation
+import io.circe.generic._
 import nl.surf.dex.messaging.Messages.TaskProgress.State
+import nl.surf.dex.storage.Share
 
 /**
   * Messages used in the DataExchange messaging protocol
   */
 object Messages {
-
-  object implicits extends AutoDerivation {
-
-    import io.circe.generic.extras.Configuration
-    implicit val customConfig: Configuration = Configuration.default
-      .withDiscriminator("name")
-  }
 
   case class StartContainer(
                             /**
@@ -24,11 +18,11 @@ object Messages {
                             /**
                               * Relative path to the data set.
                               */
-                            dataPath: String,
+                            dataLocation: Share.Location,
                             /**
                               * Relative path to the algorithm code.
                               */
-                            codePath: String,
+                            codeLocation: Share.Location,
                             /**
                               * Hash of the algorithm. If passed-will be checked before the task is started,
                               * and if it doesn't match - task will be rejected.
@@ -46,6 +40,13 @@ object Messages {
                           state: State)
 
   object TaskProgress {
+
+    object codecs extends extras.AutoDerivation {
+      import extras.Configuration
+      implicit val customConfig: Configuration =
+        Configuration.default
+          .withDiscriminator("name")
+    }
 
     sealed trait State
 
@@ -84,10 +85,10 @@ object Messages {
         State.Rejected(s"Task has been rejected: '${reason.getMessage}'")
       )
 
-    def rejectedEtag(taskId: String): TaskProgress =
+    def rejectedDueToHash(taskId: String): TaskProgress =
       rejected(
         taskId,
-        "The algorithm mush have changed since approval. ETag doesn't match."
+        "The algorithm mush have changed since approval. Hash doesn't match."
       )
   }
 

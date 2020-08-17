@@ -28,8 +28,14 @@ def start(task: Task):
 
     command = StartContainer(
         task_id=str(task.id),
-        data_path=task.dataset,
-        code_path=task.algorithm,
+        data_location={
+            "storage": task.dataset_storage,
+            "path": {"segments": [task.dataset]},
+        },
+        code_location={
+            "storage": task.algorithm_storage,
+            "path": {"segments": [task.algorithm]},
+        },
         code_hash=task.permission.algorithm_etag,
     )
 

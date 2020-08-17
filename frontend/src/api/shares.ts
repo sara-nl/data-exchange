@@ -1,20 +1,24 @@
-import { AxiosResponse } from "axios";
-import Controller from "./controller";
+import Controller from './controller'
 
-export type Share = {id: number, name: string, isDirectory: boolean}
+export type Share = {
+  id: number
+  storage: Storage
+  path: string
+  isDirectory: boolean
+  isAlgorithm: boolean
+  webLink: string
+}
 
-export type SharesResponse = { 
-    own_algorithms: Share[],
-    own_datasets: Share[]
+export type SharesResponse = {
+  own_algorithms: Share[]
+  own_datasets: Share[]
 }
 
 export function getShares(): Promise<SharesResponse> {
-    return Controller.client.get<SharesResponse>("/shares/")
-        .then(r => r.data);
-}
-
-export default class RemoveShare extends Controller {
-    public static async remove(fileId: string): Promise<AxiosResponse> {
-        return this.client.delete(`/shares/${fileId}/remove/`)
+  return Controller.client.get<Share[]>('/shares/').then((r) => {
+    return {
+      own_algorithms: r.data.filter((s) => s.isAlgorithm),
+      own_datasets: r.data.filter((s) => !s.isAlgorithm),
     }
+  })
 }

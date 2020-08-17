@@ -1,6 +1,6 @@
 # docker-compose overrides for production run.
 
-version: "3"
+version: "3.3"
 services:
   tasker:
     image: git.ia.surfsara.nl:5050/soil/secure-container/tasker/${DOCKER_IMAGE_REF_NAME}:${DOCKER_IMAGE_TAG}

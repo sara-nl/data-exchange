@@ -1,28 +1,31 @@
 <script lang="ts">
-  import { goto, stores } from "@sapper/app";
-  import dayjs from "dayjs";
-  import { onMount } from "svelte";
+  import { goto, stores } from '@sapper/app'
+  import dayjs from 'dayjs'
+  import { onMount } from 'svelte'
 
-  import { getAllPermissions, Permission } from "../api/permissions";
-  import { getTasksToReview, Task } from "../api/tasks";
-  import Spinner from "../components/Spinner.svelte";
+  import { getAllPermissions, Permission } from '../api/permissions'
+  import { getTasksToReview, Task } from '../api/tasks'
+  import Spinner from '../components/Spinner.svelte'
 
-  let permissionsToReview: Permission[] | null = null;
-  let reviewedPermissions: Permission[] | null = null;
+  let permissionsToReview: Permission[] | null = null
+  let reviewedPermissions: Permission[] | null = null
 
   onMount(async () => {
-    const [{ given_permissions }, tasks] = await Promise.all([getAllPermissions(), getTasksToReview()])
+    const [{ given_permissions }, tasks] = await Promise.all([
+      getAllPermissions(),
+      getTasksToReview(),
+    ])
     permissionsToReview = [
-      ...(given_permissions.filter(
-        dr => dr.state === "pending" || dr.state === "analyzing"
-      )),
-      ...(tasks.map(t => t.permission))
+      ...given_permissions.filter(
+        dr => dr.state === 'pending' || dr.state === 'analyzing'
+      ),
+      ...tasks.map(t => t.permission),
     ]
 
     reviewedPermissions = given_permissions.filter(
-      dr => dr.state !== "pending" && dr.state !== "analyzing"
-    );
-  });
+      dr => dr.state !== 'pending' && dr.state !== 'analyzing'
+    )
+  })
 </script>
 
 <svelte:head>

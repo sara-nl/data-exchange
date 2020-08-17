@@ -1,11 +1,10 @@
 package runner
 
-import java.nio.file.{Files, Path, Paths}
+import java.nio.file.{Path, Paths}
 
-import cats.effect.{Concurrent, ConcurrentEffect, IO, Resource}
+import cats.effect.{ConcurrentEffect, ContextShift, IO, Resource}
 import nl.surf.dex.messaging.Messages
-import nl.surf.dex.storage.owncloud.{Webdav, WebdavPath}
-import org.apache.commons.io.FileUtils
+import nl.surf.dex.storage.{CloudStorage, FilesetOps, Share}
 import runner.RunnerConf.DockerConf
 import runner.container.Artifact.Location
 import runner.container.docker.Ids.ImageId
@@ -16,39 +15,32 @@ import runner.container.{
   ContainerEnv,
   ContainerState
 }
+import better.files.{File => BFile}
+import cats.implicits._
+import nl.surf.dex.storage.local.LocalFS
 
 object Resources {
-
-  val tempDirResource: Resource[IO, Path] = Resource.make(
-    acquire = IO(Files.createTempDirectory("datex_"))
-  )(release = dir => IO(FileUtils.deleteDirectory(dir.toFile)))
 
   /**
     * Resource of a container environment: temporary directories, where all files can be downloaded.
     * Acquire: temp dir created.
     * Release: temp dir recursively deleted.
     */
-  def containerEnv(
-    startContainerCmd: Messages.StartContainer,
-    dockerConf: DockerConf,
-    webdavBase: WebdavPath
-  )(implicit F: Concurrent[IO]): Resource[IO, ContainerEnv] =
-    tempDirResource.evalMap { tempHome =>
-      import cats.implicits._
-
-      // TODO: move to `common` WebdavPath apply method
-      def webdavPath(location: Location) = webdavBase.change(location.userPath)
-
+  def containerEnv(startContainerCmd: Messages.StartContainer,
+                   dockerConf: DockerConf,
+                   filesetOpsFactory: CloudStorage => Resource[IO, FilesetOps],
+  )(implicit cs: ContextShift[IO]): Resource[IO, ContainerEnv] =
+    LocalFS.tempDir.evalMap { tempHome =>
       val algorithmLocation = Location(
         Paths.get(tempHome.toString, "code"),
         Path.of(dockerConf.containerCodePath),
-        startContainerCmd.codePath
+        startContainerCmd.codeLocation.path.segments.mkString_("/")
       )
 
       val inputLocation = Location(
         Paths.get(tempHome.toString, "data"),
         Path.of(dockerConf.containerDataPath),
-        startContainerCmd.dataPath
+        startContainerCmd.dataLocation.path.segments.mkString_("/")
       )
 
       val outputLocation =
@@ -58,17 +50,21 @@ object Resources {
           "."
         )
 
-      val downloads = Map(
-        webdavPath(algorithmLocation) -> algorithmLocation.localHome,
-        webdavPath(inputLocation) -> inputLocation.localHome
-      )
-
       val newDirs = List(algorithmLocation, inputLocation, outputLocation)
 
       for {
-        webdav <- Webdav.makeClient
         _ <- newDirs.map(l => IO(l.localHome.toFile.mkdirs())).sequence
-        _ <- webdav.downloadToHost(downloads)
+        _ <- List(
+          (algorithmLocation, startContainerCmd.codeLocation.storage),
+          (inputLocation, startContainerCmd.dataLocation.storage)
+        ).parTraverse {
+          case (loc, storage) =>
+            filesetOpsFactory(storage).use { ops =>
+              Share.NePath.parseIO(loc.userPath).flatMap { nePath =>
+                ops.copySharedFileset(nePath, BFile(loc.localHome))
+              }
+            }
+        }
         algorithm <- Artifact.algorithm(algorithmLocation)
         input <- Artifact.data(inputLocation)
         output <- Artifact.output(outputLocation)
@@ -103,7 +99,9 @@ object Resources {
                 .imageFromContainer(containerId)
                 .map(Right(_).withLeft[ContainerState])
             case otherState =>
-              Resource.pure(Left(otherState).withRight[ImageId])
+              Resource.pure[IO, Either[ContainerState, ImageId]](
+                Left(otherState).withRight[ImageId]
+              )
           }
         } yield result
       case None =>

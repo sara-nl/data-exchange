@@ -6,8 +6,8 @@ from dataclasses_json import dataclass_json, LetterCase
 @dataclass
 class StartContainer:
     task_id: str
-    data_path: str
-    code_path: str
+    data_location: object
+    code_location: object
     code_hash: str
 
 

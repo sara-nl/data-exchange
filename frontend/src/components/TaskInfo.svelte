@@ -49,7 +49,7 @@
         permission={permission.permission_type}
         user={currentMode} />
     </div>
-    <div class="row mb-3 font-weight-bold">Algorithm eTag</div>
+    <div class="row mb-3 font-weight-bold">Algorithm hash</div>
     <div class="row mt-1 mb-5 pr-3">{permission.algorithm_etag || '-'}</div>
   </div>
 

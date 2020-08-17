@@ -11,17 +11,7 @@ class ViewShares(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
     def list(self, request):
-        algorithms, datasets = SharesClient().user_shares_grouped(str(request.user))
-        return Response({"own_algorithms": algorithms, "own_datasets": datasets})
-
-    @action(
-        detail=True,
-        methods=["DELETE"],
-        name="remove",
-        permission_classes=[IsAuthenticated],
-    )
-    def remove(self, request, pk=None):
-        # TODO: this doesn't work anymore :-(
-        # needs to fix it and run through SharesClient.
-        # In the meantime: always 404
-        return Response(status=status.HTTP_404_NOT_FOUND)
+        all_shares = SharesClient().all()
+        email = str(request.user)
+        user_shares = filter(lambda s: s["owner"] == email, all_shares)
+        return Response(user_shares)

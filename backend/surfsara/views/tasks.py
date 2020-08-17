@@ -212,7 +212,9 @@ class Tasks(viewsets.ViewSet):
             author_email=perm.algorithm_provider,
             approver_email=perm.dataset_provider,
             algorithm=perm.algorithm,
+            algorithm_storage=perm.algorithm_storage,
             dataset=perm.dataset,
+            dataset_storage=perm.dataset_storage,
             review_output=perm.review_output,
             permission=perm,
         )
@@ -244,7 +246,7 @@ class Tasks(viewsets.ViewSet):
         shared_algorithms = self.shares_client.algorithms_shared_by_user(
             request.user.email
         )
-        if not f"/{request.data['algorithm']}" in shared_algorithms:
+        if not request.data["algorithm"] in shared_algorithms:
             return Response("The algorithm is not shared by the user", status=403)
 
         task = Task(
@@ -252,7 +254,9 @@ class Tasks(viewsets.ViewSet):
             author_email=perm.algorithm_provider,
             approver_email=perm.dataset_provider,
             algorithm=request.data["algorithm"],
+            algorithm_storage=perm.algorithm_storage,
             dataset=perm.dataset,
+            dataset_storage=perm.dataset_storage,
             review_output=False,  # Because it's User Permission
             permission=perm,
         )

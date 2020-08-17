@@ -18,4 +18,6 @@ object LocalFS {
       acquire = IO(BFile.newTemporaryDirectory(label.getOrElse(defaultLabel)))
     )(release = t => IO(t.delete()))
 
+  def tempDir: Resource[IO, BFile] = tempDir(Some(defaultLabel))
+
 }

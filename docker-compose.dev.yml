@@ -1,63 +1,67 @@
 # docker-compose overrides for development.
 # Describes both: build and run steps. Images are named automatically.
 
-version: "3"
+version: "3.3"
+
 services:
-    tasker:
-        build:
-            context: "tasker/"
-            dockerfile: "docker/dev.Dockerfile"
-        environment:
-            ENVIRONMENT: "development"
-            LOG_LEVEL: "debug"
-        ports:
-            - "127.0.0.1:8088:8088"
- 
-    backend_listen:
-        build:
-            context: "backend/"
-            dockerfile: "docker/dev.Dockerfile"
-        environment:
-            DJANGO_DEBUG: 1
-        volumes:
-            - "./backend:/app"
-        command: "./docker/entrypoint.sh listen"
+  tasker:
+    build:
+      context: "tasker/"
+      dockerfile: "docker/Dockerfile"
+    environment:
+      ENVIRONMENT: "development"
+      LOG_LEVEL: "debug"
+    ports:
+      - "127.0.0.1:8088:8088"
 
-    backend:
-        build:
-            context: "backend/"
-            dockerfile: "docker/dev.Dockerfile"
-        environment:
-            DJANGO_DEBUG: 1
-            DJANGO_EMAIL_URL: "smtp://mailcatcher:1025"
-        volumes:
-            - "./backend:/app"
-        ports:
-            - "127.0.0.1:8000:8000"
-        command: "./docker/entrypoint.sh runserver 0.0.0.0:8000"
-        depends_on: [rabbitmq, postgres, tasker, mailcatcher]
+  backend_listen:
+    build:
+      context: "backend/"
+      dockerfile: "docker/dev.Dockerfile"
+    environment:
+      DJANGO_DEBUG: 1
+    volumes:
+      - "./backend:/app"
+    command: "./docker/entrypoint.sh listen"
 
-    frontend:
-        build:
-            context: "frontend/"
-            dockerfile: "docker/dev.Dockerfile"
-        volumes:
-            - "./frontend:/app"
-        ports:
-            - "127.0.0.1:3000:3000"
-            - "127.0.0.1:10000:10000"
+  backend:
+    build:
+      context: "backend/"
+      dockerfile: "docker/dev.Dockerfile"
+    environment:
+      DJANGO_DEBUG: 1
+      DJANGO_EMAIL_URL: "smtp://mailcatcher:1025"
+    # Uncomment this if you want to start and use Shares service
+    #   on the dev host instead of the container.
+    # SHARES_API_URL: http://docker.for.mac.localhost:8088/shares/all
+    volumes:
+      - "./backend:/app"
+    ports:
+      - "127.0.0.1:8000:8000"
+    command: "./docker/entrypoint.sh runserver 0.0.0.0:8000"
+    depends_on: [rabbitmq, postgres, tasker, mailcatcher]
 
-    postgres:
-        ports:
-            - 127.0.0.1:5432:5432
+  frontend:
+    build:
+      context: "frontend/"
+      dockerfile: "docker/dev.Dockerfile"
+    volumes:
+      - "./frontend:/app"
+    ports:
+      - "127.0.0.1:3000:3000"
+      - "127.0.0.1:10000:10000"
 
-    rabbitmq:
-        ports:
-            - 127.0.0.1:8080:15672
-            - 127.0.0.1:5672:5672
+  postgres:
+    ports:
+      - 127.0.0.1:5432:5432
 
-    mailcatcher:
-        image: "jeanberu/mailcatcher"
-        ports:
-            - "1080:1080"
-        restart: "always"
+  rabbitmq:
+    ports:
+      - 127.0.0.1:8080:15672
+      - 127.0.0.1:5672:5672
+
+  mailcatcher:
+    image: "jeanberu/mailcatcher"
+    ports:
+      - "1080:1080"
+    restart: "always"

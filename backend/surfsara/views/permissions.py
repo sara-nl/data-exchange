@@ -43,7 +43,7 @@ class Permissions(viewsets.ViewSet):
         shared_algorithms = self.shares_client.algorithms_shared_by_user(
             request.user.email
         )
-        if not f"/{data['algorithm']}" in shared_algorithms:
+        if not data["algorithm"] in shared_algorithms:
             return Response("The algorithm is not shared by the user", status=403)
 
         serializer = PermissionSerializer(data=data)
@@ -106,7 +106,8 @@ class Permissions(viewsets.ViewSet):
         if permission.dataset_provider != request.user.email:
             return Response(status=403)
 
-        permission.dataset = request.data["dataset"]
+        permission.dataset = request.data["path"]
+        permission.dataset_storage = request.data["storage"]
         permission.state = Permission.ACTIVE
         permission.save()
 
@@ -197,7 +198,12 @@ class Permissions(viewsets.ViewSet):
         Returns list permissions per file in dict
         """
 
-        alg_shares, _ = SharesClient().user_shares_grouped(str(request.user))
+        all_shares = SharesClient().all()
+        email = str(request.user)
+        user_alg_shares = filter(
+            lambda s: s["owner"] == email and s["isAlgorithm"], all_shares
+        )
+
         data = defaultdict(lambda: {"permissions": [], "tasks": []})
 
         permissions = PermissionSerializer(
@@ -209,8 +215,8 @@ class Permissions(viewsets.ViewSet):
 
         for permission in permissions:
             if permission["permission_type"] == Permission.USER_PERMISSION:
-                for algorithm in alg_shares or []:
-                    file_ = algorithm["file_target"].strip("/")
+                for algorithm in user_alg_shares or []:
+                    file_ = algorithm["path"]
                     data[file_]["permissions"].append(permission)
             else:
                 file_ = permission["algorithm"]

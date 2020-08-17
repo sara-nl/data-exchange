@@ -44,10 +44,12 @@ class Permission(models.Model):
 
     id = models.AutoField(primary_key=True)
     algorithm = models.TextField(null=True)
+    algorithm_storage = models.TextField()
     algorithm_etag = models.CharField(max_length=32, null=True)
     algorithm_report = JSONField(null=True)
     algorithm_provider = models.EmailField()
     dataset = models.TextField(null=True)
+    dataset_storage = models.TextField()
     dataset_provider = models.EmailField()
     review_output = models.BooleanField(default=True)
     registered_on = models.DateTimeField(auto_now_add=True)

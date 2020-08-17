@@ -1,6 +1,7 @@
 import { AxiosResponse } from 'axios'
 import Controller from './controller'
 import { UserRole } from './users'
+import { Share } from './shares'
 
 export type PermissionsList = {
   list_permissions: string[][]
@@ -14,6 +15,7 @@ export type PermissionType =
 export type Permission = {
   id: number
   algorithm: string
+  algorithm_storage: Storage
   algorithm_etag?: string
   algorithm_report?: {
     chars: number
@@ -24,6 +26,7 @@ export type Permission = {
   }
   algorithm_provider: string
   dataset: string
+  dataset_storage: Storage
   dataset_provider: string
   state:
     | 'analyzing'
@@ -33,7 +36,6 @@ export type Permission = {
     | 'active'
     | 'aborted'
   registered_on: Date
-  created_on: Date
   updated_on: Date
   request_description: string
   permission_type: PermissionType
@@ -41,6 +43,7 @@ export type Permission = {
 
 export type PermissionRequest = {
   algorithm: string
+  algorithm_storage: string
   request_description: string
   permission_type: string
   dataset_provider: string
@@ -60,11 +63,11 @@ export async function getPermission(id: number): Promise<Permission> {
 
 export async function approvePermission(
   id: number,
-  dataset: string
+  dataset: Share
 ): Promise<Permission> {
   const response = await Controller.client.put<Permission>(
     `/permissions/${id}/approve/`,
-    { dataset }
+    { path: dataset.path, storage: dataset.storage }
   )
   return response.data
 }

@@ -1,5 +1,7 @@
 package nl.surf.dex.database
 
+import nl.surf.dex.storage.Share.Location
+
 object Permission {
   sealed trait State extends Product with Serializable {}
 
@@ -9,8 +11,9 @@ object Permission {
 }
 
 case class Permission(id: Int,
+                      // TODO: move all attributes where they belong?
                       algorithmProvider: String,
                       datasetProvider: String,
-                      algorithmPath: String,
+                      algorithm: Location,
                       algorithmETag: String,
-                      dataSetPath: String)
+                      dataSet: Location)

@@ -1,64 +1,65 @@
 # Base docker-compose file. No build configuration should be specified here,
 # because this file is used as a base for `dev` and `prod` flows.
 
-version: "3"
+version: "3.3"
+
 services:
-    tasker:
-        environment:
-            RABBITMQ_HOST: rabbitmq
-            RABBITMQ_USERNAME: guest
-            RABBITMQ_PASSWORD: guest
-            RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
-            RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
-            DB_JDBC_URL: "jdbc:postgresql://postgres:5432/surfsara"
-            DB_USER: surfsara
-            DB_PASSWORD: ""
-        depends_on:
-            - rabbitmq
-            - postgres
-        volumes:
-            - /var/run/docker.sock:/var/run/docker.sock
-            - /tmp/tasker:/tmp/tasker
-        command: "./docker/entrypoint.sh"
+  tasker:
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
+      RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
+      DB_JDBC_URL: "jdbc:postgresql://postgres:5432/surfsara"
+      DB_USER: surfsara
+      DB_PASSWORD: ""
+    depends_on:
+      - rabbitmq
+      - postgres
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/tasker:/tmp/tasker
+    command: "./docker/entrypoint.sh"
 
-    backend_listen:
-        environment:
-            RABBITMQ_HOST: rabbitmq
-            RABBITMQ_USERNAME: guest
-            RABBITMQ_PASSWORD: guest
-            DJANGO_DB_ENGINE: postgresql_psycopg2
-            DJANGO_DB_HOST: postgres
-            DJANGO_DB_NAME: surfsara
-            DJANGO_DB_USER: surfsara
-            RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
-            RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
-        depends_on:
-            - rabbitmq
-            - postgres
+  backend_listen:
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      DJANGO_DB_ENGINE: postgresql_psycopg2
+      DJANGO_DB_HOST: postgres
+      DJANGO_DB_NAME: surfsara
+      DJANGO_DB_USER: surfsara
+      RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
+      RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
+    depends_on:
+      - rabbitmq
+      - postgres
 
-    backend:
-        environment:
-            RABBITMQ_HOST: rabbitmq
-            RABBITMQ_USERNAME: guest
-            RABBITMQ_PASSWORD: guest
-            DJANGO_DB_ENGINE: postgresql_psycopg2
-            DJANGO_DB_HOST: postgres
-            DJANGO_DB_NAME: surfsara
-            DJANGO_DB_USER: surfsara
-            RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
-            RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
-            SHARES_API_URL: http://tasker:8088/shares/all
-        depends_on: [rabbitmq, postgres, tasker]
+  backend:
+    environment:
+      RABBITMQ_HOST: rabbitmq
+      RABBITMQ_USERNAME: guest
+      RABBITMQ_PASSWORD: guest
+      DJANGO_DB_ENGINE: postgresql_psycopg2
+      DJANGO_DB_HOST: postgres
+      DJANGO_DB_NAME: surfsara
+      DJANGO_DB_USER: surfsara
+      RD_WEBDAV_USERNAME: ${RD_WEBDAV_USERNAME?}
+      RD_WEBDAV_PASSWORD: ${RD_WEBDAV_PASSWORD?}
+      SHARES_API_URL: http://tasker:8088/shares/all
+    depends_on: [rabbitmq, postgres, tasker]
 
-    frontend:
-        environment:
-            BACKEND_BASE_URI: 'http://backend:8000'
+  frontend:
+    environment:
+      BACKEND_BASE_URI: "http://backend:8000"
 
-    postgres:
-        image: postgres:11-alpine
-        environment:
-            POSTGRES_USER: surfsara
-            POSTGRES_HOST_AUTH_METHOD: trust
+  postgres:
+    image: postgres:11-alpine
+    environment:
+      POSTGRES_USER: surfsara
+      POSTGRES_HOST_AUTH_METHOD: trust
 
-    rabbitmq:
-        image: rabbitmq:3-management-alpine
+  rabbitmq:
+    image: rabbitmq:3-management-alpine

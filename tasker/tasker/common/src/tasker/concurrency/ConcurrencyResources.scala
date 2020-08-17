@@ -31,7 +31,7 @@ object ConcurrencyResources {
 
   def newFixedContextShift(label: String): ContextShift[IO] = IO.contextShift(
     fromExecutor(
-      Executors.newFixedThreadPool(4, new DefaultThreadFactory(label, true))
+      Executors.newFixedThreadPool(10, new DefaultThreadFactory(label, true))
     )
   )
 

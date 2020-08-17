@@ -3,7 +3,7 @@
 
 variables:
   NODE_ENV: "test"
-  KANIKO_CONFIG: "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}"
+  KANIKO_CONFIG: '{"auths":{"$CI_REGISTRY":{"username":"$CI_REGISTRY_USER","password":"$CI_REGISTRY_PASSWORD"}}}'
   DOCKER_IMAGE_TAG: "$CI_COMMIT_SHORT_SHA"
 
 after_script:
@@ -13,28 +13,41 @@ backend_lint:
   stage: .pre
   image: python:3-alpine
   variables:
-    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"  
+    PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
   cache:
     paths:
-      - .cache/pip  
+      - .cache/pip
   script:
     - apk add -U gcc musl-dev
     - pip install black
     - black --check backend/backend backend/surfsara
 
-tasker_build:
+dexter_test:
+  stage: .pre
+  image: mkotsur/scala-mill
+  cache:
+    paths:
+      - .cache/coursier
+  script:
+    - mkdir "$CI_PROJECT_DIR/tasker/.secrets"
+    - echo "$GDRIVE_CREDENTIALS_BASE64" | base64 -d > "$CI_PROJECT_DIR/tasker/.secrets/gdrive-credentials.json"
+    - cd $CI_PROJECT_DIR/tasker && mill __.test.test && mill __.ctest.test
+
+dexter_build:
   stage: build
   image:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
     - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/tasker/$CI_COMMIT_REF_NAME"
-    - export DOCKERFILE="$CI_PROJECT_DIR/tasker/docker/prod.Dockerfile"
+    - export DOCKERFILE="$CI_PROJECT_DIR/tasker/docker/Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/tasker"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
+    - mkdir "$CI_PROJECT_DIR/tasker/.secrets"
+    - echo "$GDRIVE_CREDENTIALS_BASE64" | base64 -d > "$CI_PROJECT_DIR/tasker/.secrets/gdrive-credentials.json"
     - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:latest"
   # only:
-  #   - tags  
+  #   - tags
 
 backend_build:
   stage: build
@@ -54,7 +67,7 @@ frontend_lint:
   cache:
     key: ${CI_COMMIT_REF_SLUG}
     paths:
-      - node_modules/  
+      - node_modules/
   script:
     - cd frontend
     - yarn install
@@ -72,7 +85,6 @@ frontend_build:
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
     - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:latest"
 
-
 deploy_test2:
   stage: deploy
   image: alpine:3
@@ -83,13 +95,14 @@ deploy_test2:
     - chmod 0600 "${TEST2_SSH_KEY}"
     # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
     # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
-    - ssh -oStrictHostKeyChecking=no -i "$TEST2_SSH_KEY" "$TEST2_SSH_ADDRESS" 
-        ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_REF_NAME\" 
-                DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\" 
-                CI_COMMIT_SHA=\"$CI_COMMIT_SHA\" 
-                RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\" 
-                RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\" &&
-          cd data-exchange && git fetch --all && git checkout $CI_COMMIT_SHA &&
-          docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d &&
-          docker system prune -a -f
-        "
+    - ssh -oStrictHostKeyChecking=no -i "$TEST2_SSH_KEY" "$TEST2_SSH_ADDRESS"
+      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_REF_NAME\"
+      DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\"
+      CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
+      RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"
+      RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\" &&
+      cd data-exchange && git fetch --all && git checkout $CI_COMMIT_SHA &&
+      docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d &&
+      docker system prune -a -f &&
+      docker pull git.ia.surfsara.nl:5050/soil/secure-container/datex:latest
+      "

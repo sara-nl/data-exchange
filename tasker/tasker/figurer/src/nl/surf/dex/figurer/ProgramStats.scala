@@ -4,7 +4,7 @@ import cats.data.Kleisli
 import cats.effect.IO
 import doobie.util.transactor.Transactor
 import nl.surf.dex.database.Permissions
-import nl.surf.dex.storage.ETag
+import nl.surf.dex.storage.Fileset
 
 import scala.collection.immutable
 
@@ -18,10 +18,10 @@ object ProgramStats {
 
   // Persistence
   def storeStats(id: Int,
-                 eTag: ETag,
+                 hash: Fileset.Hash,
                  stats: ProgramStats): Kleisli[IO, Transactor[IO], Unit] = {
     import io.circe.generic.auto._
-    Permissions.updateStats(id, eTag.eTag, stats).flatMapF {
+    Permissions.updateStats(id, hash, stats).flatMapF {
       case 1  => IO.unit // success
       case rr => permissionUpdateErrorIO(rr)
     }

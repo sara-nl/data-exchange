@@ -3,7 +3,6 @@ package runner.container.docker
 import cats.effect.{ConcurrentEffect, IO, Resource}
 import com.github.dockerjava.api.model.Frame
 import com.github.dockerjava.core.DockerClientBuilder
-import com.github.dockerjava.core.command.LogContainerResultCallback
 import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import runner.container.docker.Ids.{ContainerId, ImageId}
 import runner.container.{ContainerCommand, ContainerEnv, ContainerState}
@@ -48,10 +47,10 @@ object DockerOps {
       })
       .flatMap {
         case state if state.getRunning =>
-          fs2.Stream((state.getStatus, state.getExitCode.toInt)) ++ statusStream(
+          fs2.Stream((state.getStatus, state.getExitCodeLong.toInt)) ++ statusStream(
             containerId
           )
-        case state => fs2.Stream((state.getStatus, state.getExitCode.toInt))
+        case state => fs2.Stream((state.getStatus, state.getExitCodeLong.toInt))
       }
   }
 
@@ -73,12 +72,14 @@ object DockerOps {
       q <- Queue.noneTerminated[IO, String]
       _ <- IO.delay {
         allLogsCommand
-          .exec(new LogContainerResultCallback {
-            override def onNext(item: Frame): Unit = {
-              val line = new String(item.getPayload)
-              F.runAsync(q.enqueue1(Some(line)))(_ => IO.unit).unsafeRunSync
+          .exec(
+            new com.github.dockerjava.api.async.ResultCallback.Adapter[Frame] {
+              override def onNext(item: Frame): Unit = {
+                val line = new String(item.getPayload)
+                F.runAsync(q.enqueue1(Some(line)))(_ => IO.unit).unsafeRunSync
+              }
             }
-          })
+          )
           .awaitCompletion()
       }
       _ <- q.enqueue1(None)

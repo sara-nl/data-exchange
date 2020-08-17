@@ -1,29 +1,34 @@
 <script lang="ts">
-  import Spinner from "./Spinner.svelte";
-  import { Permission, getAllPermissions,  } from "../api/permissions";
-  import { Task, startWithUserPermisson,  } from "../api/tasks";
-  import { Share } from "../api/shares";
-  import { onMount } from "svelte";
-  import { goto, stores } from "@sapper/app";
+  import Spinner from './Spinner.svelte'
+  import { Permission, getAllPermissions } from '../api/permissions'
+  import { Task, startWithUserPermisson } from '../api/tasks'
+  import { Share } from '../api/shares'
+  import { onMount } from 'svelte'
+  import { goto, stores } from '@sapper/app'
 
   // This component shows the form for selecting an algorithm the user has
   // User Permission for and starting a task from it.
   export let algorithms: Share[] | null
 
-  let userPermissions: null | Permission[] = null;
-  let selectedAlgorithm: null | string = null;
-  let selectedPermissionId: null | number = null;
+  let userPermissions: null | Permission[] = null
+  let selectedAlgorithm: null | string = null
+  let selectedPermissionId: null | number = null
 
   onMount(async () => {
-    getAllPermissions().then(({obtained_permissions}) => {
+    getAllPermissions().then(({ obtained_permissions }) => {
       userPermissions = obtained_permissions.filter(
-        p => p.permission_type === "One specific user permission" && p.state === "active"
-      );
-    });
-  });
+        p =>
+          p.permission_type === 'One specific user permission' &&
+          p.state === 'active'
+      )
+    })
+  })
 
   const runWithPermission = async () => {
-    const task = await startWithUserPermisson(selectedPermissionId!, selectedAlgorithm!)
+    const task = await startWithUserPermisson(
+      selectedPermissionId!,
+      selectedAlgorithm!
+    )
     goto(`/tasks/${task.id}`)
   }
 </script>
@@ -53,8 +58,8 @@
                 Select algorithm
               </option>
 
-              {#each algorithms as algorithm}
-                <option value={algorithm.name}>{algorithm.name}</option>
+              {#each algorithms as share}
+                <option value={share.path}>{share.path}</option>
               {/each}
             </select>
           {/if}
@@ -68,7 +73,7 @@
         <div class="container">
           {#if userPermissions === null}
             <Spinner small />
-          {:else if userPermissions.length === 0}  
+          {:else if userPermissions.length === 0}
             No permissions, you need an approved request first.
           {:else}
             <select
@@ -76,7 +81,9 @@
               class="form-control bg-primary text-white rounded select-white
               mr-sm-2"
               id="data-file">
-              <option disabled selected="selected" value={null}>Select permission</option>
+              <option disabled selected="selected" value={null}>
+                Select permission
+              </option>
 
               {#each userPermissions as permission}
                 <option value={permission.id}>{permission.dataset}</option>
@@ -93,7 +100,7 @@
           disabled={selectedPermissionId === null || selectedAlgorithm === null}
           class="btn btn-success"
           form="run-permission"
-          value='Run' />
+          value="Run" />
       </div>
     </div>
   </form>

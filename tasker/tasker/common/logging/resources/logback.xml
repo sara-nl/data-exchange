@@ -1,0 +1,37 @@
+<configuration>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="warn">
+        <appender-ref ref="STDOUT" />
+    </root>
+
+    <logger name="tasker" level="${taskerLogLevel:-info}" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="runner" level="${runnerLogLevel:-info}" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="watcher" level="${watcherLogLevel:-info}" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="shares" level="${sharesLogLevel:-info}" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+
+    <logger name="nl.surf.dex.figurer" level="${figurerLogLevel:-info}" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+    <logger name="nl.surf.dex.app" level="INFO" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+</configuration>

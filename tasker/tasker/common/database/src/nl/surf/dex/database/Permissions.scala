@@ -6,81 +6,116 @@ import doobie.implicits._
 import doobie.util.transactor.Transactor
 import io.circe.Encoder
 import io.circe.syntax._
-
+import nl.surf.dex.storage.Share
+import cats.implicits._
+import nl.surf.dex.storage.Fileset.Hash
+import nl.surf.dex.storage.Share.Location
 object Permissions {
 
-  type PermissionWithRuns = (Permission, List[AlgorithmRun2])
+  type PermissionWithRuns = (Permission, List[Share.Location])
 
   // Queries
-  private val allWithRunsQ =
+  private val activeStreamingWithRunsQ =
     sql"""SELECT permission.id, 
          | permission.algorithm_provider, 
          | permission.dataset_provider, 
          | permission.algorithm, 
+         | permission.algorithm_storage, 
          | permission.algorithm_etag, 
          | permission.dataset, 
-         | task.dataset
+         | permission.dataset_storage, 
+         | task.dataset,
+         | task.dataset_storage
          |FROM surfsara_permission as permission
          |LEFT JOIN surfsara_task AS task
          |  ON permission.id = task.permission_id
          |WHERE permission.state = 'active' 
          |  AND permission.permission_type = 'stream permission'""".stripMargin
 
-  private type AllWithRunsQR =
-    (Int, String, String, String, String, String, Option[String])
+  private type ActiveStreamingWithRunsQR =
+    (Int,
+     String,
+     String,
+     String,
+     String,
+     String,
+     String,
+     String,
+     Option[String],
+     Option[String])
 
   // Functions
-  def allWithRuns(): Kleisli[IO, Transactor[IO], List[PermissionWithRuns]] =
+  def activeStreamingWithRuns
+    : Kleisli[IO, Transactor[IO], List[PermissionWithRuns]] =
     Kleisli { transactor =>
       for {
-        queryResults <- allWithRunsQ
-          .query[AllWithRunsQR]
+        queryResults <- activeStreamingWithRunsQ
+          .query[ActiveStreamingWithRunsQR]
           .stream
           .compile
           .toList
           .transact(transactor)
-      } yield {
-        queryResults.map {
+        permissionsWithRuns <- queryResults.traverse {
           case (
               permissionId,
               algorithmProvider,
               datasetProvider,
               algorithm,
+              algorithmStorage,
               algorithmETag,
               permissionDataset,
-              taskDatasetOption
+              permissionDatasetStorage,
+              taskDatasetOption,
+              taskDatasetStorageOption
               ) =>
-            (
-              Permission(
-                permissionId,
-                algorithmProvider,
-                datasetProvider,
-                algorithm,
-                algorithmETag,
+            for {
+              algorithmLocation <- Location.parseIO(algorithmStorage, algorithm)
+              datasetLocation <- Location.parseIO(
+                permissionDatasetStorage,
                 permissionDataset
-              ),
-              taskDatasetOption.map(AlgorithmRun2.apply)
-            )
+              )
+              taskDatasetLocation <- (
+                taskDatasetStorageOption,
+                taskDatasetOption
+              ).tupled.traverse {
+                Function.tupled(Location.parseIO)
+              }
+            } yield
+              (
+                Permission(
+                  permissionId,
+                  algorithmProvider,
+                  datasetProvider,
+                  algorithmLocation,
+                  algorithmETag,
+                  datasetLocation
+                ),
+                taskDatasetLocation
+              )
         }
-      }.groupMapReduce(key = _._1)(_._2.toList)(_ ::: _).toList
+      } yield
+        permissionsWithRuns
+          .groupMapReduce(key = _._1)(_._2.toList)(_ ::: _)
+          .toList
     }
 
-  def algorithmPath(id: Int): Kleisli[IO, Transactor[IO], String] =
+  def algorithmLocation(id: Int): Kleisli[IO, Transactor[IO], Share.Location] =
     Kleisli { transactor =>
-      sql"SELECT algorithm FROM surfsara_permission WHERE id = $id"
-        .query[String]
+      sql"SELECT algorithm_storage, algorithm FROM surfsara_permission WHERE id = $id"
+        .query[(String, String)]
         .unique
         .transact(transactor)
+        .flatMap(Function.tupled(Location.parseIO))
     }
 
   def updateStats[S: Encoder](id: Int,
-                              eTag: String,
+                              hash: Hash,
                               stats: S): Kleisli[IO, Transactor[IO], Int] = {
     Kleisli { transactor =>
       import xdoobie.jsonPut
       sql"""UPDATE surfsara_permission 
             | SET algorithm_report = ${stats.asJson},
-            |  algorithm_etag = $eTag,
+            |  algorithm_etag = ${hash.value},
             |  state = ${Permission.State.pending.toString}
             | WHERE id = $id""".stripMargin.update.run
         .transact(transactor)

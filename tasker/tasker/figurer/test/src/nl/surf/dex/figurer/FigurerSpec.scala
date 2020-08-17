@@ -15,22 +15,22 @@ class FigurerSpec extends AsyncFunSpecLike {
     it("should return an error when given a non-existing file") {
       recoverToSucceededIf[NoSuchFileException] {
         (for {
-          program <- PythonProgram(BFile("/tmp"), BFile("trulalala.py"))
-          stats <- collectStats(program)
-        } yield stats).unsafeToFuture()
+          program <- PythonProgram(BFile("/tmp/trulalala.py"))
+          _ <- collectStats(program)
+        } yield ()).unsafeToFuture()
       }
     }
     it("should return an error when given a non-py file") {
       recoverToSucceededIf[IllegalArgumentException] {
         val file = BFile(Resource.getUrl("notpython.js"))
-        PythonProgram(file.parent, file).unsafeToFuture()
+        PythonProgram(file).unsafeToFuture()
       }
     }
 
     it("should return stats with zeroes when given an empty file") {
       val file = BFile(Resource.getUrl("empty.py"))
       (for {
-        program <- PythonProgram(file.parent, file)
+        program <- PythonProgram(file)
         stats <- collectStats(program)
       } yield stats).unsafeToFuture().map { res =>
         res shouldEqual ProgramStats.nothing
@@ -41,7 +41,7 @@ class FigurerSpec extends AsyncFunSpecLike {
     it("should include files contents into the stats") {
       val file = BFile(Resource.getUrl("helloworld.py"))
       (for {
-        program <- PythonProgram(file.parent, file)
+        program <- PythonProgram(file)
         stats <- collectStats(program)
       } yield stats).unsafeToFuture().map { res =>
         res.contents shouldEqual Map(
@@ -53,7 +53,7 @@ class FigurerSpec extends AsyncFunSpecLike {
     it("should return lines count for a non-empty file") {
       val file = BFile(Resource.getUrl("helloworld.py"))
       (for {
-        program <- PythonProgram(file.parent, file)
+        program <- PythonProgram(file)
         stats <- collectStats(program)
       } yield stats).unsafeToFuture().map { res =>
         res.lines shouldEqual 1
@@ -75,12 +75,15 @@ class FigurerSpec extends AsyncFunSpecLike {
         res.imports shouldEqual Set(
           "os",
           "os.path",
-          "numpy",
-          "__future__",
-          "tensorflow.keras.preprocessing.image",
-          "tensorflow",
           "sys",
-          "keras.preprocessing.image"
+          "keras.preprocessing.image",
+          "tensorflow.keras.preprocessing.image",
+          "numpy",
+          "tensorflow",
+          "__future__",
+          "tensorflow.keras.layers",
+          "tensorflow.keras.models",
+          "matplotlib.pyplot"
         )
       }
     }

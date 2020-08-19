@@ -30,9 +30,10 @@ dexter_test:
       - .cache/coursier
       - .ivy2/cache
   script:
+    - free -m
     - mkdir "$CI_PROJECT_DIR/tasker/.secrets"
     - echo "$GDRIVE_CREDENTIALS_BASE64" | base64 -d > "$CI_PROJECT_DIR/tasker/.secrets/gdrive-credentials.json"
-    - cd $CI_PROJECT_DIR/tasker && mill __.test.test && mill __.ctest.test
+    - cd $CI_PROJECT_DIR/tasker && mill -d __.test.test && mill -d __.ctest.test
 
 dexter_build:
   stage: build

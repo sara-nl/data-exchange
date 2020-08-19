@@ -28,6 +28,7 @@ dexter_test:
   cache:
     paths:
       - .cache/coursier
+      - .ivy2/cache
   script:
     - mkdir "$CI_PROJECT_DIR/tasker/.secrets"
     - echo "$GDRIVE_CREDENTIALS_BASE64" | base64 -d > "$CI_PROJECT_DIR/tasker/.secrets/gdrive-credentials.json"

@@ -1,6 +1,9 @@
 # This file can be linted using a web tool:
 # - https://git.ia.surfsara.nl/SOIL/secure-container/-/ci/lint
 
+# Configuration reference:
+# - https://docs.gitlab.com/ee/ci/yaml/
+
 variables:
   NODE_ENV: "test"
   KANIKO_CONFIG: '{"auths":{"$CI_REGISTRY":{"username":"$CI_REGISTRY_USER","password":"$CI_REGISTRY_PASSWORD"}}}'
@@ -27,14 +30,14 @@ dexter_test:
   image: mkotsur/scala-mill
   cache:
     paths:
-      - ~/.cache/coursier
-      - ~/.ivy2/cache
+      - .cache
   script:
     - cat /proc/meminfo
     - mill -v
+    - export COURSIER_CACHE=$CI_PROJECT_DIR/.cache
     - mkdir "$CI_PROJECT_DIR/tasker/.secrets"
     - echo "$GDRIVE_CREDENTIALS_BASE64" | base64 -d > "$CI_PROJECT_DIR/tasker/.secrets/gdrive-credentials.json"
-    - cd $CI_PROJECT_DIR/tasker && mill -d __.test.test && mill -d __.ctest.test
+    - cd $CI_PROJECT_DIR/tasker && mill __.test.test && mill __.ctest.test
 
 dexter_build:
   stage: build
@@ -42,7 +45,7 @@ dexter_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/tasker/$CI_COMMIT_REF_NAME"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/tasker/$CI_COMMIT_BRANCH"
     - export DOCKERFILE="$CI_PROJECT_DIR/tasker/docker/Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/tasker"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
@@ -58,7 +61,7 @@ backend_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/backend/$CI_COMMIT_REF_NAME"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/backend/$CI_COMMIT_BRANCH"
     - export DOCKERFILE="$CI_PROJECT_DIR/backend/docker/prod.Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/backend"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
@@ -82,7 +85,7 @@ frontend_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/frontend/$CI_COMMIT_REF_NAME"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/frontend/$CI_COMMIT_BRANCH"
     - export DOCKERFILE="$CI_PROJECT_DIR/frontend/docker/prod.Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/frontend"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
@@ -99,7 +102,7 @@ deploy_test2:
     # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
     # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
     - ssh -oStrictHostKeyChecking=no -i "$TEST2_SSH_KEY" "$TEST2_SSH_ADDRESS"
-      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_REF_NAME\"
+      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_BRANCH\"
       DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\"
       CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
       RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"
@@ -122,7 +125,7 @@ deploy_prod:
     # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
     # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
     - ssh -oStrictHostKeyChecking=no -i "$PROD_SSH_KEY" ubuntu@dataexchange.surfsara.nl
-      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_REF_NAME\"
+      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_BRANCH\"
       DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\"
       CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
       RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"

@@ -10,4 +10,4 @@ exec java -Djava.io.tmpdir=/tmp/tasker \
 -DrunnerLogLevel=$LOG_LEVEL \
 -DwatcherLogLevel=$LOG_LEVEL \
 -DsharesLogLevel=$LOG_LEVEL \
--jar /app/out/tasker/assembly/dest/out.jar
+-jar /app/dexter.jar

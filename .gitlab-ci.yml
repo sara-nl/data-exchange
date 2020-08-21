@@ -49,7 +49,7 @@ dexter_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/tasker/$CI_COMMIT_BRANCH"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/tasker/$CI_COMMIT_REF_NAME"
     - export DOCKERFILE="$CI_PROJECT_DIR/tasker/docker/Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/tasker"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
@@ -65,7 +65,7 @@ backend_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/backend/$CI_COMMIT_BRANCH"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/backend/$CI_COMMIT_REF_NAME"
     - export DOCKERFILE="$CI_PROJECT_DIR/backend/docker/prod.Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/backend"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
@@ -89,7 +89,7 @@ frontend_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/frontend/$CI_COMMIT_BRANCH"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/frontend/$CI_COMMIT_REF_NAME"
     - export DOCKERFILE="$CI_PROJECT_DIR/frontend/docker/prod.Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/frontend"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
@@ -106,7 +106,7 @@ deploy_test2:
     # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
     # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
     - ssh -oStrictHostKeyChecking=no -i "$TEST2_SSH_KEY" "$TEST2_SSH_ADDRESS"
-      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_BRANCH\"
+      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_REF_NAME\"
       DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\"
       CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
       RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"
@@ -129,7 +129,7 @@ deploy_prod:
     # Variables should be added in https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd
     # See: https://docs.gitlab.com/ee/ci/variables/README.html#file-type
     - ssh -oStrictHostKeyChecking=no -i "$PROD_SSH_KEY" ubuntu@dataexchange.surfsara.nl
-      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_BRANCH\"
+      ". ~/.profile && export DOCKER_IMAGE_REF_NAME=\"$CI_COMMIT_REF_NAME\"
       DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\"
       CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
       RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"

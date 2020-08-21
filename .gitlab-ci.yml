@@ -49,13 +49,13 @@ dexter_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/tasker/$CI_COMMIT_REF_NAME"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/tasker"
     - export DOCKERFILE="$CI_PROJECT_DIR/tasker/docker/Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/tasker"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
     - mkdir "$CI_PROJECT_DIR/tasker/.secrets"
     - echo "$GDRIVE_CREDENTIALS_BASE64" | base64 -d > "$CI_PROJECT_DIR/tasker/.secrets/gdrive-credentials.json"
-    - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:latest"
+    - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:$CI_COMMIT_REF_NAME" --destination "$DOCKER_REGISTRY_PATH:latest"
   # only:
   #   - tags
 
@@ -65,11 +65,11 @@ backend_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/backend/$CI_COMMIT_REF_NAME"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/backend"
     - export DOCKERFILE="$CI_PROJECT_DIR/backend/docker/prod.Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/backend"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
-    - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:latest"
+    - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:$CI_COMMIT_REF_NAME" --destination "$DOCKER_REGISTRY_PATH:latest"
 
 frontend_lint:
   stage: .pre
@@ -89,11 +89,11 @@ frontend_build:
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
-    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/frontend/$CI_COMMIT_REF_NAME"
+    - export DOCKER_REGISTRY_PATH="$CI_REGISTRY_IMAGE/frontend"
     - export DOCKERFILE="$CI_PROJECT_DIR/frontend/docker/prod.Dockerfile"
     - export DOCKER_CONTEXT="$CI_PROJECT_DIR/frontend"
     - echo "$KANIKO_CONFIG" > /kaniko/.docker/config.json
-    - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:latest"
+    - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:$CI_COMMIT_REF_NAME" --destination "$DOCKER_REGISTRY_PATH:latest"
 
 deploy_test2:
   stage: deploy

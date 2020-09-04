@@ -44,6 +44,7 @@
     console.log(newDataRequest)
     requestPermission(newDataRequest as PermissionRequest)
       .then(storedRequest => {
+        requesting = false
         pendingRequests =
           pendingRequests === null
             ? [storedRequest]
@@ -65,6 +66,8 @@
     ;(<HTMLFormElement>document.getElementById('request-permission')).reset()
     ;(<HTMLInputElement>document.getElementById('permissions')).value = ''
     ;(<HTMLInputElement>document.getElementById('algorithm-file')).value = ''
+    ;(<HTMLInputElement>document.getElementById('data_owner')).value = ''
+    ;(<HTMLInputElement>document.getElementById('dataset_desc')).value = ''
   }
 </script>
 

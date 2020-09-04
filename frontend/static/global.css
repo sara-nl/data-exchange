@@ -1,65 +1,70 @@
 @import url('https://fonts.googleapis.com/css?family=Source+Sans+Pro&display=swap');
 
 body {
-    margin: 0;
-    font-family: 'Source Sans Pro', sans-serif;
-    font-size: 14px;
-    line-height: 1.5;
-    color: #333;
+  margin: 0;
+  font-family: 'Source Sans Pro', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  color: #333;
 
-    font-size: 1.1rem !important;
+  font-size: 1.1rem !important;
 }
 
-h1, h2, h3, h4, h5, h6 {
-    margin: 0 0 0.5em 0;
-    font-weight: 400;
-    line-height: 1.2;
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: 0 0 0.5em 0;
+  font-weight: 400;
+  line-height: 1.2;
 }
 
 h1 {
-    font-size: 2em;
+  font-size: 2em;
 }
 
 a {
-    color: inherit;
+  color: inherit;
 }
 
 code {
-    font-family: menlo, inconsolata, monospace;
-    font-size: calc(1em - 2px);
-    color: #555;
-    background-color: #f0f0f0;
-    padding: 0.2em 0.4em;
-    border-radius: 2px;
+  font-family: menlo, inconsolata, monospace;
+  font-size: calc(1em - 2px);
+  color: #555;
+  background-color: #f0f0f0;
+  padding: 0.2em 0.4em;
+  border-radius: 2px;
 }
 
 @media (min-width: 400px) {
-    body {
-        font-size: 16px;
-    }
+  body {
+    font-size: 16px;
+  }
 }
 
 /* REDESIGN CSS */
 .select-white {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    background: transparent url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>") no-repeat;
-    background-position-x: 98%;
-    background-position-y: 5px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background: transparent
+    url("data:image/svg+xml;utf8,<svg fill='white' height='24' viewBox='0 0 24 24' width='24' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/><path d='M0 0h24v24H0z' fill='none'/></svg>")
+    no-repeat;
+  background-position-x: 98%;
+  background-position-y: 5px;
 }
 
 .rounded-xl {
-    border-radius: .6rem !important
+  border-radius: 0.6rem !important;
 }
-
 
 .fa-stack {
-    font-size: 0.8em !important;
+  font-size: 0.8em !important;
 }
 
-
 .bg-lightgrey {
-    background-color:#f7f8f8
+  background-color: #f7f8f8;
 }
 
 .table-wrapper {
@@ -73,26 +78,26 @@ code {
 }
 
 .rounded-xll {
-  border-top-left-radius: .6rem !important;
-  border-bottom-left-radius: .6rem !important;
+  border-top-left-radius: 0.6rem !important;
+  border-bottom-left-radius: 0.6rem !important;
 
   padding-left: 2em !important;
 }
 
 .rounded-xlr {
-  border-top-right-radius: .6rem !important;
-  border-bottom-right-radius: .6rem !important;
+  border-top-right-radius: 0.6rem !important;
+  border-bottom-right-radius: 0.6rem !important;
 
   padding-right: 2em !important;
 }
 
 th {
   color: #51585e !important;
-  font-size: .95rem !important;
+  font-size: 0.95rem !important;
   padding-left: 1rem !important;
   padding-right: 1rem !important;
 
-  padding-bottom: 0.0!important
+  padding-bottom: 0 !important;
 }
 
 td {
@@ -122,7 +127,6 @@ td {
   word-wrap: break-word;
 }
 
-
 .normal_column {
   min-width: 7em;
   max-width: 7em;
@@ -146,6 +150,9 @@ p {
 }
 
 .permission {
-  font-size: .95rem;
+  font-size: 0.95rem;
+}
 
+.jumbotron.request-info-message {
+  padding: 2rem 1rem;
 }

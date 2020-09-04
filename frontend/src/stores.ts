@@ -1,5 +1,5 @@
 import { writable, Writable } from 'svelte/store'
-import { UserRole } from './api/users'
+import type { UserRole } from './api/users'
 
 export type WritableStore<T> = Writable<T | null> & {
   useLocalStorage: () => void

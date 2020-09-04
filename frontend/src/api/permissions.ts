@@ -1,7 +1,7 @@
-import { AxiosResponse } from 'axios'
+import type { AxiosResponse } from 'axios'
 import Controller from './controller'
-import { UserRole } from './users'
-import { Share } from './shares'
+import type { UserRole } from './users'
+import type { Share } from './shares'
 
 export type PermissionsList = {
   list_permissions: string[][]

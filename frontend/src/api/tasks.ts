@@ -1,6 +1,6 @@
-import { AxiosResponse } from 'axios'
+import type { AxiosResponse } from 'axios'
 import Controller from './controller'
-import { Permission } from './permissions'
+import type { Permission } from './permissions'
 
 export interface Task {
   id: number

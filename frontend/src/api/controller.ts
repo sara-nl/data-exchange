@@ -1,7 +1,7 @@
 import axios, {AxiosError, AxiosInstance, AxiosRequestConfig, AxiosResponse} from "axios";
 import { fromUrl, token } from "../stores";
 
-export default class Controller {
+export default class    Controller {
     public static sapper: any;
     public static client: AxiosInstance = axios.create({ baseURL: "/api/" });
 

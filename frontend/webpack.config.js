@@ -4,13 +4,6 @@ const config = require('sapper/config/webpack.js')
 const preprocess = require('svelte-preprocess')
 const pkg = require('./package.json')
 
-const SpeedMeasurePlugin = require('speed-measure-webpack-plugin')
-const smpConfig = {
-  granularLoaderData: true,
-}
-const smpClient = new SpeedMeasurePlugin(smpConfig)
-const smpServer = new SpeedMeasurePlugin(smpConfig)
-
 const mode = process.env.NODE_ENV
 const dev = mode === 'development'
 
@@ -19,7 +12,7 @@ const extensions = ['.ts', '.mjs', '.js', '.json', '.svelte', '.html']
 const mainFields = ['svelte', 'module', 'browser', 'main']
 
 module.exports = {
-  client: smpClient.wrap({
+  client: {
     entry: config.client.entry(),
     output: config.client.output(),
     resolve: { alias, extensions, mainFields },
@@ -33,7 +26,7 @@ module.exports = {
               dev,
               preprocess: preprocess(),
               hydratable: true,
-              hotReload: true,
+              hotReload: false,
             },
           },
         },
@@ -41,6 +34,10 @@ module.exports = {
           test: /\.tsx?$/,
           use: 'ts-loader',
           exclude: /node_modules/,
+        },
+        {
+          test: /\.css$/,
+          use: ['style-loader', 'css-loader'],
         },
       ],
     },
@@ -53,9 +50,9 @@ module.exports = {
       }),
     ].filter(Boolean),
     devtool: dev && 'eval-source-map',
-  }),
+  },
 
-  server: smpServer.wrap({
+  server: {
     entry: config.server.entry(),
     output: config.server.output(),
     target: 'node',
@@ -79,12 +76,12 @@ module.exports = {
           test: /\.tsx?$/,
           use: 'ts-loader',
           exclude: /node_modules/,
-        },
+        }
       ],
     },
     mode,
     performance: {
       hints: false, // it doesn't matter if server.js is large
     },
-  }),
+  },
 }

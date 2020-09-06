@@ -1,4 +1,6 @@
-import "bootstrap";
+import 'bootstrap/dist/css/bootstrap.min.css';
+import 'bootstrap/dist/js/bootstrap.min.js';
+
 import * as sapper from '@sapper/app';
 import { token, mode, email } from "./stores";
 import Controller from "./api/controller";

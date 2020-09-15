@@ -35,4 +35,4 @@ function createWritableStore<T>(
 export const fromUrl = writable(null)
 export const token = createWritableStore<string>('token', null)
 export const email = createWritableStore<string>('email', null)
-export const mode = createWritableStore<UserRole>('mode', null)
+export const mode = createWritableStore<UserRole>('mode', 'algorithm')

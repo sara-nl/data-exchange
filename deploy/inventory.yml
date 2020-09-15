@@ -1,2 +1,7 @@
 all:
-  hosts: dataexchange.surfsara.nl
+  
+  hosts: 
+    # dataexchange.surfsara.nl:
+    #   setup_basic_auth: False
+    test-2.dataex-sara.surf-hosted.nl:
+      setup_basic_auth: False

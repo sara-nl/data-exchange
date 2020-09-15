@@ -96,6 +96,7 @@
       pip: name=passlib
 
     - name: Generate .htpasswd
+      when: setup_basic_auth
       become: true
       tags: [nginx]
       htpasswd:

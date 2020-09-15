@@ -82,3 +82,12 @@
     {/if}
   </div>
 </nav>
+
+<div class="alert alert-secondary" role="alert">
+  <small>
+    This is a prototype. It works, but has limited capacity and is not polished
+    yet. Please contact
+    <a href="mailto:freek.dijkstra@surf.nl">freek.dijkstra@surf.nl</a>
+    if you like some guidance or are interested to use it.
+  </small>
+</div>

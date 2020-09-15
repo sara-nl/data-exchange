@@ -27,7 +27,7 @@ The scripts have been tested with the following setup:
 ```shell
 ansible-playbook -i inventory.yml -u ubuntu \
 --extra-vars gitlab_username=<deploy_token_username> \
---extra-vars gitlab_password=<deploy_token_password>
+--extra-vars gitlab_password=<deploy_token_password> \
 --extra-vars RD_WEBDAV_USERNAME=<password> \
 --extra-vars RD_WEBDAV_PASSWORD=<password> \
 playbooks/dataexchange.yml

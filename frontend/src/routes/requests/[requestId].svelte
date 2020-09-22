@@ -97,7 +97,7 @@
   <title>Request details {currentPermission && currentPermission.id}</title>
 </svelte:head>
 
-<div class="row mx-5 my-5 rounded">
+<div class="row mx-5 rounded">
   <div class="col-12">
     <button class="btn text-primary" on:click={() => goto(`/requests`)}>
       <i class="fas fa-arrow-left" />

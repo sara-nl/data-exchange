@@ -1,12 +1,11 @@
 <script lang="ts">
-  import PermissionInfo from './PermissionInfo.svelte'
   import AlgorithmReport from './AlgorithmReport.svelte'
+  import AlgorithmSourceCode from './AlgorithmSourceCode.svelte'
   import Spinner from './Spinner.svelte'
-  import { Permission, permissionInfo } from '../api/permissions'
+  import { Permission } from '../api/permissions'
   import { UserRole } from '../api/users'
   import { mode, token, email } from '../stores'
   import { onMount } from 'svelte'
-  import * as hljs from 'highlight.js'
   import dayjs from 'dayjs'
   import relativeTime from 'dayjs/plugin/relativeTime'
   dayjs.extend(relativeTime)
@@ -17,10 +16,6 @@
   export let permission: Permission
 
   let currentMode: UserRole = 'algorithm'
-
-  onMount(async () => {
-    hljs.initHighlighting()
-  })
 
   email.subscribe(e => {
     if (
@@ -35,7 +30,7 @@
 
   const reportAvailable = Boolean(permission.algorithm_report)
 
-  jq(function() {
+  jq(() => {
     jq('[data-toggle="tooltip"]').tooltip()
   })
 </script>
@@ -151,39 +146,35 @@
 
 <div class="row mx-auto">
   <div class="col-sm-4 h-50">
-    <div class="row mb-3 font-weight-bold">Algorithm hash</div>
-    <div class="row mt-1 mb-5 pr-3">{permission.algorithm_etag || '-'}</div>
-    <div class="row mb-3 font-weight-bold">Permission Type</div>
-    <div class="row mt-1 mb-5">{permission.permission_type}</div>
-
-    <div class="row mb-3 font-weight-bold">Permission Information</div>
-    <div class="row mt-1 mb-5 pr-3">
-      <PermissionInfo
-        permission={permission.permission_type}
-        user={currentMode} />
-    </div>
+    <b>Algorithm name:</b>
+    <pre>{permission.algorithm}</pre>
   </div>
-
   <div class="col-sm-4 h-50">
-    <AlgorithmReport {permission} analisysDone={reportAvailable} />
+    {#if reportAvailable}
+      <b>Algorithm hash:</b>
+      <pre>{permission.algorithm_etag}</pre>
+    {:else}
+      <Spinner small />
+    {/if}
   </div>
-
-  <div class="col-sm-4 pl-0 pr-0" style="height:400px;">
-    <div class="row mb-3 font-weight-bold">Algorithm Code</div>
-    <div class="col-12 border pt-2 h-100 overflow-auto">
-      {#if reportAvailable}
-        {#each Object.keys(permission.algorithm_report.contents) as file}
-          <h6>{file}</h6>
-          <pre>
-            <code class="python">
-              {permission.algorithm_report.contents[file]}
-            </code>
-          </pre>
-          <hr />
-        {/each}
-      {:else}
-        <Spinner small />
-      {/if}
-    </div>
+  <div class="col-sm-4 h-50">
+    <b>Libraries:</b>
+    {#each permission.algorithm_report.imports as dependency}
+      &nbsp;
+      <span class="badge badge-primary">{dependency}</span>
+    {/each}
   </div>
 </div>
+
+{#if reportAvailable}
+  <hr />
+  Lines: {permission.algorithm_report.lines}, Words: {permission.algorithm_report.words},
+  Characters: {permission.algorithm_report.chars}
+  <AlgorithmSourceCode files={permission.algorithm_report.contents} />
+{:else}
+  <div class="row mx-auto">
+    <Spinner small />
+  </div>
+{/if}
+
+<hr />

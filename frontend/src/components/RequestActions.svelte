@@ -1,7 +1,11 @@
 <script lang="ts">
   import PermissionInfo from './PermissionInfo.svelte'
   import Spinner from './Spinner.svelte'
-  import { Permission, permissionApprovalActionDict } from '../api/permissions'
+  import {
+    Permission,
+    permissionApprovalActionDict,
+    permissionInfo,
+  } from '../api/permissions'
   import { UserRole } from '../api/users'
   import { mode, token, email } from '../stores'
   import { getShares, Share } from '../api/shares'
@@ -23,18 +27,19 @@
   const dispatch = createEventDispatcher()
 </script>
 
-<div class="row mb-3 font-weight-bold">
-  {#if currentPermission.permission_type === 'stream permission'}
-    Choose stream of datasets
-  {:else}Choose dataset{/if}
-</div>
-<div class="row mb-3 font-weight-bold">
-  {#if availableDatasets === null}
-    <Spinner small />
-  {:else if availableDatasets.length === 0}
-    No datasets available.
-  {:else}
-    <div class="col-sm-3 text-center">
+<div class="row mb-3">
+  <div class="col-sm-4">
+    {#if currentPermission.permission_type === 'stream permission'}
+      <b>Choose stream of datasets</b>
+    {:else}
+      <b>Choose dataset:</b>
+    {/if}
+
+    {#if availableDatasets === null}
+      <Spinner small />
+    {:else if availableDatasets.length === 0}
+      No datasets available.
+    {:else}
       <select
         class="form-control bg-primary text-white rounded select-white mr-sm-2"
         bind:value={selectedDataset}
@@ -47,10 +52,17 @@
           </option>
         {/each}
       </select>
-    </div>
-  {/if}
+    {/if}
+  </div>
 </div>
 
+<div class="row mb-3">
+  <div class="col-sm-8">
+    <b>Please read this carefully!</b>
+    <br />
+    {permissionInfo(currentPermission.permission_type, 'algorithm')}
+  </div>
+</div>
 <div class="row mb-3 font-weight-bold">
   <button
     disabled={!selectedDataset}

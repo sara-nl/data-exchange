@@ -60,7 +60,7 @@
   <div class="col-sm-8">
     <b>Please read this carefully!</b>
     <br />
-    {permissionInfo(currentPermission.permission_type, 'algorithm')}
+    {permissionInfo(currentPermission.permission_type, $mode)}
   </div>
 </div>
 <div class="row mb-3 font-weight-bold">

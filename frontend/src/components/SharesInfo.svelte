@@ -9,7 +9,7 @@
   const updateInterval = 1000 // millis
 
   const watchShares: () => Promise<SharesResponse> = () => {
-    return getShares().then(response => {
+    return getShares().then((response) => {
       if (response.own_algorithms === null || response.own_datasets === null) {
         return new Promise<SharesResponse>((res, rej) => {
           setTimeout(() => {
@@ -24,11 +24,11 @@
   }
 
   watchShares().then(
-    response => {
+    (response) => {
       algorithms = response.own_algorithms
       datasets = response.own_datasets
     },
-    e => console.error('Error while loading user files', e)
+    (e) => console.error('Error while loading user files', e)
   )
 </script>
 
@@ -39,7 +39,9 @@
   {:else if (datasets.length > 0) & ($mode === 'data')}
     <div class="my-3">
       <p>
-        You have shared {datasets.length} dataset(s) with the DataExchange
+        You have shared
+        {datasets.length}
+        dataset(s) with the DataExchange
         <br />
         Click here to see any requests made for your data:
       </p>
@@ -52,14 +54,15 @@
   {:else if (algorithms.length > 0) & ($mode === 'algorithm')}
     <div class="my-3">
       <p>
-        You have shared {algorithms.length} algorithms with the DataExchange
+        You have shared
+        {algorithms.length}
+        algorithms with the DataExchange
         <br />
         Click here to make a request for the use of a dataset:
       </p>
       <button
         class="btn col-7 btn-primary rounded-xl font-weight-bold"
         on:click={() => goto(`/tasks/request`)}>
-
         <div class="px-4">Make request for or run with permission</div>
       </button>
     </div>
@@ -73,21 +76,21 @@
       <button
         class="btn btn-primary rounded-xl font-weight-bold"
         on:click={() => goto(`/requests`)}>
-
         <div class="px-4">Go to your requests</div>
       </button>
     </div>
   {:else if algorithms.length > 0 && $mode === 'algorithm'}
     <div class="my-3">
       <p>
-        You have shared {algorithms.length} algorithms with the DataExchange
+        You have shared
+        {algorithms.length}
+        algorithms with the DataExchange
         <br />
         Click here to make a request for the use of a dataset:
       </p>
       <button
         class="btn col-7 btn-primary rounded-xl font-weight-bold"
         on:click={() => goto(`/tasks/request`)}>
-
         <div class="px-4">Make request for or run with permission</div>
       </button>
     </div>
@@ -96,5 +99,4 @@
       <p>You haven't shared any files with the DataExchange</p>
     </div>
   {/if}
-
 </div>

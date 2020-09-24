@@ -16,11 +16,11 @@
   let givenPermissions: { [index: string]: any } = {}
 
   onMount(async () => {
-    datasetShares = await getShares().then(r => r.own_datasets)
-    dataset_tasks = await Tasks.getLogs().then(r => r.data.data_tasks)
+    datasetShares = await getShares().then((r) => r.own_datasets)
+    dataset_tasks = await Tasks.getLogs().then((r) => r.data.data_tasks)
 
     givenPermissions = await Permissions.getGivenPerFile().then(
-      r => r.data.given_permissions
+      (r) => r.data.given_permissions
     )
   })
 
@@ -30,7 +30,7 @@
     // TODO: test thoroughly
     givenPermissions = {
       ...givenPermissions,
-      [filename]: givenPermissions[filename].filter(p => p.id !== id),
+      [filename]: givenPermissions[filename].filter((p) => p.id !== id),
     }
   }
 </script>
@@ -42,7 +42,6 @@
 <h3 class="display-5">Your datasets</h3>
 
 <div class="container-fluid mx-auto m-2">
-
   {#if datasetShares === null}
     <Spinner />
   {:else}
@@ -54,7 +53,8 @@
               <i class="fas fa-circle fa-stack-2x" />
               <i class="fas fa-file fa-stack-1x fa-inverse" />
             </span>
-            {share.path} ({StorageNames[share.storage]})
+            {share.path}
+            ({StorageNames[share.storage]})
           </div>
           <div class="col">
             <button
@@ -65,15 +65,11 @@
               }}>
               <div class="px-4">Withdraw Data</div>
             </button>
-
           </div>
-
         </div>
         <div class="row mt-5 w-100">
           <div class="col-6 mx-5 p-3 rounded-xl background bg-lightgrey">
-            <h3>
-              <small class="text-muted">Permissions</small>
-            </h3>
+            <h3><small class="text-muted">Permissions</small></h3>
             {#if givenPermissions !== null && givenPermissions[share.path] !== undefined}
               <div class="table-wrapper">
                 <table class="table table-borderless">
@@ -84,7 +80,6 @@
                     <th />
                   </thead>
                   <tbody>
-
                     {#each givenPermissions[share.path] as permission}
                       <tr id={permission['id']} class="my-1">
                         <td>{permission.algorithm_provider}</td>
@@ -108,9 +103,7 @@
             {:else}No permissions given on this file{/if}
           </div>
           <div class="col mx-5 p-3 rounded-xl background bg-lightgrey">
-            <h3>
-              <small class="text-muted">Runs</small>
-            </h3>
+            <h3><small class="text-muted">Runs</small></h3>
             {#if dataset_tasks !== undefined && dataset_tasks[share.path] !== undefined}
               <div class="table-wrapper">
                 <table class="table table-borderless">
@@ -138,7 +131,6 @@
                       {/if}
                     {/each}
                   </tbody>
-
                 </table>
               </div>
             {:else}No runs done with this file{/if}
@@ -149,5 +141,4 @@
       <div>You have shared no datasetShares</div>
     {/each}
   {/if}
-
 </div>

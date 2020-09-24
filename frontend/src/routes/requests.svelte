@@ -17,13 +17,13 @@
     ])
     permissionsToReview = [
       ...given_permissions.filter(
-        dr => dr.state === 'pending' || dr.state === 'analyzing'
+        (dr) => dr.state === 'pending' || dr.state === 'analyzing'
       ),
-      ...tasks.map(t => t.permission),
+      ...tasks.map((t) => t.permission),
     ]
 
     reviewedPermissions = given_permissions.filter(
-      dr => dr.state !== 'pending' && dr.state !== 'analyzing'
+      (dr) => dr.state !== 'pending' && dr.state !== 'analyzing'
     )
   })
 </script>

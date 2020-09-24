@@ -17,13 +17,13 @@
 
   let currentMode: UserRole = 'algorithm'
 
-  email.subscribe(e => {
+  email.subscribe((e) => {
     if (
       permission.dataset_provider === e &&
       permission.algorithm_provider === e
     ) {
       // Let the user decide
-      mode.subscribe(m => (currentMode = m || currentMode))
+      mode.subscribe((m) => (currentMode = m || currentMode))
     } else if (permission.dataset_provider === e) currentMode = 'data'
     else currentMode = 'algorithm'
   })
@@ -84,7 +84,8 @@
               d="M11 6.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5v1a.5.5 0 0
               1-.5.5h-1a.5.5 0 0 1-.5-.5v-1z" />
           </svg>
-          Submitted {dayjs(permission.registered_on).fromNow()}
+          Submitted
+          {dayjs(permission.registered_on).fromNow()}
         </small>
       </div>
       <div class="col-sm">
@@ -105,7 +106,8 @@
               d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1zM0 8a8 8 0 1 1 16 0A8 8 0 0 1
               0 8z" />
           </svg>
-          By {permission.algorithm_provider}
+          By
+          {permission.algorithm_provider}
         </small>
       </div>
       <div class="col-sm">
@@ -136,12 +138,12 @@
               8.5c.668 0 1.606-.229 2.415-.478A21.317 21.317 0 0 0 14
               7.655V1.222z" />
           </svg>
-          State {permission.state}
+          State
+          {permission.state}
         </small>
       </div>
     </div>
   </div>
-
 </div>
 
 <div class="row mx-auto">
@@ -168,8 +170,10 @@
 
 {#if reportAvailable}
   <hr />
-  Lines: {permission.algorithm_report.lines}, Words: {permission.algorithm_report.words},
-  Characters: {permission.algorithm_report.chars}
+  Lines:
+  {permission.algorithm_report.lines}, Words:
+  {permission.algorithm_report.words}, Characters:
+  {permission.algorithm_report.chars}
   <AlgorithmSourceCode files={permission.algorithm_report.contents} />
 {:else}
   <div class="row mx-auto">

@@ -21,13 +21,13 @@
     hljs.initHighlighting()
   })
 
-  email.subscribe(e => {
+  email.subscribe((e) => {
     if (
       permission.dataset_provider === e &&
       permission.algorithm_provider === e
     ) {
       // Let the user decide
-      mode.subscribe(m => (currentMode = m || currentMode))
+      mode.subscribe((m) => (currentMode = m || currentMode))
     } else if (permission.dataset_provider === e) currentMode = 'data'
     else currentMode = 'algorithm'
   })
@@ -64,7 +64,8 @@
         {#each Object.keys(permission.algorithm_report.contents) as file}
           <h6>{file}</h6>
           <pre>
-            <code class="python">
+            <code
+              class="python">
               {permission.algorithm_report.contents[file]}
             </code>
           </pre>

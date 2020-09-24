@@ -27,11 +27,11 @@
   let pendingRequests: Permission[] | null = null
 
   onMount(async () => {
-    algorithmShares = await getShares().then(r => r.own_algorithms)
+    algorithmShares = await getShares().then((r) => r.own_algorithms)
 
     getAllPermissions().then(({ obtained_permissions }) => {
       pendingRequests = obtained_permissions
-        .filter(r => r.state === 'pending' || r.state === 'analyzing')
+        .filter((r) => r.state === 'pending' || r.state === 'analyzing')
         .sort((a, b) => b.id - a.id) // newer first
     })
   })
@@ -43,7 +43,7 @@
     delete newDataRequest.algorithm_share
     console.log(newDataRequest)
     requestPermission(newDataRequest as PermissionRequest)
-      .then(storedRequest => {
+      .then((storedRequest) => {
         requesting = false
         pendingRequests =
           pendingRequests === null
@@ -51,7 +51,7 @@
             : [storedRequest, ...pendingRequests]
         clearForm()
       })
-      .catch(error => {
+      .catch((error) => {
         requesting = false
         clearForm()
         showError =
@@ -193,7 +193,6 @@
         </div>
       </form>
     </div>
-
   </div>
 
   <RunWithUserPermission algorithms={algorithmShares} />

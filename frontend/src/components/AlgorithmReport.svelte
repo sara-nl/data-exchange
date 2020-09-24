@@ -28,8 +28,10 @@
 <div class="row mb-3 font-weight-bold">Algorithm Length</div>
 <div class="row mt-1 mb-5">
   {#if analisysDone}
-    Lines: {permission.algorithm_report.lines}, Words: {permission.algorithm_report.words},
-    Characters: {permission.algorithm_report.chars}
+    Lines:
+    {permission.algorithm_report.lines}, Words:
+    {permission.algorithm_report.words}, Characters:
+    {permission.algorithm_report.chars}
   {:else}
     <Spinner small />
   {/if}

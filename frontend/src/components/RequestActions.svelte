@@ -19,7 +19,7 @@
 
   getShares().then(({ own_datasets }) => {
     if (currentPermission.permission_type === 'stream permission') {
-      availableDatasets = own_datasets.filter(ds => ds.isDirectory)
+      availableDatasets = own_datasets.filter((ds) => ds.isDirectory)
     } else {
       availableDatasets = own_datasets
     }
@@ -31,9 +31,7 @@
   <div class="col-sm-4">
     {#if currentPermission.permission_type === 'stream permission'}
       <b>Choose stream of datasets</b>
-    {:else}
-      <b>Choose dataset:</b>
-    {/if}
+    {:else}<b>Choose dataset:</b>{/if}
 
     {#if availableDatasets === null}
       <Spinner small />
@@ -48,7 +46,8 @@
 
         {#each availableDatasets as share}
           <option class="bg-secondary" value={share}>
-            {share.path} ({StorageNames[share.storage]})
+            {share.path}
+            ({StorageNames[share.storage]})
           </option>
         {/each}
       </select>

@@ -1,42 +1,42 @@
 <script lang="ts">
-  import Tasks from "../../api/tasks";
-  import Spinner from "../../components/Spinner.svelte";
-  import { goto, stores } from "@sapper/app";
-  import { onMount } from "svelte";
-  import dayjs from "dayjs";
+  import Tasks from '../../api/tasks'
+  import Spinner from '../../components/Spinner.svelte'
+  import { goto, stores } from '@sapper/app'
+  import { onMount } from 'svelte'
+  import dayjs from 'dayjs'
 
   let state_color = {
-    release_rejected: "warning",
-    output_released: "success",
-    running: "info",
-    success: "info",
-    error: "danger"
-  };
+    release_rejected: 'warning',
+    output_released: 'success',
+    running: 'info',
+    success: 'info',
+    error: 'danger',
+  }
 
-  let dataset_tasks = null;
-  let alg_tasks = null;
+  let dataset_tasks = null
+  let alg_tasks = null
 
-  let datasets = null;
-  let algorithms = null;
+  let datasets = null
+  let algorithms = null
 
-  onMount(async () => await getUserTasks());
+  onMount(async () => await getUserTasks())
 
   async function getUserTasks() {
     try {
-      let { data: response } = await Tasks.getLogs();
-      dataset_tasks = response.data_tasks;
-      datasets = Object.keys(dataset_tasks);
-      alg_tasks = response.algorithm_tasks;
+      let { data: response } = await Tasks.getLogs()
+      dataset_tasks = response.data_tasks
+      datasets = Object.keys(dataset_tasks)
+      alg_tasks = response.algorithm_tasks
       algorithms = Object.keys(alg_tasks)
     } catch (error) {
-      console.log(error.toString());
+      console.log(error.toString())
     }
 
-    return false;
+    return false
   }
 
   function see_details(id: number) {
-    goto(`/tasks/${id}`);
+    goto(`/tasks/${id}`)
   }
 </script>
 
@@ -58,9 +58,7 @@
   <div class="container-fluid mx-auto">
     <div class="row">
       <div class="col-xl">
-        <h2>
-          <small class="text-muted">Tasks with your dataset:</small>
-        </h2>
+        <h2><small class="text-muted">Tasks with your dataset:</small></h2>
         <table class="table table-responsive table-hover">
           <thead />
           {#each datasets as file, i}
@@ -72,15 +70,11 @@
                 aria-expanded="false"
                 aria-controls="data-{i}">
                 <td>
-                  {#if file === ""}
+                  {#if file === ''}
                     <b>Dataset not yet specified</b>
-                  {:else}
-                    <b>{file}</b>
-                  {/if}
+                  {:else}<b>{file}</b>{/if}
                 </td>
-                <td>
-                  <i class="fa fa-plus" aria-hidden="true" />
-                </td>
+                <td><i class="fa fa-plus" aria-hidden="true" /></td>
               </tr>
             </tbody>
             <thead id="data-{i}" class="collapse">
@@ -93,7 +87,6 @@
             </thead>
             {#each dataset_tasks[file] as task}
               <tbody id="data-{i}" class="collapse">
-
                 <tr on:click={() => goto(`/tasks/${task.id}`)}>
                   <td>{task.state}</td>
                   <td>{task.author_email}</td>
@@ -102,24 +95,21 @@
                   <td>
                     {#if task.permission}
                       <strong>{task.permission.permission_type}</strong>
-                    {:else}
-                      No
-                    {/if}
+                    {:else}No{/if}
                   </td>
-                  <td>{dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}</td>
+                  <td>
+                    {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
+                  </td>
                 </tr>
               </tbody>
             {/each}
           {/each}
         </table>
-
       </div>
     </div>
     <div class="row">
       <div class="col-xl">
-        <h2>
-          <small class="text-muted">Tasks with your algorithm:</small>
-        </h2>
+        <h2><small class="text-muted">Tasks with your algorithm:</small></h2>
         <table class="table table-responsive table-hover">
           <thead />
           {#each algorithms as file, i}
@@ -130,12 +120,8 @@
                 data-target="#alg-{i}"
                 aria-expanded="false"
                 aria-controls="alg-{i}">
-                <td>
-                  <b>{file}</b>
-                </td>
-                <td>
-                  <i class="fa fa-plus" aria-hidden="true" />
-                </td>
+                <td><b>{file}</b></td>
+                <td><i class="fa fa-plus" aria-hidden="true" /></td>
               </tr>
             </tbody>
             <thead id="alg-{i}" class="collapse">
@@ -147,19 +133,19 @@
             </thead>
             {#each alg_tasks[file] as task}
               <tbody id="alg-{i}" class="collapse">
-
                 <tr on:click={() => goto(`/tasks/${task.id}`)}>
                   <td>{task.state}</td>
                   <td><b>You</b></td>
                   <td>{task.algorithm}</td>
                   <td>{task.dataset}</td>
-                  <td>{dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}</td>
+                  <td>
+                    {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
+                  </td>
                 </tr>
               </tbody>
             {/each}
           {/each}
         </table>
-
       </div>
     </div>
   </div>

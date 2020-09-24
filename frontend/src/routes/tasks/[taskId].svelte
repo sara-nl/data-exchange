@@ -1,46 +1,46 @@
 <script lang="ts">
   // XXX Work-around until proper TypeScript support arrives
-  declare var $page: any;
+  declare var $page: any
 
-  import { onMount } from "svelte";
-  import { goto, stores } from "@sapper/app";
-  import { mode } from "../../stores";
+  import { onMount } from 'svelte'
+  import { goto, stores } from '@sapper/app'
+  import { mode } from '../../stores'
 
-  import {getShares} from "../../api/shares";
-  import Tasks, { Task } from "../../api/tasks";
-  import Spinner from "../../components/Spinner.svelte";
-  import PermissionInfo from "../../components/PermissionInfo.svelte";
-  import AlgorithmReport from "../../components/AlgorithmReport.svelte";
-  import TaskProgress from "../../components/TaskProgress.svelte";
-  import ErrorMessage from "../../components/ErrorMessage.svelte";
-  import StepsHeader from "../../components/StepsHeader.svelte";
+  import { getShares } from '../../api/shares'
+  import Tasks, { Task } from '../../api/tasks'
+  import Spinner from '../../components/Spinner.svelte'
+  import PermissionInfo from '../../components/PermissionInfo.svelte'
+  import AlgorithmReport from '../../components/AlgorithmReport.svelte'
+  import TaskProgress from '../../components/TaskProgress.svelte'
+  import ErrorMessage from '../../components/ErrorMessage.svelte'
+  import StepsHeader from '../../components/StepsHeader.svelte'
 
-  const { page } = stores();
-  const { taskId } = $page.params;
+  const { page } = stores()
+  const { taskId } = $page.params
 
-  let task: Task | null = null;
+  let task: Task | null = null
 
-  let currentStep: number | null = null;
+  let currentStep: number | null = null
 
   onMount(async () => {
-    task = await Tasks.retrieve(taskId);
+    task = await Tasks.retrieve(taskId)
     if (task.state === 'running') {
-      currentStep = 0;
+      currentStep = 0
       const timerId = setInterval(async () => {
-        task = await Tasks.retrieve(taskId);
-        if(task.state !== 'running') {
-          clearInterval(timerId);
-          currentStep = 1000; // Makes sure all spinners have stopped
+        task = await Tasks.retrieve(taskId)
+        if (task.state !== 'running') {
+          clearInterval(timerId)
+          currentStep = 1000 // Makes sure all spinners have stopped
         } else {
           currentStep = task.progress_state.currentStepIndex + 1
         }
       }, 2000)
     }
-  });
+  })
 
   async function release_output(released: boolean) {
-    let { data: response } = await Tasks.release(taskId, {released});
-    task.state = response.state;
+    let { data: response } = await Tasks.release(taskId, { released })
+    task.state = response.state
   }
 </script>
 
@@ -52,33 +52,36 @@
   <Spinner />
 {:else}
   <div class="col-10 mx-auto my-5">
-      {#if task.state === 'running'}
-        <StepsHeader activeStep={2} />
-      {/if}
-      {#if task.state === 'success' || (task.state === 'error' && task.review_output)}
-        <StepsHeader activeStep={3} />
-      {/if}
+    {#if task.state === 'running'}
+      <StepsHeader activeStep={2} />
+    {/if}
+    {#if task.state === 'success' || (task.state === 'error' && task.review_output)}
+      <StepsHeader activeStep={3} />
+    {/if}
 
-      {#if task.state === 'output_released' || (task.state === 'error' && !task.review_output)}
+    {#if task.state === 'output_released' || (task.state === 'error' && !task.review_output)}
       <div class="row my-5 mx-auto border border-primary rounded">
         <div class="col-sm text-center text-secondary p-2 font-weight-bold">
           Execution finished
         </div>
       </div>
-      {/if}
+    {/if}
 
-    {#if (task.state === 'error')}
-        <ErrorMessage error={task.progress_state.reason || 'Execution failed with an error.'} />
+    {#if task.state === 'error'}
+      <ErrorMessage
+        error={task.progress_state.reason || 'Execution failed with an error.'} />
     {/if}
 
     {#if task.state === 'running'}
-      <TaskProgress currentStep={currentStep} />
+      <TaskProgress {currentStep} />
     {:else}
       <div class="row mx-auto">
         <div class="col-sm-4 h-50">
-          {#if $mode === "data"}
+          {#if $mode === 'data'}
             <div class="row mb-3 font-weight-bold">Algorithm Owner</div>
-            <div class="row mt-1 mb-5">{task.permission.algorithm_provider}</div>
+            <div class="row mt-1 mb-5">
+              {task.permission.algorithm_provider}
+            </div>
           {:else}
             <div class="row mb-3 font-weight-bold">Data Owner</div>
             <div class="row mt-1 mb-5">{task.permission.dataset_provider}</div>
@@ -89,24 +92,26 @@
 
           <div class="row mb-3 font-weight-bold">Permission Information</div>
           <div class="row mt-1 mb-5 pr-3">
-            <PermissionInfo permission={task.permission.permission_type} user={$mode}/>
+            <PermissionInfo
+              permission={task.permission.permission_type}
+              user={$mode} />
           </div>
         </div>
 
         <div class="col-sm-4 h-50">
-          <AlgorithmReport permission={task.permission} />  
+          <AlgorithmReport permission={task.permission} />
 
           <div class="row mb-3 font-weight-bold">Used Dataset</div>
-          <div class="row mt-1 mb-5">{task.permission.dataset}</div>        
+          <div class="row mt-1 mb-5">{task.permission.dataset}</div>
         </div>
 
-        {#if $mode === "data" || task.state === "output_released"}
-        <div class="col-sm-4 pl-0 pr-0" style="height:400px;">
+        {#if $mode === 'data' || task.state === 'output_released'}
+          <div class="col-sm-4 pl-0 pr-0" style="height:400px;">
             <div class="row mb-3 font-weight-bold">Output</div>
             <div class="col-12 border pt-2 h-100 overflow-auto">
               <pre>{task.output || 'No output (yet)…'}</pre>
             </div>
-        </div>
+          </div>
         {/if}
       </div>
 

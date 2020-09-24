@@ -50,23 +50,17 @@
             <br />
             into the "Share with people and groups" dialogue.
           </p>
-          <p>
-            <b>4.</b>
-            Your files should become visible on Data Exchange.
-          </p>
-
+          <p><b>4.</b> Your files should become visible on Data Exchange.</p>
         </div>
         <div class="row w-100 mt-4 mb-3">
           <button
             class="btn col-5 mx-3 py-2 btn-primary rounded-xl font-weight-bold"
             on:click={() => goto(`https://researchdrive.surfsara.nl`)}>
-
             <div class="px-4">Go to ResearchDrive</div>
           </button>
           <button
             class="btn col-4 mx-3 py-2 btn-primary rounded-xl font-weight-bold"
             on:click={() => goto(`/tasks/`)}>
-
             <div class="px-4">See your files</div>
           </button>
         </div>
@@ -106,9 +100,7 @@
             ResearchDrive and can be shared and unshared on your command at any
             time.
           </p>
-
         </div>
-
       </div>
     </div>
   {/if}

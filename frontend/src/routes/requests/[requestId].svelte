@@ -41,7 +41,7 @@
         goto(`/tasks/${taskIdOption.id}`)
       } else {
         currentPermission = permission
-        email.subscribe(e => {
+        email.subscribe((e) => {
           if (
             permission.dataset_provider === e &&
             permission.algorithm_provider === e

@@ -1,6 +1,6 @@
 import os
 import pika
-from surfsara.models import Task
+from surfsara.models import Task, Permission
 from surfsara.messages import StartContainer, AnalyzeArtifact
 
 
@@ -36,7 +36,7 @@ def start(task: Task):
             "storage": task.algorithm_storage,
             "path": {"segments": [task.algorithm]},
         },
-        code_hash=task.permission.algorithm_etag,
+        code_hash=task.permission.algorithm_etag if task.permission == Permission.USER_PERMISSION else None,
     )
 
     channel.basic_publish(

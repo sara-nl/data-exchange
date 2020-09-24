@@ -36,7 +36,9 @@ def start(task: Task):
             "storage": task.algorithm_storage,
             "path": {"segments": [task.algorithm]},
         },
-        code_hash=task.permission.algorithm_etag if task.permission == Permission.USER_PERMISSION else None,
+        code_hash=task.permission.algorithm_etag
+        if task.permission == Permission.USER_PERMISSION
+        else None,
     )
 
     channel.basic_publish(

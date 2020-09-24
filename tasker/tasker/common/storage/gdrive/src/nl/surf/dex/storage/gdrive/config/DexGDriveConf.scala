@@ -14,7 +14,9 @@ object DexGDriveConf extends DexConfig("storage.gdrive") {
 
 }
 
-case class DexGDriveConf(applicationName: String,
-                         credentialsFile: Path,
-                         tokensDirectory: Path,
-                         receiverPort: Int)
+case class DexGDriveConf(
+    applicationName: String,
+    credentialsFile: Path,
+    tokensDirectory: Path,
+    receiverPort: Int
+)

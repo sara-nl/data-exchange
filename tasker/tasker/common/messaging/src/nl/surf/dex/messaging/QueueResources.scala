@@ -8,7 +8,7 @@ import tasker.concurrency.ConcurrencyResources
 object QueueResources {
 
   def rabbitClientResource(
-    conf: BrokerConf
+      conf: BrokerConf
   )(implicit cs: ContextShift[IO]): Resource[IO, RabbitClient[IO]] =
     ConcurrencyResources.blocker.evalMap { blocker =>
       RabbitClient[IO](conf.fs2RabbitConfig, blocker)

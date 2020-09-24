@@ -15,7 +15,7 @@ object DataSet {
   private val logger = Slf4jLogger.getLogger[IO]
 
   def newDatasetsPipe(
-    filesetOpsResFactory: CloudStorage => Resource[IO, FilesetOps]
+      filesetOpsResFactory: CloudStorage => Resource[IO, FilesetOps]
   ): fs2.Pipe[IO, PermissionWithRuns, (NePath, Permission)] =
     (_: fs2.Stream[IO, PermissionWithRuns]).flatMap {
       case (permission, handledDatasetLocations) =>

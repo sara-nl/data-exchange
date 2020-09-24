@@ -25,8 +25,7 @@ object Webdav {
   def makeSardine: Kleisli[Resource[IO, *], DexResearchDriveConf, Sardine] =
     Kleisli(makeSardineR)
 
-  def makeWebdavClient
-    : Kleisli[Resource[IO, *], DexResearchDriveConf, FilesetOps] =
+  def makeWebdavClient: Kleisli[Resource[IO, *], DexResearchDriveConf, FilesetOps] =
     makeSardine.flatMap { sardine =>
       Kleisli { conf =>
         Webdav(sardine, conf)
@@ -36,31 +35,28 @@ object Webdav {
 
 }
 
-case class Webdav(sardine: Sardine, rdConf: DexResearchDriveConf)
-    extends FilesetOps {
+case class Webdav(sardine: Sardine, rdConf: DexResearchDriveConf) extends FilesetOps {
 
   /**
     * Lists path contents (by default -- single level).
     */
-  private[owncloud] def list(path: WebdavPath,
-                             depth: Int = 1): IO[List[DavResource]] = IO {
-    sardine
-      .list(path.toURI.toString, depth)
-      .asScala
-      .toList
-  }
+  private[owncloud] def list(path: WebdavPath, depth: Int = 1): IO[List[DavResource]] =
+    IO {
+      sardine
+        .list(path.toURI.toString, depth)
+        .asScala
+        .toList
+    }
 
   override def listShareFolder(
-    sharePath: Share.NePath
+      sharePath: Share.NePath
   ): IO[List[Share.NePath]] = {
     val shareWebDavPath = rdConf.webdavBase.change(sharePath)
     for {
       childResources <- list(shareWebDavPath)
       _ <- {
         val shareWebdavPath = shareWebDavPath
-        childResources.find(
-          r => rdConf.webdavBase.change(r).equals(shareWebdavPath)
-        ) match {
+        childResources.find(r => rdConf.webdavBase.change(r).equals(shareWebdavPath)) match {
           case Some(r) if r.isDirectory => IO.pure(childResources)
           case _ =>
             IO.raiseError(
@@ -70,11 +66,12 @@ case class Webdav(sardine: Sardine, rdConf: DexResearchDriveConf)
             )
         }
       }
-      paths <- childResources
-        .map(rdConf.webdavBase.change)
-        .filter { _ != shareWebDavPath }
-        .map(wdp => Share.NePath.parseIO(wdp.userPath))
-        .sequence
+      paths <-
+        childResources
+          .map(rdConf.webdavBase.change)
+          .filter { _ != shareWebDavPath }
+          .map(wdp => Share.NePath.parseIO(wdp.userPath))
+          .sequence
     } yield paths
 
   }
@@ -99,8 +96,8 @@ case class Webdav(sardine: Sardine, rdConf: DexResearchDriveConf)
         case r if !r.isDirectory => webdavRoot.change(r)
       }
 
-  override def copySharedFileset(sharePath: Share.NePath, localParent: BFile)(
-    implicit cs: ContextShift[IO]
+  override def copySharedFileset(sharePath: Share.NePath, localParent: BFile)(implicit
+      cs: ContextShift[IO]
   ): IO[BFile] = {
     val remoteTargetWebdavPath = rdConf.webdavBase.change(sharePath)
     fs2.Stream
@@ -111,21 +108,20 @@ case class Webdav(sardine: Sardine, rdConf: DexResearchDriveConf)
       .map(_ => localParent / sharePath.segments.mkString_("/"))
   }
 
-  private val downloadFilesPipe: Pipe[IO, (WebdavPath, Path), BFile] = {
-    msgStream =>
-      for {
-        paths <- msgStream
-        (fromRoot, toRoot) = paths
-        lp <- findAll(fromRoot).evalMap { from =>
-          val toFile = BFile(toRoot) / from.userPath.get
-          Resource
-            .fromAutoCloseable[IO, InputStream](IO {
-              sardine.get(from.toURI.toString)
-            })
-            .use(copyStreamToLocalFile(_, toFile))
-            .map(_ => toFile)
-        }
-      } yield lp
+  private val downloadFilesPipe: Pipe[IO, (WebdavPath, Path), BFile] = { msgStream =>
+    for {
+      paths <- msgStream
+      (fromRoot, toRoot) = paths
+      lp <- findAll(fromRoot).evalMap { from =>
+        val toFile = BFile(toRoot) / from.userPath.get
+        Resource
+          .fromAutoCloseable[IO, InputStream](IO {
+            sardine.get(from.toURI.toString)
+          })
+          .use(copyStreamToLocalFile(_, toFile))
+          .map(_ => toFile)
+      }
+    } yield lp
   }
 
   private def copyStreamToLocalFile(from: InputStream, to: BFile): IO[Unit] =

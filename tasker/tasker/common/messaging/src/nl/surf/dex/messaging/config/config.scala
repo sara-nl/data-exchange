@@ -6,12 +6,7 @@ import dev.profunktor.fs2rabbit.config.declaration.{
   DeclarationQueueConfig
 }
 import dev.profunktor.fs2rabbit.config.{Fs2RabbitConfig, Fs2RabbitNodeConfig}
-import dev.profunktor.fs2rabbit.model.{
-  ExchangeName,
-  ExchangeType,
-  QueueName,
-  RoutingKey
-}
+import dev.profunktor.fs2rabbit.model.{ExchangeName, ExchangeType, QueueName, RoutingKey}
 
 /**
   * This package object contains conversions from the application config

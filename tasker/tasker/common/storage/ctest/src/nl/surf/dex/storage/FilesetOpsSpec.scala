@@ -19,15 +19,21 @@ class FilesetOpsSpec extends AsyncFunSpec with StrictCatsEquality {
   type TestSubj = (CloudStorage, Resource[IO, FilesetOps])
 
   private val gdriveFilesetOps: TestSubj =
-    (CloudStorage.GoogleDrive, Resource.liftF(for {
-      conf <- DexGDriveConf.loadIO
-      ops = GDriveFileset.make(conf)
-    } yield ops))
+    (
+      CloudStorage.GoogleDrive,
+      Resource.liftF(for {
+        conf <- DexGDriveConf.loadIO
+        ops = GDriveFileset.make(conf)
+      } yield ops)
+    )
 
-  private val rdriveFilesetOps: TestSubj = (CloudStorage.ResearchDrive, for {
-    conf <- Resource.liftF(DexResearchDriveConf.loadIO)
-    sardine <- Webdav.makeSardineR(conf)
-  } yield Webdav(sardine, conf))
+  private val rdriveFilesetOps: TestSubj = (
+    CloudStorage.ResearchDrive,
+    for {
+      conf <- Resource.liftF(DexResearchDriveConf.loadIO)
+      sardine <- Webdav.makeSardineR(conf)
+    } yield Webdav(sardine, conf)
+  )
 
   describe("Fileset ops") {
 
@@ -50,11 +56,10 @@ class FilesetOpsSpec extends AsyncFunSpec with StrictCatsEquality {
           it("should return an error when listing an existing file") {
             recoverToSucceededIf[CanNotListException] {
               opsR
-                .use(
-                  ops =>
-                    NePath
-                      .parseIO("coronavirus_dataset.xlsx")
-                      .flatMap(ops.listShareFolder)
+                .use(ops =>
+                  NePath
+                    .parseIO("coronavirus_dataset.xlsx")
+                    .flatMap(ops.listShareFolder)
                 )
                 .unsafeToFuture()
             }
@@ -150,7 +155,7 @@ class FilesetOpsSpec extends AsyncFunSpec with StrictCatsEquality {
                   "README.md",
                   "requirements.txt",
                   "run.py",
-                  "validate.py",
+                  "validate.py"
                 )
               }
             }

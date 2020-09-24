@@ -18,10 +18,12 @@ object OwnCloudShares {
 
   private val logger = Slf4jLogger.getLogger[IO]
 
-  case class Deps(httpClientR: Resource[IO, Client[IO]],
-                  webdavClientR: Resource[IO, FilesetOps],
-                  creds: BasicCredentials,
-                  ocConf: DexResearchDriveConf)
+  case class Deps(
+      httpClientR: Resource[IO, Client[IO]],
+      webdavClientR: Resource[IO, FilesetOps],
+      creds: BasicCredentials,
+      ocConf: DexResearchDriveConf
+  )
 
   def getShares(implicit ec: ContextShift[IO]): Kleisli[IO, Deps, List[Share]] =
     Kleisli {
@@ -59,9 +61,10 @@ object OwnCloudShares {
                     ).pure[IO]
                   case os @ OwncloudShare(_, uid_owner, path, _, _) =>
                     for {
-                      children <- webdav
-                        .asInstanceOf[Webdav]
-                        .list(rdConf.webdavBase.change(path))
+                      children <-
+                        webdav
+                          .asInstanceOf[Webdav]
+                          .list(rdConf.webdavBase.change(path))
                       childrenNames = children.map(_.getPath)
                     } yield {
                       Share(

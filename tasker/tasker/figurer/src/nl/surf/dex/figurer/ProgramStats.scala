@@ -13,13 +13,14 @@ object ProgramStats {
   val nothing = ProgramStats(0, 0, 0, Set.empty, Map.empty, Map.empty)
 
   // Internals
-  case class Imports(foundImports: immutable.Set[String],
-                     skippedFiles: List[String] = Nil)
+  case class Imports(foundImports: immutable.Set[String], skippedFiles: List[String] = Nil)
 
   // Persistence
-  def storeStats(id: Int,
-                 hash: Fileset.Hash,
-                 stats: ProgramStats): Kleisli[IO, Transactor[IO], Unit] = {
+  def storeStats(
+      id: Int,
+      hash: Fileset.Hash,
+      stats: ProgramStats
+  ): Kleisli[IO, Transactor[IO], Unit] = {
     import io.circe.generic.auto._
     Permissions.updateStats(id, hash, stats).flatMapF {
       case 1  => IO.unit // success
@@ -36,13 +37,15 @@ object ProgramStats {
     )
 }
 
-case class ProgramStats(lines: Int,
-                        words: Int,
-                        chars: Int,
-                        imports: Set[String],
-                        skippedImports: Map[String, String],
-                        //This is probably not a very good idea
-                        // to store contents of the file here,
-                        // but since the rest of the app heavily depends on it,
-                        // keeping things as they are.
-                        contents: Map[String, String])
+case class ProgramStats(
+    lines: Int,
+    words: Int,
+    chars: Int,
+    imports: Set[String],
+    skippedImports: Map[String, String],
+    //This is probably not a very good idea
+    // to store contents of the file here,
+    // but since the rest of the app heavily depends on it,
+    // keeping things as they are.
+    contents: Map[String, String]
+)

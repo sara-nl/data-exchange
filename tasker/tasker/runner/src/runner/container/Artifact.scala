@@ -29,9 +29,7 @@ object Artifact {
 
   case class OutputData(location: Location) extends Artifact
 
-  case class Algorithm(location: Location,
-                       executable: Location,
-                       requirements: Option[Location])
+  case class Algorithm(location: Location, executable: Location, requirements: Option[Location])
       extends Artifact
 
   def output(location: Location) = OutputData(location).pure[IO]
@@ -46,10 +44,9 @@ object Artifact {
     (for {
       exists <- location.exists
       isDir <- location.isDirectory
-      depsFileOption <- depsLocation.exists.map(
-        e =>
-          if (e) Some(depsLocation)
-          else None
+      depsFileOption <- depsLocation.exists.map(e =>
+        if (e) Some(depsLocation)
+        else None
       )
     } yield (exists, isDir, depsFileOption)).flatMap {
       case (false, _, _) =>

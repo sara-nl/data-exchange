@@ -24,45 +24,49 @@ object FigurerApp extends IOApp {
   private def handleMessages: Kleisli[IO, Deps, Unit] = {
     val tmpDirR = LocalFS.tempDir("figurer".some)
     Kleisli { deps =>
-      QueueResources.rabbitClientResource(deps.msgConf.broker).use {
-        implicit rabbit =>
-          rabbit.createConnectionChannel.use { implicit channel =>
-            import io.circe.generic.auto._
-            for {
-              _ <- Direct.declareAndBind(deps.msgConf.analyze)
-              consumer <- Direct
+      QueueResources.rabbitClientResource(deps.msgConf.broker).use { implicit rabbit =>
+        rabbit.createConnectionChannel.use { implicit channel =>
+          import io.circe.generic.auto._
+          for {
+            _ <- Direct.declareAndBind(deps.msgConf.analyze)
+            consumer <-
+              Direct
                 .consumer[AnalyzeAlgorithm](deps.msgConf.analyze)
-              _ <- consumer
+            _ <-
+              consumer
                 .evalMap(command => {
                   for {
                     _ <- logger.debug(s"Handling a new message: $command")
-                    algorithmLocation <- Permissions
-                      .algorithmLocation(command.permission_id)
-                      .run(deps.transactor)
+                    algorithmLocation <-
+                      Permissions
+                        .algorithmLocation(command.permission_id)
+                        .run(deps.transactor)
                     (hash, stats) <- (for {
-                      tempDir <- tmpDirR
-                      filesetOps <- DexFileset
-                        .forStorage(algorithmLocation.storage)
-                      entryFile <- Resource.liftF(
-                        filesetOps
-                          .copySharedFileset(algorithmLocation.path, tempDir)
-                      )
-                      hash <- Resource.liftF(
-                        filesetOps.getFilesetHash(algorithmLocation.path)
-                      )
-                      pythonProgram <- Resource.liftF(PythonProgram(entryFile))
-                      stats <- Resource.liftF(collectStats(pythonProgram))
-                    } yield (hash, stats)).use(IO.pure)
-                    _ <- logger
-                      .debug(s"Algorithm analysis completed. Hash: $hash")
+                        tempDir <- tmpDirR
+                        filesetOps <-
+                          DexFileset
+                            .forStorage(algorithmLocation.storage)
+                        entryFile <- Resource.liftF(
+                          filesetOps
+                            .copySharedFileset(algorithmLocation.path, tempDir)
+                        )
+                        hash <- Resource.liftF(
+                          filesetOps.getFilesetHash(algorithmLocation.path)
+                        )
+                        pythonProgram <- Resource.liftF(PythonProgram(entryFile))
+                        stats <- Resource.liftF(collectStats(pythonProgram))
+                      } yield (hash, stats)).use(IO.pure)
+                    _ <-
+                      logger
+                        .debug(s"Algorithm analysis completed. Hash: $hash")
                     _ <- storeStats(command.permission_id, hash, stats)
                       .run(deps.transactor) // Provide transactor
                   } yield ()
                 })
                 .compile
                 .drain
-            } yield IO(())
-          }
+          } yield IO(())
+        }
       }
     }
   }

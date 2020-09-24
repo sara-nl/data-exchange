@@ -11,12 +11,14 @@ object RunnerConf extends DexConfig("runner") {
     Blocker[IO].use(configSrc.loadF[IO, RunnerConf])
   }
 
-  case class DockerConf(image: String,
-                        indexFile: String,
-                        requirementsFile: String,
-                        containerCodePath: String,
-                        containerDataPath: String,
-                        containerOutPath: String)
+  case class DockerConf(
+      image: String,
+      indexFile: String,
+      requirementsFile: String,
+      containerCodePath: String,
+      containerDataPath: String,
+      containerOutPath: String
+  )
 
 }
 

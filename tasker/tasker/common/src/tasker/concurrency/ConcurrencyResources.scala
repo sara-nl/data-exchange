@@ -29,16 +29,18 @@ object ConcurrencyResources {
       )
     )
 
-  def newFixedContextShift(label: String): ContextShift[IO] = IO.contextShift(
-    fromExecutor(
-      Executors.newFixedThreadPool(10, new DefaultThreadFactory(label, true))
+  def newFixedContextShift(label: String): ContextShift[IO] =
+    IO.contextShift(
+      fromExecutor(
+        Executors.newFixedThreadPool(10, new DefaultThreadFactory(label, true))
+      )
     )
-  )
 
-  def newTimer(label: String): Timer[IO] = IO.timer(
-    fromExecutor(
-      Executors
-        .newFixedThreadPool(3, new DefaultThreadFactory(label, true))
+  def newTimer(label: String): Timer[IO] =
+    IO.timer(
+      fromExecutor(
+        Executors
+          .newFixedThreadPool(3, new DefaultThreadFactory(label, true))
+      )
     )
-  )
 }

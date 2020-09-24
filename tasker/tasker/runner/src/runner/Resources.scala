@@ -9,12 +9,7 @@ import runner.RunnerConf.DockerConf
 import runner.container.Artifact.Location
 import runner.container.docker.Ids.ImageId
 import runner.container.docker.{DockerOps, Ids}
-import runner.container.{
-  Artifact,
-  ContainerCommand,
-  ContainerEnv,
-  ContainerState
-}
+import runner.container.{Artifact, ContainerCommand, ContainerEnv, ContainerState}
 import better.files.{File => BFile}
 import cats.implicits._
 import nl.surf.dex.storage.local.LocalFS
@@ -26,9 +21,10 @@ object Resources {
     * Acquire: temp dir created.
     * Release: temp dir recursively deleted.
     */
-  def containerEnv(startContainerCmd: Messages.StartContainer,
-                   dockerConf: DockerConf,
-                   filesetOpsFactory: CloudStorage => Resource[IO, FilesetOps],
+  def containerEnv(
+      startContainerCmd: Messages.StartContainer,
+      dockerConf: DockerConf,
+      filesetOpsFactory: CloudStorage => Resource[IO, FilesetOps]
   )(implicit cs: ContextShift[IO]): Resource[IO, ContainerEnv] =
     LocalFS.tempDir.evalMap { tempHome =>
       val algorithmLocation = Location(
@@ -77,19 +73,20 @@ object Resources {
     * Acquire: If necessary - container is created, dependencies installed, image created.
     * Release: If necessary - container and image removed.
     */
-  def bakedImageWithDeps(containerEnv: ContainerEnv, dockerConf: DockerConf)(
-    implicit F: ConcurrentEffect[IO]
+  def bakedImageWithDeps(containerEnv: ContainerEnv, dockerConf: DockerConf)(implicit
+      F: ConcurrentEffect[IO]
   ): Resource[IO, Either[ContainerState, ImageId]] =
     containerEnv.algorithm.requirements match {
       case Some(requirementsLocation) =>
         for {
           reqContainerPath <- Resource.liftF(requirementsLocation.containerPath)
-          containerId <- DockerOps
-            .startedContainer(
-              containerEnv,
-              ContainerCommand.installDeps(reqContainerPath),
-              Ids.ImageId(dockerConf.image)
-            )
+          containerId <-
+            DockerOps
+              .startedContainer(
+                containerEnv,
+                ContainerCommand.installDeps(reqContainerPath),
+                Ids.ImageId(dockerConf.image)
+              )
           containerState <- Resource.liftF(
             DockerOps.terminalStateIO(containerId)
           )

@@ -12,7 +12,9 @@ object DexMessagingConf extends DexConfig("messaging") {
 
 }
 
-case class DexMessagingConf(broker: BrokerConf,
-                            todo: QueueConf,
-                            done: QueueConf,
-                            analyze: QueueConf)
+case class DexMessagingConf(
+    broker: BrokerConf,
+    todo: QueueConf,
+    done: QueueConf,
+    analyze: QueueConf
+)

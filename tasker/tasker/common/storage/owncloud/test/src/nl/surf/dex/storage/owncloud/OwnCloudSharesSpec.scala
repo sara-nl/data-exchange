@@ -28,12 +28,11 @@ class OwnCloudSharesSpec extends AsyncFunSpec with StrictCatsEquality {
         conf <- DexResearchDriveConf.loadIO
         shares <- OwnCloudShares.getShares.run(
           Deps(
-            httpClientR =
-              BlazeClientBuilder[IO](ExecutionContext.global).resource,
+            httpClientR = BlazeClientBuilder[IO](ExecutionContext.global).resource,
             Webdav.makeWebdavClient.run(conf),
             BasicCredentials(conf.webdavUsername, conf.webdavPassword),
             conf
-          ),
+          )
         )
       } yield {
         val foundShares = shares.map(_.path)

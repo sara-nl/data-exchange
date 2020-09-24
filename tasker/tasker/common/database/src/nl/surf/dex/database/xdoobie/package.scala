@@ -11,11 +11,10 @@ import org.postgresql.util.PGobject
   */
 package object xdoobie {
   implicit val jsonPut: Put[Json] =
-    Put.Advanced.other[PGobject](NonEmptyList.of("json")).tcontramap[Json] {
-      j =>
-        new PGobject {
-          setType("json")
-          setValue(j.noSpaces)
-        }
+    Put.Advanced.other[PGobject](NonEmptyList.of("json")).tcontramap[Json] { j =>
+      new PGobject {
+        setType("json")
+        setValue(j.noSpaces)
+      }
     }
 }

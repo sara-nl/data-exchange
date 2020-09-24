@@ -17,25 +17,24 @@ object RunnerApp extends IOApp {
     for {
       _ <- logger.info("Runner started")
       (messagingConf, conf) <- (DexMessagingConf.loadIO, RunnerConf.loadIO).parTupled
-      _ <- QueueResources.rabbitClientResource(messagingConf.broker).use {
-        implicit rabbit =>
-          rabbit.createConnectionChannel.use { implicit channel =>
-            for {
-              _ <- Direct.declareAndBind(messagingConf.todo)
-              consumer <- {
-                import nl.surf.dex.storage.CloudStorage.codec._
-                Direct.consumer[StartContainer](messagingConf.todo)
-              }
-              _ <- Direct.declareAndBind(messagingConf.done)
-              publisher <- {
-                import TaskProgress.codecs._
-                Direct.publisher[TaskProgress](messagingConf.done)
-              }
-              _ <- new SecureContainerFlow(
-                Deps(consumer, publisher, DexFileset.forStorage, conf.docker)
-              ).flow.compile.drain
-            } yield ()
-          }
+      _ <- QueueResources.rabbitClientResource(messagingConf.broker).use { implicit rabbit =>
+        rabbit.createConnectionChannel.use { implicit channel =>
+          for {
+            _ <- Direct.declareAndBind(messagingConf.todo)
+            consumer <- {
+              import nl.surf.dex.storage.CloudStorage.codec._
+              Direct.consumer[StartContainer](messagingConf.todo)
+            }
+            _ <- Direct.declareAndBind(messagingConf.done)
+            publisher <- {
+              import TaskProgress.codecs._
+              Direct.publisher[TaskProgress](messagingConf.done)
+            }
+            _ <- new SecureContainerFlow(
+              Deps(consumer, publisher, DexFileset.forStorage, conf.docker)
+            ).flow.compile.drain
+          } yield ()
+        }
       }
     } yield ExitCode.Success
 }

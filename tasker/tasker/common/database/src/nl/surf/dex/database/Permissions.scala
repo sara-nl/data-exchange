@@ -33,40 +33,31 @@ object Permissions {
          |  AND permission.permission_type = 'stream permission'""".stripMargin
 
   private type ActiveStreamingWithRunsQR =
-    (Int,
-     String,
-     String,
-     String,
-     String,
-     String,
-     String,
-     String,
-     Option[String],
-     Option[String])
+    (Int, String, String, String, String, String, String, String, Option[String], Option[String])
 
   // Functions
-  def activeStreamingWithRuns
-    : Kleisli[IO, Transactor[IO], List[PermissionWithRuns]] =
+  def activeStreamingWithRuns: Kleisli[IO, Transactor[IO], List[PermissionWithRuns]] =
     Kleisli { transactor =>
       for {
-        queryResults <- activeStreamingWithRunsQ
-          .query[ActiveStreamingWithRunsQR]
-          .stream
-          .compile
-          .toList
-          .transact(transactor)
+        queryResults <-
+          activeStreamingWithRunsQ
+            .query[ActiveStreamingWithRunsQR]
+            .stream
+            .compile
+            .toList
+            .transact(transactor)
         permissionsWithRuns <- queryResults.traverse {
           case (
-              permissionId,
-              algorithmProvider,
-              datasetProvider,
-              algorithm,
-              algorithmStorage,
-              algorithmETag,
-              permissionDataset,
-              permissionDatasetStorage,
-              taskDatasetOption,
-              taskDatasetStorageOption
+                permissionId,
+                algorithmProvider,
+                datasetProvider,
+                algorithm,
+                algorithmStorage,
+                algorithmETag,
+                permissionDataset,
+                permissionDatasetStorage,
+                taskDatasetOption,
+                taskDatasetStorageOption
               ) =>
             for {
               algorithmLocation <- Location.parseIO(algorithmStorage, algorithm)
@@ -75,28 +66,26 @@ object Permissions {
                 permissionDataset
               )
               taskDatasetLocation <- (
-                taskDatasetStorageOption,
-                taskDatasetOption
+                  taskDatasetStorageOption,
+                  taskDatasetOption
               ).tupled.traverse {
                 Function.tupled(Location.parseIO)
               }
-            } yield
-              (
-                Permission(
-                  permissionId,
-                  algorithmProvider,
-                  datasetProvider,
-                  algorithmLocation,
-                  algorithmETag,
-                  datasetLocation
-                ),
-                taskDatasetLocation
-              )
+            } yield (
+              Permission(
+                permissionId,
+                algorithmProvider,
+                datasetProvider,
+                algorithmLocation,
+                algorithmETag,
+                datasetLocation
+              ),
+              taskDatasetLocation
+            )
         }
-      } yield
-        permissionsWithRuns
-          .groupMapReduce(key = _._1)(_._2.toList)(_ ::: _)
-          .toList
+      } yield permissionsWithRuns
+        .groupMapReduce(key = _._1)(_._2.toList)(_ ::: _)
+        .toList
     }
 
   def algorithmLocation(id: Int): Kleisli[IO, Transactor[IO], Share.Location] =
@@ -108,9 +97,7 @@ object Permissions {
         .flatMap(Function.tupled(Location.parseIO))
     }
 
-  def updateStats[S: Encoder](id: Int,
-                              hash: Hash,
-                              stats: S): Kleisli[IO, Transactor[IO], Int] = {
+  def updateStats[S: Encoder](id: Int, hash: Hash, stats: S): Kleisli[IO, Transactor[IO], Int] = {
     Kleisli { transactor =>
       import xdoobie.jsonPut
       sql"""UPDATE surfsara_permission 

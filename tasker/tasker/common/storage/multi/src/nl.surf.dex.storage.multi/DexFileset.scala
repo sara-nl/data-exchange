@@ -10,8 +10,8 @@ import nl.surf.dex.storage.{CloudStorage, FilesetOps}
 
 object DexFileset {
 
-  private def availableStorages(
-    implicit cs: ContextShift[IO]
+  private def availableStorages(implicit
+      cs: ContextShift[IO]
   ): Map[CloudStorage, Resource[IO, FilesetOps]] =
     Map(
       ResearchDrive -> (for {
@@ -25,20 +25,21 @@ object DexFileset {
     )
 
   def forStorage(
-    storage: CloudStorage
+      storage: CloudStorage
   )(implicit cs: ContextShift[IO]): Resource[IO, FilesetOps] =
     for {
-      storage <- availableStorages
-        .getOrElse(
-          storage,
-          Resource.liftF[IO, FilesetOps](
-            IO.raiseError(
-              new RuntimeException(
-                s"Can not find fileset ops service for $storage"
+      storage <-
+        availableStorages
+          .getOrElse(
+            storage,
+            Resource.liftF[IO, FilesetOps](
+              IO.raiseError(
+                new RuntimeException(
+                  s"Can not find fileset ops service for $storage"
+                )
               )
             )
           )
-        )
     } yield storage
 
 }

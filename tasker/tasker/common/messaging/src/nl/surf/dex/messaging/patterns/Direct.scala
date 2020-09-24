@@ -9,16 +9,18 @@ import nl.surf.dex.messaging.config.QueueConf
 
 object Direct {
 
-  def declareAndBind(conf: QueueConf)(implicit rabbit: RabbitClient[IO],
-                                      channel: AMQPChannel): IO[Unit] = {
+  def declareAndBind(
+      conf: QueueConf
+  )(implicit rabbit: RabbitClient[IO], channel: AMQPChannel): IO[Unit] = {
     val (queueName, exchangeName, routingKey) = conf.asTuple
     rabbit.declareQueue(conf.queueConfig) *>
       rabbit.declareExchange(conf.exchangeConfig) *>
       rabbit.bindQueue(queueName, exchangeName, routingKey)
   }
 
-  def consumer[M: Decoder](conf: QueueConf)(implicit rabbit: RabbitClient[IO],
-                                            channel: AMQPChannel) = {
+  def consumer[M: Decoder](
+      conf: QueueConf
+  )(implicit rabbit: RabbitClient[IO], channel: AMQPChannel) = {
     val (queueName, exchangeName, routingKey) = conf.asTuple
     rabbit.bindQueue(queueName, exchangeName, routingKey) *>
       rabbit
@@ -31,8 +33,9 @@ object Direct {
 
   }
 
-  def publisher[M: Encoder](conf: QueueConf)(implicit rabbit: RabbitClient[IO],
-                                             channel: AMQPChannel) = {
+  def publisher[M: Encoder](
+      conf: QueueConf
+  )(implicit rabbit: RabbitClient[IO], channel: AMQPChannel) = {
     val (_, exchangeName, routingKey) = conf.asTuple
 
     rabbit.createPublisher(exchangeName, routingKey)(

@@ -10,17 +10,16 @@ object ContainerCommand {
       stdoutContainerPath <- env.stdout.flatMap(_.containerPath)
       stderrContainerPath <- env.stderr.flatMap(_.containerPath)
       straceContainerPath <- env.strace.flatMap(_.containerPath)
-    } yield
-      ContainerCommand(
-        "/app/tracerun.sh",
-        List(
-          algorithmContainerPath.toString,
-          inputContainerPath.toString,
-          stdoutContainerPath.toString,
-          stderrContainerPath.toString,
-          straceContainerPath.toString
-        )
+    } yield ContainerCommand(
+      "/app/tracerun.sh",
+      List(
+        algorithmContainerPath.toString,
+        inputContainerPath.toString,
+        stdoutContainerPath.toString,
+        stderrContainerPath.toString,
+        straceContainerPath.toString
       )
+    )
 
   def installDeps(requirementsContainerPath: Path) =
     ContainerCommand(
@@ -33,8 +32,10 @@ object ContainerCommand {
 /**
   * Represents a command that can be executed in a container.
   */
-case class ContainerCommand(executable: String,
-                            arguments: List[String],
-                            secureContainer: Boolean = true) {
+case class ContainerCommand(
+    executable: String,
+    arguments: List[String],
+    secureContainer: Boolean = true
+) {
   def toArgs = executable :: arguments
 }

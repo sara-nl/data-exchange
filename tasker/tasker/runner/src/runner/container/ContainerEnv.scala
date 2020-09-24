@@ -6,9 +6,7 @@ import runner.container.Artifact._
 /**
   * Container environment
   */
-case class ContainerEnv(algorithm: Algorithm,
-                        input: InputData,
-                        output: OutputData) {
+case class ContainerEnv(algorithm: Algorithm, input: InputData, output: OutputData) {
   def stdout: IO[Location] =
     output.location
       .child("stdout.txt")

@@ -24,17 +24,16 @@ private[gdrive] object GDriveClient {
 
   val makeClientK: Kleisli[IO, DexGDriveConf, Drive] =
     Kleisli { conf =>
-      IO(BFile(conf.credentialsFile).newFileInputStream).bracket(
-        is =>
-          IO(
-            new Drive.Builder(
-              httpTransport,
-              jsonFactory,
-              GoogleCredential
-                .fromStream(is)
-                .createScoped(scopes.asJavaCollection)
-            ).setApplicationName(conf.applicationName)
-              .build()
+      IO(BFile(conf.credentialsFile).newFileInputStream).bracket(is =>
+        IO(
+          new Drive.Builder(
+            httpTransport,
+            jsonFactory,
+            GoogleCredential
+              .fromStream(is)
+              .createScoped(scopes.asJavaCollection)
+          ).setApplicationName(conf.applicationName)
+            .build()
         )
       ) { is =>
         IO(is.close())

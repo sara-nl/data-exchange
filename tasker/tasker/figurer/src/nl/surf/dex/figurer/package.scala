@@ -59,8 +59,7 @@ package object figurer {
                 lines = pStats.lines + fileContent.split("\r\n|\r|\n").length,
                 words = pStats.words + fileContent.split("\\W+").length,
                 chars = pStats.chars + fileContent.length,
-                contents =
-                  pStats.contents.updated(userPath, file.contentAsString)
+                contents = pStats.contents.updated(userPath, file.contentAsString)
               )
       }
 

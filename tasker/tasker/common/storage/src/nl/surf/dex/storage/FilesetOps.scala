@@ -30,8 +30,8 @@ trait FilesetOps {
     * E.g.: Share.Path(photos) => Local directory "photos" is returned;
     *
     */
-  def copySharedFileset(sharePath: Share.NePath, localParent: BFile)(
-    implicit cs: ContextShift[IO]
+  def copySharedFileset(sharePath: Share.NePath, localParent: BFile)(implicit
+      cs: ContextShift[IO]
   ): IO[BFile]
 
   def listShareFolder(sharePath: Share.NePath): IO[List[Share.NePath]]

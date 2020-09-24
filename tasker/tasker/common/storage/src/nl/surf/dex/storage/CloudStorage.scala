@@ -18,9 +18,8 @@ object CloudStorage {
     implicit val storageEncode: Encoder[CloudStorage] =
       Encoder[String].contramap { _.id }
 
-    implicit val storageDecode: Decoder[CloudStorage] = Decoder[String].emap {
-      label =>
-        parseLabel(label).left.map(_.getMessage)
+    implicit val storageDecode: Decoder[CloudStorage] = Decoder[String].emap { label =>
+      parseLabel(label).left.map(_.getMessage)
     }
 
     def parseLabel(s: String): Either[Throwable, CloudStorage] =

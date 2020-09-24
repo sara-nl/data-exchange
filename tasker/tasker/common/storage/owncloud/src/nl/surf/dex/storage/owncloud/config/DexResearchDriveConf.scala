@@ -26,9 +26,11 @@ object DexResearchDriveConf extends DexConfig("storage.research-drive") {
 
 }
 
-case class DexResearchDriveConf(webdavUsername: String,
-                                webdavPassword: String,
-                                sharesSource: Url,
-                                fileBrowser: FileBrowserConf,
-                                maxFolderDepth: Short,
-                                webdavBase: WebdavPath)
+case class DexResearchDriveConf(
+    webdavUsername: String,
+    webdavPassword: String,
+    sharesSource: Url,
+    fileBrowser: FileBrowserConf,
+    maxFolderDepth: Short,
+    webdavBase: WebdavPath
+)

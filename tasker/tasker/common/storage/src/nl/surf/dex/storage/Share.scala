@@ -10,10 +10,11 @@ case object Share {
   object NePath {
     def apply(head: String): NePath = NePath(NonEmptyList(head, Nil))
 
-    def parseIO(so: Option[String]): IO[NePath] = so match {
-      case None    => IO.raiseError(errors.invalidPathNone)
-      case Some(s) => parseIO(s)
-    }
+    def parseIO(so: Option[String]): IO[NePath] =
+      so match {
+        case None    => IO.raiseError(errors.invalidPathNone)
+        case Some(s) => parseIO(s)
+      }
 
     def parseIO(s: String) =
       IO.fromOption(NonEmptyList.fromList(s.split("/").toList))(
@@ -50,9 +51,11 @@ case object Share {
 
 }
 
-case class Share(storage: CloudStorage,
-                 path: String,
-                 isAlgorithm: Boolean,
-                 isDirectory: Boolean,
-                 owner: String,
-                 webLink: String)
+case class Share(
+    storage: CloudStorage,
+    path: String,
+    isAlgorithm: Boolean,
+    isDirectory: Boolean,
+    owner: String,
+    webLink: String
+)

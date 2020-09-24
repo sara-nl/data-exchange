@@ -14,15 +14,18 @@ object SharesConf extends DexConfig("shares") {
     blocker.use(configSrc.loadF[IO, SharesConf])
   }
 
-  case class ServerConf(idleTimeout: FiniteDuration,
-                        responseHeaderTimeout: FiniteDuration)
+  case class ServerConf(idleTimeout: FiniteDuration, responseHeaderTimeout: FiniteDuration)
 
-  case class ClientConf(idleTimeout: FiniteDuration,
-                        requestTimeout: FiniteDuration,
-                        connectionTimeout: FiniteDuration,
-                        responseHeaderTimeout: FiniteDuration)
+  case class ClientConf(
+      idleTimeout: FiniteDuration,
+      requestTimeout: FiniteDuration,
+      connectionTimeout: FiniteDuration,
+      responseHeaderTimeout: FiniteDuration
+  )
 }
 
-case class SharesConf(server: ServerConf,
-                      client: ClientConf,
-                      update: ActiveReadThroughCache.Settings)
+case class SharesConf(
+    server: ServerConf,
+    client: ClientConf,
+    update: ActiveReadThroughCache.Settings
+)

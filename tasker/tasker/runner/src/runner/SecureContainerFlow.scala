@@ -8,12 +8,7 @@ import nl.surf.dex.messaging.Messages._
 import runner.RunnerConf.DockerConf
 import runner.container.Artifact.Location
 import runner.container.docker.DockerOps
-import runner.container.{
-  ContainerCommand,
-  ContainerEnv,
-  ContainerState,
-  LogMessages
-}
+import runner.container.{ContainerCommand, ContainerEnv, ContainerState, LogMessages}
 import runner.utils.FilesIO
 import tasker.concurrency.ConcurrencyResources.implicits.ctxShiftGlobal
 import cats.implicits._
@@ -80,62 +75,61 @@ class SecureContainerFlow(deps: Deps) {
   ): Kleisli[IO, CloudStorage => Resource[IO, FilesetOps], TaskProgress] =
     Kleisli { filesetOpsFactory =>
       deps.publisher(TaskProgress.running(msg.taskId, Step.DownloadingFiles)) *>
-        Resources.containerEnv(msg, deps.dockerConf, filesetOpsFactory).use {
-          containerEnv =>
-            for {
-              _ <- logger.debug(s"Container environment: $containerEnv")
-              _ <-
-                deps
-                  .publisher(
-                    TaskProgress.running(msg.taskId, Step.CreatingContainer)
-                  )
-              endState <- runAlgorithm(containerEnv, msg.taskId)
-              stdoutContent <- readText(containerEnv.stdout)
-              stderrContent <- readText(containerEnv.stderr)
-              straceContent <- readText(containerEnv.strace)
-              _ <-
-                logger
-                  .debug(
-                    LogMessages.largeOutputWithNewlines("STDOUT", stdoutContent)
-                  )
-              _ <-
-                logger
-                  .debug(
-                    LogMessages.largeOutputWithNewlines("STDERR", stderrContent)
-                  )
-              _ <-
-                logger
-                  .trace(
-                    LogMessages.largeOutputWithNewlines("STRACE", straceContent)
-                  )
-              algorithmOutput = AlgorithmOutput(
-                stdoutContent,
-                stderrContent,
-                straceContent
-              )
-              _ <-
-                deps
-                  .publisher(TaskProgress.running(msg.taskId, Step.CleaningUp))
-            } yield endState match {
-              case ContainerState.Exited(0, _, _) =>
-                Messages.TaskProgress
-                  .success(msg.taskId, algorithmOutput)
-              case ContainerState.Exited(x, _, _) =>
-                Messages.TaskProgress
-                  .error(
-                    msg.taskId,
-                    s"Container exited with a non-zero code $x.",
-                    algorithmOutput,
-                    Step.ExecutingAlgorithm
-                  )
-              case ContainerState.Unknown =>
-                Messages.TaskProgress.error(
+        Resources.containerEnv(msg, deps.dockerConf, filesetOpsFactory).use { containerEnv =>
+          for {
+            _ <- logger.debug(s"Container environment: $containerEnv")
+            _ <-
+              deps
+                .publisher(
+                  TaskProgress.running(msg.taskId, Step.CreatingContainer)
+                )
+            endState <- runAlgorithm(containerEnv, msg.taskId)
+            stdoutContent <- readText(containerEnv.stdout)
+            stderrContent <- readText(containerEnv.stderr)
+            straceContent <- readText(containerEnv.strace)
+            _ <-
+              logger
+                .debug(
+                  LogMessages.largeOutputWithNewlines("STDOUT", stdoutContent)
+                )
+            _ <-
+              logger
+                .debug(
+                  LogMessages.largeOutputWithNewlines("STDERR", stderrContent)
+                )
+            _ <-
+              logger
+                .trace(
+                  LogMessages.largeOutputWithNewlines("STRACE", straceContent)
+                )
+            algorithmOutput = AlgorithmOutput(
+              stdoutContent,
+              stderrContent,
+              straceContent
+            )
+            _ <-
+              deps
+                .publisher(TaskProgress.running(msg.taskId, Step.CleaningUp))
+          } yield endState match {
+            case ContainerState.Exited(0, _, _) =>
+              Messages.TaskProgress
+                .success(msg.taskId, algorithmOutput)
+            case ContainerState.Exited(x, _, _) =>
+              Messages.TaskProgress
+                .error(
                   msg.taskId,
-                  "Container ended up in an unknown state. Please contact the development team.",
+                  s"Container exited with a non-zero code $x.",
                   algorithmOutput,
                   Step.ExecutingAlgorithm
                 )
-            }
+            case ContainerState.Unknown =>
+              Messages.TaskProgress.error(
+                msg.taskId,
+                "Container ended up in an unknown state. Please contact the development team.",
+                algorithmOutput,
+                Step.ExecutingAlgorithm
+              )
+          }
         }
     }
 

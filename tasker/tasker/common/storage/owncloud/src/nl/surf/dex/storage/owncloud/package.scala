@@ -10,8 +10,7 @@ package object owncloud {
     /**
       * Syntactic sugar for stripping quotes from Owncloud's ETag
       */
-    implicit class DavResourceWithConversions(val r: DavResource)
-        extends AnyVal {
+    implicit class DavResourceWithConversions(val r: DavResource) extends AnyVal {
       def getSafeHash: Hash =
         Hash(r.getEtag.stripSuffix("\"").stripPrefix("\""))
     }

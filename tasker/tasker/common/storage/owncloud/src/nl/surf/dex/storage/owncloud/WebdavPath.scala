@@ -16,9 +16,7 @@ object WebdavPath {
 
 }
 
-case class WebdavPath(serverUri: URI,
-                      serverSuffix: String,
-                      userPath: Option[String] = None)
+case class WebdavPath(serverUri: URI, serverSuffix: String, userPath: Option[String] = None)
     extends WithToUrl {
 
   def toURI: URI = {
@@ -38,7 +36,6 @@ case class WebdavPath(serverUri: URI,
 
   def change(resource: DavResource): WebdavPath =
     copy(
-      userPath =
-        Some(resource.getPath.stripSuffix("/").replace(serverSuffix, ""))
+      userPath = Some(resource.getPath.stripSuffix("/").replace(serverSuffix, ""))
     )
 }

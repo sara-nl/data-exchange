@@ -15,23 +15,22 @@ object DockerOps {
   private val dockerClient = DockerClientBuilder.getInstance().build()
 
   def terminalStateIO(
-    containerId: ContainerId
+      containerId: ContainerId
   )(implicit F: ConcurrentEffect[IO]): IO[ContainerState] =
     for {
       lastStatusOption <- lastStatusIO(containerId)
       output <- outputStream(containerId)
-    } yield
-      lastStatusOption match {
-        case Some((dockerState, exitCode)) =>
-          ContainerState.Exited(exitCode, dockerState, output)
-        case _ => ContainerState.Unknown
-      }
+    } yield lastStatusOption match {
+      case Some((dockerState, exitCode)) =>
+        ContainerState.Exited(exitCode, dockerState, output)
+      case _ => ContainerState.Unknown
+    }
 
   /**
     * Returns IO of the last state and the exit code.
     */
   private def lastStatusIO(
-    containerId: ContainerId
+      containerId: ContainerId
   ): IO[Option[(String, Int)]] =
     DockerOps
       .statusStream(containerId)
@@ -39,7 +38,7 @@ object DockerOps {
       .last
 
   private def statusStream(
-    containerId: ContainerId
+      containerId: ContainerId
   ): fs2.Stream[IO, (String, Int)] = {
     fs2.Stream
       .eval(IO {
@@ -55,7 +54,7 @@ object DockerOps {
   }
 
   private def outputStream(
-    containerId: ContainerId
+      containerId: ContainerId
   )(implicit F: ConcurrentEffect[IO]): IO[String] = {
     import fs2.concurrent._
 
@@ -83,10 +82,11 @@ object DockerOps {
           .awaitCompletion()
       }
       _ <- q.enqueue1(None)
-      lastOption <- q.dequeue
-        .reduce[String]((l1: String, l2: String) => s"$l1\n$l2")
-        .compile
-        .last
+      lastOption <-
+        q.dequeue
+          .reduce[String]((l1: String, l2: String) => s"$l1\n$l2")
+          .compile
+          .last
     } yield lastOption.getOrElse("")
   }
 
@@ -121,12 +121,15 @@ object DockerOps {
     * Acquire: creates a new container and executes the command.
     * Release: removes the container.
     */
-  def startedContainer(containerEnv: ContainerEnv,
-                       cmd: ContainerCommand,
-                       imageId: ImageId): Resource[IO, ContainerId] =
+  def startedContainer(
+      containerEnv: ContainerEnv,
+      cmd: ContainerCommand,
+      imageId: ImageId
+  ): Resource[IO, ContainerId] =
     Resource.make(for {
-      containerId <- DockerOps
-        .createContainer(containerEnv, cmd, imageId)
+      containerId <-
+        DockerOps
+          .createContainer(containerEnv, cmd, imageId)
       _ <- startContainer(containerId)
     } yield containerId)(removeContainer)
 
@@ -138,9 +141,11 @@ object DockerOps {
   def imageFromContainer(containerId: ContainerId): Resource[IO, ImageId] =
     Resource.make(createImage(containerId))(removeImage)
 
-  private def createContainer(containerEnv: ContainerEnv,
-                              command: ContainerCommand,
-                              imageId: ImageId): IO[ContainerId] = {
+  private def createContainer(
+      containerEnv: ContainerEnv,
+      command: ContainerCommand,
+      imageId: ImageId
+  ): IO[ContainerId] = {
     for {
       dockerCommand <- IO {
         import runner.container.docker.Docker.implicits._

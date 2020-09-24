@@ -10,10 +10,12 @@ object Permission {
   }
 }
 
-case class Permission(id: Int,
-                      // TODO: move all attributes where they belong?
-                      algorithmProvider: String,
-                      datasetProvider: String,
-                      algorithm: Location,
-                      algorithmETag: String,
-                      dataSet: Location)
+case class Permission(
+    id: Int,
+    // TODO: move all attributes where they belong?
+    algorithmProvider: String,
+    datasetProvider: String,
+    algorithm: Location,
+    algorithmETag: String,
+    dataSet: Location
+)

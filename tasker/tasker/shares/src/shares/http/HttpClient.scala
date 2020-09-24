@@ -19,7 +19,7 @@ object HttpClient {
   }
 
   def blazeClientR(
-    conf: ClientConf
+      conf: ClientConf
   )(implicit cs: ContextShift[IO]): Resource[IO, Client[IO]] = {
     BlazeClientBuilder[IO](ExecutionContext.global)
       .withConnectTimeout(conf.connectionTimeout)

@@ -41,7 +41,7 @@
         goto(`/tasks/${taskIdOption.id}`)
       } else {
         currentPermission = permission
-        email.subscribe((e) => {
+        email.subscribe(e => {
           if (
             permission.dataset_provider === e &&
             permission.algorithm_provider === e
@@ -97,14 +97,6 @@
   <title>Request details {currentPermission && currentPermission.id}</title>
 </svelte:head>
 
-<div class="row mx-5 rounded">
-  <div class="col-12">
-    <button class="btn text-primary" on:click={() => goto(`/requests`)}>
-      <i class="fas fa-arrow-left" />
-    </button>
-    Back
-  </div>
-</div>
 {#if currentPermission === null}
   <Spinner />
 {:else}

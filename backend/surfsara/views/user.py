@@ -6,15 +6,14 @@ from django.utils.encoding import force_bytes
 
 from rest_framework import routers, serializers, viewsets
 from rest_framework.decorators import action
+from rest_framework.exceptions import ParseError
 from rest_framework.permissions import BasePermission, IsAuthenticated, AllowAny
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
-from django.core.mail import EmailMultiAlternatives
-from django.template.loader import render_to_string
-from django.urls import reverse
 from django.db import IntegrityError, transaction
 from surfsara.models import User
 from surfsara.tokens import account_activation_token
+from surfsara.services import mail_service
 from rest_framework.authtoken.views import obtain_auth_token
 
 
@@ -86,25 +85,18 @@ class UserViewSet(viewsets.ModelViewSet):
             user.set_password(request.data["password"])
             user.save()
 
-            path = self.reverse_action("activate", args=[user.pk])
             token = account_activation_token.make_token(user)
             domain = request.get_host()
 
-            url = f"http://{domain}/register/activate?pk={user.pk}&token={token}"
-            options = {"user": user, "url": url}
+            scheme = "http" if domain.startswith("localhost") else "https"
+            url = f"{scheme}://{domain}/register/activate?pk={user.pk}&token={token}"
 
-            subject = "Activate your email address"
-            text_body = render_to_string("activation_email.txt", options)
-            html_body = render_to_string("activation_email.html", options)
-
-            # TODO: This is perfect for in Celery (or another task queue)! Sending an
-            # email takes quite a while, which does not scale _at all_.
-            #
-            # Sticking this in a task queue will just make the email sending slower,
-            # not the entire server.
-            message = EmailMultiAlternatives(subject, text_body, to=[email])
-            message.attach_alternative(html_body, "text/html")
-            message.send()
+            mail_service.send_mail(
+                mail_files="account_activation",
+                receiver=email,
+                subject="Activate your account",
+                **{"url": url},
+            )
 
             return Response({})
 

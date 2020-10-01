@@ -11,7 +11,7 @@ from rest_framework.response import Response
 
 from backend.scripts.SharesClient import SharesClient
 from surfsara import logger
-from surfsara.models import Permission, Task
+from surfsara.models import Permission, Task, User
 from surfsara.services import mail_service
 from surfsara.services import task_service
 
@@ -50,12 +50,33 @@ class Permissions(viewsets.ViewSet):
         if not serializer.is_valid():
             return JsonResponse(serializer.errors, status=400)
 
+        try:
+            User.objects.get(email=serializer.validated_data["dataset_provider"])
+        except User.DoesNotExist:
+            return Response(
+                f"{serializer.validated_data['dataset_provider']} needs to create a Data Exchange account first",
+                status=400,
+            )
+
         model = serializer.save()
         model.review_output = model.permission_type == Permission.ONE_TIME_PERMISSION
         model.save()
 
         logger.debug(f"Sending permission {model.id} to analysis")
         task_service.analyze(str(model.id))
+
+        domain = request.get_host()
+
+        scheme = "http" if domain.startswith("localhost") else "https"
+
+        mail_service.send_mail(
+            mail_files="data_request",
+            receiver=model.dataset_provider,
+            subject=f"New data request",
+            url=f"{scheme}://{domain}/requests/{model.pk}",
+            author=model.algorithm_provider,
+        )
+
         return JsonResponse(PermissionSerializer(model).data)
 
     def retrieve(self, request, pk=None):
@@ -86,7 +107,7 @@ class Permissions(viewsets.ViewSet):
             mail_files="request_reviewed",
             receiver=permission.algorithm_provider,
             subject=f"Your data request was rejected",
-            url=f"http://{request.get_host()}/overview",
+            url=f"http://{request.get_host()}/requests/{pk}",
             reviewable="data request",
             result="rejected",
         )
@@ -118,16 +139,16 @@ class Permissions(viewsets.ViewSet):
             mail_service.send_mail(
                 mail_files="permission_granted_do",
                 receiver=permission.dataset_provider,
-                subject="You granted someone continuous access to your dataset",
-                url=f"http://{request.get_host()}/permissions",
+                subject="You granted someone access to your dataset",
+                url=f"http://{request.get_host()}/manage_data",
                 **PermissionSerializer(permission).data,
             )
 
             mail_service.send_mail(
                 mail_files="permission_granted_ao",
                 receiver=permission.algorithm_provider,
-                subject="You were granted continuous access to a dataset",
-                url=f"http://{request.get_host()}/permissions",
+                subject="You were granted access to a dataset",
+                url=f"http://{request.get_host()}/manage_algorithms",
                 **PermissionSerializer(permission).data,
             )
         else:
@@ -135,7 +156,7 @@ class Permissions(viewsets.ViewSet):
                 mail_files="request_reviewed",
                 receiver=permission.algorithm_provider,
                 subject=f"Your data request was approved",
-                url=f"http://{request.get_host()}/overview",
+                url=f"http://{request.get_host()}/manage_algorithms",
                 reviewable="data request",
                 result="approved",
             )

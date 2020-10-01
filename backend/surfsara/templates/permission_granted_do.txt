@@ -1,6 +1,6 @@
 Dear user,
 
-You just granted {{algorithm_provider}} **continuous access** to your dataset
+You just granted {{algorithm_provider}} access to your dataset
 ({{dataset}}) for their algorithm ({{algorithm}}).
 
 If this was not your intention, click the following URL to immediately revoke

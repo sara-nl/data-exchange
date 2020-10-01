@@ -35,6 +35,13 @@ class TaskerDoneListener(Listener):
     # Constants for encoding of states in incoming messages
     TASKER_STATE_REJECTED = "Rejected"
     TASKER_STATE_SUCCESS = "Success"
+    TASKER_STATE_ERROR = "Success"
+
+    TASKER_TERMINAL_STATES = [
+        TASKER_STATE_REJECTED,
+        TASKER_STATE_SUCCESS,
+        TASKER_STATE_ERROR,
+    ]
 
     def callback(self, ch, method, properties, body):
         logger.debug(f"New message {body}")
@@ -67,20 +74,18 @@ class TaskerDoneListener(Listener):
 
         task.save()
 
-        # TODO: Actually show the URL in the email. Currently, we can't really know
-        # what domain we're hosting on. Should probably get this from an environment
-        # variable, configured in the docker-compose.yml (or Django's settings.py)
-        mail_service.send_mail(
-            mail_files="finished_running",
-            receiver=task.approver_email,
-            subject="Task output is ready for approval",
-        )
+        if task_progress["state"]["name"] in self.TASKER_TERMINAL_STATES:
+            mail_service.send_mail(
+                mail_files="finished_running",
+                receiver=task.approver_email,
+                subject="Task output is ready for approval",
+            )
 
         logger.info(f"Successfully updated task {task_progress['taskId']}")
 
 
 class Command(BaseCommand):
-    help = "Starts listening for finished task and analisys requests"
+    help = "Starts listening for finished task and analysis requests"
 
     def __init__(self):
         super().__init__()

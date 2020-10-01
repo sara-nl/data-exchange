@@ -1,7 +1,7 @@
 Dear user,
 
 You have received a request from {{author}} for the use of one of your shared
-datasets ({{dataset}}).
+datasets.
 
 Click the following link to review this request:
 {{url}}

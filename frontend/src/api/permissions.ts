@@ -133,7 +133,7 @@ export const permissionTypeDict = {
     'one time permission':
       'Selected algorithm will be ran on the selected dataset of the data owner exactly once.',
     'stream permission':
-      'Every change in the selected data (or data folder) will automatically start a new run using this algorithm.',
+      'Every new file in a folder will automatically start a new run using this algorithm.',
     'One specific user permission':
       "You can always run all the algorithms you've shared to DataExchange on the selected dataset.",
   },
@@ -141,9 +141,9 @@ export const permissionTypeDict = {
     'one time permission':
       'Selected algorithm will be ran on your selected dataset once.',
     'stream permission':
-      'Every change in the selected data (or data folder) will automatically start a new run using the given algorithm.',
+      'Every time you add a file to a folder, Data Exchange will automatically start a new run using the given algorithm.',
     'One specific user permission':
-      "The requesting user can run  all his algorithms on the dataset you're going to select at any time.",
+      "The requesting user can run all his algorithms on the dataset you're going to select at any time.",
   },
 }
 

@@ -4,7 +4,7 @@
 
   export let segment
 
-  $: logout = $email ? `Log out (${$email})` : 'Log out'
+  $: logoutText = $email ? `Log out (${$email})` : 'Log out'
   $: modeText = $mode === 'data' ? 'Data owner' : 'Algorithm owner'
 
   function toggleMode() {
@@ -46,20 +46,20 @@
             active={segment === 'requests'} />
         {:else}
           <NavItem
-            name="My permissions"
-            href="/manage_algorithms"
-            active={segment === 'manage_algorithms'} />
-          <NavItem
             name="Create Request"
             href="/tasks/request"
             active={segment === 'tasks'} />
+          <NavItem
+            name="My permissions"
+            href="/manage_algorithms"
+            active={segment === 'manage_algorithms'} />
         {/if}
       {/if}
     </ul>
 
     <ul class="nav">
       {#if $token}
-        <NavItem name={logout} href="/logout" />
+        <NavItem name={logoutText} href="/logout" />
       {:else}
         <NavItem name="Sign in" href="/login" />
         <NavItem name="Register" href="/register" />

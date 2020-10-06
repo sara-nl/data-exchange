@@ -3,7 +3,6 @@
   import { getShares, Share } from '../api/shares'
   import Spinner from '../components/Spinner.svelte'
   import SharesInfo from '../components/SharesInfo.svelte'
-  import WhereToStart from '../components/dashboard/WhereToStart.svelte'
   import Faq from '../components/dashboard/Faq.svelte'
 
   import { mode, token } from '../stores'

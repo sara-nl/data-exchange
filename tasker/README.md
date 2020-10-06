@@ -166,3 +166,11 @@ Either [configure IntelliJ to do it on save](https://scalameta.org/scalafmt/docs
 - Cats Effect
 - [fs2-rabbit](https://fs2-rabbit.profunktor.dev/guide.html)
 - [doobie: Functional JDBC layer for Scala](https://github.com/tpolecat/doobie)
+
+### Rebuilding and restarting with docker-compose
+
+Assuming everything is running in a single docker-compose session, and you've made your code changes... 
+
+* `docker-compose -f docker-compose.yml -f docker-compose.dev.yml build tasker`
+* `docker-compose -f docker-compose.yml -f docker-compose.dev.yml stop tasker`
+* `docker-compose -f docker-compose.yml -f docker-compose.dev.yml up -d --no-deps tasker`

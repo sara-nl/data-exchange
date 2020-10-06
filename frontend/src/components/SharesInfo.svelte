@@ -32,71 +32,73 @@
   )
 </script>
 
-<div class="col my-3 p-4 px-5 bg-lightgrey rounded-xl">
-  <h3>Where to start?</h3>
-  {#if datasets === null || algorithms === null}
-    <Spinner />
-  {:else if (datasets.length > 0) & ($mode === 'data')}
-    <div class="my-3">
-      <p>
-        You have shared
-        {datasets.length}
-        dataset(s) with the DataExchange
-        <br />
-        Click here to see any requests made for your data:
-      </p>
-      <button
-        class="btn btn-primary rounded-xl font-weight-bold"
-        on:click={() => goto(`/requests`)}>
-        <div class="px-4">Go to your requests</div>
-      </button>
-    </div>
-  {:else if (algorithms.length > 0) & ($mode === 'algorithm')}
-    <div class="my-3">
-      <p>
-        You have shared
-        {algorithms.length}
-        algorithms with the DataExchange
-        <br />
-        Click here to make a request for the use of a dataset:
-      </p>
-      <button
-        class="btn col-7 btn-primary rounded-xl font-weight-bold"
-        on:click={() => goto(`/tasks/request`)}>
-        <div class="px-4">Make request for or run with permission</div>
-      </button>
-    </div>
-  {:else if datasets.length > 0 && $mode === 'data'}
-    <div class="my-3">
-      <p>
-        You have shared datasets with the DataExchange
-        <br />
-        Click here to see any requests made for your data:
-      </p>
-      <button
-        class="btn btn-primary rounded-xl font-weight-bold"
-        on:click={() => goto(`/requests`)}>
-        <div class="px-4">Go to your requests</div>
-      </button>
-    </div>
-  {:else if algorithms.length > 0 && $mode === 'algorithm'}
-    <div class="my-3">
-      <p>
-        You have shared
-        {algorithms.length}
-        algorithms with the DataExchange
-        <br />
-        Click here to make a request for the use of a dataset:
-      </p>
-      <button
-        class="btn col-7 btn-primary rounded-xl font-weight-bold"
-        on:click={() => goto(`/tasks/request`)}>
-        <div class="px-4">Make request for or run with permission</div>
-      </button>
-    </div>
-  {:else}
-    <div class="my-3">
-      <p>You haven't shared any files with the DataExchange</p>
-    </div>
-  {/if}
+<div class="col my-3 px-5">
+  <div class="p-4 bg-lightgrey rounded-xl">
+    <h3>Where to start?</h3>
+    {#if datasets === null || algorithms === null}
+      <Spinner />
+    {:else if (datasets.length > 0) & ($mode === 'data')}
+      <div class="my-3">
+        <p>
+          You have shared
+          {datasets.length}
+          dataset(s) with the DataExchange
+          <br />
+          Click here to see any requests made for your data:
+        </p>
+        <button
+          class="btn btn-primary rounded-xl font-weight-bold"
+          on:click={() => goto(`/requests`)}>
+          <div class="px-4">Go to your requests</div>
+        </button>
+      </div>
+    {:else if (algorithms.length > 0) & ($mode === 'algorithm')}
+      <div class="my-3">
+        <p>
+          You have shared
+          {algorithms.length}
+          algorithms with the DataExchange
+          <br />
+          Click here to make a request for the use of a dataset:
+        </p>
+        <button
+          class="btn col-7 btn-primary rounded-xl font-weight-bold"
+          on:click={() => goto(`/tasks/request`)}>
+          <div class="px-4">Make request for or run with permission</div>
+        </button>
+      </div>
+    {:else if datasets.length > 0 && $mode === 'data'}
+      <div class="my-3">
+        <p>
+          You have shared datasets with the DataExchange
+          <br />
+          Click here to see any requests made for your data:
+        </p>
+        <button
+          class="btn btn-primary rounded-xl font-weight-bold"
+          on:click={() => goto(`/requests`)}>
+          <div class="px-4">Go to your requests</div>
+        </button>
+      </div>
+    {:else if algorithms.length > 0 && $mode === 'algorithm'}
+      <div class="my-3">
+        <p>
+          You have shared
+          {algorithms.length}
+          algorithms with the DataExchange
+          <br />
+          Click here to make a request for the use of a dataset:
+        </p>
+        <button
+          class="btn col-7 btn-primary rounded-xl font-weight-bold"
+          on:click={() => goto(`/tasks/request`)}>
+          <div class="px-4">Make request for or run with permission</div>
+        </button>
+      </div>
+    {:else}
+      <div class="my-3">
+        <p>You haven't shared any files with the DataExchange</p>
+      </div>
+    {/if}
+  </div>
 </div>

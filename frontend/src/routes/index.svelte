@@ -3,6 +3,8 @@
   import { getShares, Share } from '../api/shares'
   import Spinner from '../components/Spinner.svelte'
   import SharesInfo from '../components/SharesInfo.svelte'
+  import WhereToStart from '../components/dashboard/WhereToStart.svelte'
+  import Faq from '../components/dashboard/Faq.svelte'
 
   import { mode, token } from '../stores'
   import { goto, stores } from '@sapper/app'
@@ -20,53 +22,7 @@
       <SharesInfo />
       <div class="col-1" />
       <div class="col bg-lightgrey my-3 p-4 px-5">
-        <h3>
-          How to share files
-          <small class="text-muted">with the DataExchange</small>
-        </h3>
-        <div class="my-3">
-          <p>
-            <b>1.</b>
-            Register and activate account with the
-            <u>same email</u>
-            as on
-            <a href="https://researchdrive.surfsara.nl">ResearchDrive</a>
-            or
-            <a href="https://drive.google.com/">Google Drive</a>
-            .
-          </p>
-          <p>
-            <b>2.</b>
-            In ResearchDrive: click on the share icon next to the file and type
-            in "Data Exchange" as users or groups to share with. Then select
-            "Data Exchange" to share your file.
-          </p>
-          <p>
-            <b>3.</b>
-            In Google Drive: Right click on the file or folder, choose "Share"
-            and enter this account id:
-            <br />
-            data-exchange-drive@quickstart-1584612842886.iam.gserviceaccount.com
-            <br />
-            into the "Share with people and groups" dialogue.
-          </p>
-          <p>
-            <b>4.</b>
-            Your files should become visible on Data Exchange.
-          </p>
-        </div>
-        <div class="row w-100 mt-4 mb-3">
-          <button
-            class="btn col-5 mx-3 py-2 btn-primary rounded-xl font-weight-bold"
-            on:click={() => goto(`https://researchdrive.surfsara.nl`)}>
-            <div class="px-4">Go to ResearchDrive</div>
-          </button>
-          <button
-            class="btn col-4 mx-3 py-2 btn-primary rounded-xl font-weight-bold"
-            on:click={() => goto(`/tasks/`)}>
-            <div class="px-4">See your files</div>
-          </button>
-        </div>
+        <Faq />
       </div>
     </div>
   {:else}

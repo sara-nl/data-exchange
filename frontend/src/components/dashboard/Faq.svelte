@@ -13,7 +13,7 @@
   id="howToShareResearchDrive"
   linkText="How to share files with SURF Research Drive?">
   <div class="card card-body text-muted">
-    <p class="text-justify">
+    <p>
       ℹ&nbsp;&nbsp;&nbsp;Please note that your SURF Research Drive
       <i>username</i>
       must match the email in Data Exchange: currently

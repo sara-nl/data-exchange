@@ -9,11 +9,15 @@ export type Share = {
   webLink: string
 }
 
+// Depreacted
+// use Share[]
 export type SharesResponse = {
   own_algorithms: Share[]
   own_datasets: Share[]
 }
 
+// Depreacted
+// use getAllShares()
 export function getShares(): Promise<SharesResponse> {
   return Controller.client.get<Share[]>('/shares/').then((r) => {
     return {
@@ -21,4 +25,8 @@ export function getShares(): Promise<SharesResponse> {
       own_datasets: r.data.filter((s) => !s.isAlgorithm),
     }
   })
+}
+
+export function getAllShares(): Promise<Share[]> {
+  return Controller.client.get<Share[]>('/shares/').then((r) => r.data)
 }

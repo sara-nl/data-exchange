@@ -76,7 +76,7 @@
           class="btn btn-light btn-sm"
           type="button"
           on:click={toggleMode}>
-          (Toggle)
+          (Switch role)
         </button>
       </form>
     {/if}

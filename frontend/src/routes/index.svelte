@@ -1,30 +1,19 @@
-<script lang="ts">
-  import { onMount } from 'svelte'
-  import { getShares, Share } from '../api/shares'
-  import Spinner from '../components/Spinner.svelte'
-  import SharesInfo from '../components/SharesInfo.svelte'
-  import Faq from '../components/dashboard/Faq.svelte'
+<script lang="typescript">
+  import Dashboard from '../components/Dashboard.svelte'
 
-  import { mode, token } from '../stores'
-  import { goto, stores } from '@sapper/app'
+  import { token } from '../stores'
 </script>
 
 <svelte:head>
   <title>Data Exchange</title>
 </svelte:head>
 
-<h2 class="display-4 text-primary font-weigth-bold ym-5">DataExchange</h2>
+{#if Boolean($token)}
+  <Dashboard />
+{:else}
+  <h2 class="display-4 text-primary font-weigth-bold ym-5">DataExchange</h2>
 
-<div class="container-fluid mx-auto">
-  {#if Boolean($token)}
-    <div class="row my-5">
-      <SharesInfo />
-      <div class="col-1" />
-      <div class="col bg-lightgrey my-3 p-4 px-5">
-        <Faq />
-      </div>
-    </div>
-  {:else}
+  <div class="container-fluid mx-auto">
     <div class="row my-5">
       <div class="col-8 ym-5 p-5 bg-lightgrey rounded-xl">
         <h3 class="ym-3">How does the DataExchange work?</h3>
@@ -59,5 +48,5 @@
         </p>
       </div>
     </div>
-  {/if}
-</div>
+  </div>
+{/if}

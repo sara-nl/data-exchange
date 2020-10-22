@@ -35,8 +35,8 @@ export type Permission = {
     | 'rejected'
     | 'active'
     | 'aborted'
-  registered_on: Date
-  updated_on: Date
+  registered_on: string
+  updated_on: string
   request_description: string
   permission_type: PermissionType
 }
@@ -92,13 +92,17 @@ export async function getObtainerPerFile(): Promise<object> {
 }
 
 export type AllPermissions = {
-  obtained_permissions: Permission[]
-  given_permissions: Permission[]
+  inbound: Permission[]
+  outbound: Permission[]
 }
 
 export async function getAllPermissions(): Promise<AllPermissions> {
   const response = await Controller.client.get<AllPermissions>('/permissions/')
   return response.data
+}
+
+export async function getOutboundPermissions(): Promise<Permission[]> {
+  return getAllPermissions().then(pp => pp.outbound)
 }
 
 export default class Permissions extends Controller {

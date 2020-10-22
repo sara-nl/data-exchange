@@ -165,25 +165,22 @@ class Permissions(viewsets.ViewSet):
 
     def list(self, request):
         """
-        Gives list of obtained and given permissions
+        Gives list of inbound (current user is a receiver)
+        and outbound (current user the one who decides) permissions.
         """
 
-        obtained_permissions = Permission.objects.filter(
+        inbound = Permission.objects.filter(
             algorithm_provider=request.user.email
-        )
-        given_permissions = Permission.objects.filter(
+        ).order_by("-registered_on")
+        outbound = Permission.objects.filter(
             dataset_provider=request.user.email
-        )
-
-        obtained_permissions = PermissionSerializer(
-            obtained_permissions, many=True
-        ).data
-        given_permissions = PermissionSerializer(given_permissions, many=True).data
+        ).order_by("-registered_on")
+        serialized = lambda pp: PermissionSerializer(pp, many=True).data
 
         return Response(
             {
-                "obtained_permissions": obtained_permissions,
-                "given_permissions": given_permissions,
+                "inbound": serialized(inbound),
+                "outbound": serialized(outbound),
             }
         )
 

@@ -5,8 +5,8 @@
   import Permissions from '../../api/permissions'
   import Spinner from '../../components/Spinner.svelte'
 
-  let obtained_permissions: [any] | null = null
-  let given_permissions: [any] | null = null
+  let inbound: [any] | null = null
+  let outbound: [any] | null = null
 
   let state_color = {
     rejected: 'danger',
@@ -18,8 +18,8 @@
   async function getUserPermissions() {
     try {
       let { data: response } = await Permissions.get()
-      obtained_permissions = response.obtained_permissions
-      given_permissions = response.given_permissions
+      inbound = response.inbound
+      outbound = response.outbound
     } catch (error) {
       console.log(error.toString())
     }
@@ -30,8 +30,8 @@
   async function remove_permission(id: number) {
     try {
       let { data: response } = await Permissions.remove(id)
-      obtained_permissions = response.obtained_permissions
-      given_permissions = response.given_permissions
+      inbound = response.inbound
+      outbound = response.outbound
     } catch (error) {
       console.log(error.toString())
     }
@@ -44,7 +44,7 @@
 
 <h2 class="display-5">Overview of permissions</h2>
 
-{#if obtained_permissions === null || given_permissions === null}
+{#if inbound === null || outbound === null}
   <Spinner />
 {:else}
   <div class="container-fluid mx-auto">
@@ -65,7 +65,7 @@
           </thead>
 
           <tbody>
-            {#each given_permissions as file}
+            {#each outbound as file}
               <tr>
                 <td>{file.permission_type}</td>
                 <td><b>You</b></td>
@@ -110,7 +110,7 @@
           </thead>
 
           <tbody>
-            {#each obtained_permissions as file}
+            {#each inbound as file}
               <tr>
                 <td>{file.permission_type}</td>
                 <td>{file.dataset_provider}</td>

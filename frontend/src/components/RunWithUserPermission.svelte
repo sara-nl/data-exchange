@@ -15,8 +15,8 @@
   let selectedPermissionId: null | number = null
 
   onMount(async () => {
-    getAllPermissions().then(({ obtained_permissions }) => {
-      userPermissions = obtained_permissions.filter(
+    getAllPermissions().then(({ inbound }) => {
+      userPermissions = inbound.filter(
         (p) =>
           p.permission_type === 'One specific user permission' &&
           p.state === 'active'

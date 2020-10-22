@@ -20,7 +20,7 @@
     dataset_tasks = await Tasks.getLogs().then((r) => r.data.data_tasks)
 
     givenPermissions = await Permissions.getGivenPerFile().then(
-      (r) => r.data.given_permissions
+      (r) => r.data.outbound
     )
   })
 

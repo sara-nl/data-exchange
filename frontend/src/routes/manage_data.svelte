@@ -5,7 +5,6 @@
   import { StorageNames } from '../api/storage'
   import Tasks from '../api/tasks'
   import Permissions from '../api/permissions'
-  import File from '../components/File.svelte'
   import State from '../components/State.svelte'
 
   import Spinner from '../components/Spinner.svelte'
@@ -19,9 +18,7 @@
     datasetShares = await getShares().then((r) => r.own_datasets)
     dataset_tasks = await Tasks.getLogs().then((r) => r.data.data_tasks)
 
-    givenPermissions = await Permissions.getGivenPerFile().then(
-      (r) => r.data.outbound
-    )
+    givenPermissions = await Permissions.getGivenPerFile()
   })
 
   async function remove_permission(id: string, filename: string) {

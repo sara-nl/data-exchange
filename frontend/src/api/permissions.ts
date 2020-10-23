@@ -111,7 +111,8 @@ export default class Permissions extends Controller {
   }
 
   public static async getGivenPerFile(): Promise<AxiosResponse> {
-    return this.client.get('/permissions/given_per_file/')
+    const response = await this.client.get('/permissions/given_per_file/')
+    return response.data
   }
 
   public static async remove(id: number): Promise<AxiosResponse> {

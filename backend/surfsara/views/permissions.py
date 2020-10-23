@@ -275,7 +275,7 @@ class Permissions(viewsets.ViewSet):
         for perm in given_permissions:
             given_per_file[perm["dataset"]].append(perm)
 
-        return Response({"given_permissions": given_per_file})
+        return Response(given_per_file)
 
     @action(
         detail=True,

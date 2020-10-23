@@ -1,13 +1,10 @@
-<script lang="ts">
-  // XXX Work-around until proper TypeScript support arrives
-  declare var $page: any
-
+<script lang="typescript">
   import { onMount } from 'svelte'
-  import { goto, stores } from '@sapper/app'
+  import { stores } from '@sapper/app'
   import { mode } from '../../stores'
 
-  import { getShares } from '../../api/shares'
-  import Tasks, { Task } from '../../api/tasks'
+  import Tasks from '../../api/tasks'
+  import type { Task } from '../../api/tasks'
   import Spinner from '../../components/Spinner.svelte'
   import PermissionInfo from '../../components/PermissionInfo.svelte'
   import AlgorithmReport from '../../components/AlgorithmReport.svelte'
@@ -51,7 +48,7 @@
 {#if task === null}
   <Spinner />
 {:else}
-  <div class="col-10 mx-auto my-5">
+  <div class="col-10 mx-auto">
     {#if task.state === 'running'}
       <StepsHeader activeStep={2} />
     {/if}
@@ -60,12 +57,24 @@
     {/if}
 
     {#if task.state === 'output_released' || (task.state === 'error' && !task.review_output)}
-      <div class="row my-5 mx-auto border border-primary rounded">
+      <div class="row mx-auto border border-primary rounded">
         <div class="col-sm text-center text-secondary p-2 font-weight-bold">
           Execution finished
         </div>
       </div>
     {/if}
+
+    {#if task.state === 'release_rejected'}
+      <div class="row mb-5 mx-auto border border-secondary rounded">
+        <div class="col-sm text-center p-2">
+          {#if $mode === 'data'}
+          You chose <u>not</u> to share output with requester
+          {:else}
+          Data owner chose <u>not</u> to share output with requester
+          {/if}
+        </div>
+      </div>
+    {/if}    
 
     {#if task.state === 'error'}
       <ErrorMessage
@@ -124,7 +133,7 @@
               Reject output
             </button>
             <button
-              class="btn btn-default text-success"
+              class="btn btn-success"
               on:click={() => release_output(true)}>
               Release output
             </button>

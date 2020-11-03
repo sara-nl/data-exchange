@@ -135,7 +135,7 @@
         </div>
       </div>
     {:else}
-      <div>You have shared no datasetShares</div>
+      <div>You have shared no datasets</div>
     {/each}
   {/if}
 </div>

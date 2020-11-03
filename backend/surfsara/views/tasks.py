@@ -33,8 +33,7 @@ class Tasks(viewsets.ViewSet):
 
         to_approve_requests = Task.objects.filter(
             Q(approver_email=request.user.email),
-            Q(state=Task.DATA_REQUESTED)
-            | Q(state=Task.SUCCESS, review_output=True)
+            Q(state=Task.SUCCESS, review_output=True)
             | Q(state=Task.ERROR, review_output=True),
         ).order_by("-registered_on")
 
@@ -68,8 +67,7 @@ class Tasks(viewsets.ViewSet):
 
         not_reviewed_yet = Task.objects.filter(
             Q(approver_email=request.user.email),
-            Q(state=Task.DATA_REQUESTED)
-            | Q(state=Task.SUCCESS, review_output=True)
+            Q(state=Task.SUCCESS, review_output=True)
             | Q(state=Task.ERROR, review_output=True),
         ).order_by("-registered_on")
 

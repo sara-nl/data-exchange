@@ -17,8 +17,6 @@
     hljs.initHighlighting()
   })
 
-  console.log(jq('#sourceCode'))
-
   jq(() =>
     jq('#sourceCode')
       .on('hidden.bs.collapse', () => {

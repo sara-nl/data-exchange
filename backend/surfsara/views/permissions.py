@@ -28,6 +28,16 @@ class TaskSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 
+class TaskWithPermissionSerializer(serializers.ModelSerializer):
+    permission_type = serializers.StringRelatedField(
+        source="permission.permission_type"
+    )
+
+    class Meta:
+        model = Task
+        fields = "__all__"
+
+
 class Permissions(viewsets.ViewSet):
     permission_classes = (IsAuthenticated,)
 
@@ -236,15 +246,18 @@ class Permissions(viewsets.ViewSet):
                 for algorithm in user_alg_shares or []:
                     file_ = algorithm["path"]
                     data[file_]["permissions"].append(permission)
+            elif permission["permission_type"] == Permission.ONE_TIME_PERMISSION:
+                # Don't include one time permissions
+                pass
             else:
                 file_ = permission["algorithm"]
                 data[file_]["permissions"].append(permission)
 
         # Append the log of tasks
-        tasks = TaskSerializer(
-            Task.objects.filter(author_email=request.user.email).order_by(
-                "-registered_on"
-            ),
+        tasks = TaskWithPermissionSerializer(
+            Task.objects.filter(author_email=request.user.email)
+            .order_by("-registered_on")
+            .select_related("permission"),
             many=True,
         ).data
 

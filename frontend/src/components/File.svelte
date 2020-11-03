@@ -1,10 +1,10 @@
-<script lang="ts">
+<script lang="typescript">
   export let name: string
-  export let folder: boolean
+  export let folder: boolean = false
 </script>
 
-<div class="col-auto file">
-  <span class="fa-stack fa-2x text-primary">
+<div class="file">
+  <span class="fa-stack text-primary">
     <i class="fas fa-circle fa-stack-2x" />
     <i
       class="fas fa-stack-1x fa-inverse"

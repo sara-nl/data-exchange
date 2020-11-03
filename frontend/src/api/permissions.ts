@@ -86,7 +86,8 @@ export async function headTaskId(id: number): Promise<{ id: number } | null> {
   return response.data
 }
 
-export async function getObtainerPerFile(): Promise<object> {
+export type ObtainedPerFile = { [filename: string]: { permissions: object[], tasks: object[] } }
+export async function getObtainerPerFile(): Promise<ObtainedPerFile> {
   const response = await Controller.client('/permissions/obtained_per_file/')
   return response.data
 }
@@ -102,7 +103,7 @@ export async function getAllPermissions(): Promise<AllPermissions> {
 }
 
 export async function getOutboundPermissions(): Promise<Permission[]> {
-  return getAllPermissions().then(pp => pp.outbound)
+  return getAllPermissions().then((pp) => pp.outbound)
 }
 
 export default class Permissions extends Controller {

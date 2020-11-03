@@ -1,96 +1,142 @@
-<script lang="ts">
+<script lang="typescript">
   import { onMount } from 'svelte'
   import dayjs from 'dayjs'
   import Permissions, { getObtainerPerFile } from '../api/permissions'
-
+  import type {
+    PermissionType,
+    ObtainedPerFile,
+    Permission,
+  } from '../api/permissions'
+  import type { Task } from '../api/tasks'
   import Spinner from '../components/Spinner.svelte'
   import File from '../components/File.svelte'
   import State from '../components/State.svelte'
 
-  let permissions: any | null = null
-
   const permissionTypes = {
-    'user permission': 'any algorithm',
+    'One specific user permission': 'any algorithm',
     'stream permission': 'stream',
+    'one time permission': 'one time',
   }
 
-  onMount(async () => {
-    permissions = await getObtainerPerFile()
+  type PermissionsAndTasksPerFile = [
+    string,
+    {
+      permissions: Permission[]
+      tasks: (Task & { permission_type: PermissionType })[]
+    }
+  ][]
+
+  let permissionsP = Promise.resolve<PermissionsAndTasksPerFile>([])
+
+  onMount(() => {
+    permissionsP = getObtainerPerFile().then(Object.entries)
   })
 </script>
 
-<style>
-  .algorithm-row:not(:last-child) {
-    border-bottom: 4px solid rgba(0, 0, 0, 0.2);
-  }
-</style>
-
 <svelte:head>
-  <title>My permissions</title>
+  <title>My algorithms</title>
 </svelte:head>
 
-<h3 class="display-5">My permissions</h3>
+<h3 class="display-5">My algorithms</h3>
 
-<div class="container-fluid mx-auto m-3">
-  {#if permissions === null}
+<div id="algorithms" class="container-fluid mx-auto m-3 accordion">
+  {#await permissionsP}
     <Spinner />
-  {:else}
-    {#each Object.entries(permissions) as [file, { permissions, tasks }]}
-      <div class="row my-5 p-3 pb-5 border-primary algorithm-row">
-        <div class="row w-100">
-          <File name={file} />
+  {:then permissions}
+    {#each permissions as [file, { permissions, tasks }], i}
+      <div class="card">
+        <div class="card-header" id="heading{i}">
+          <h5 class="mb-0">
+            <button
+              class="btn btn-link"
+              data-toggle="collapse"
+              data-target="#collapse{i}"
+              aria-expanded="false"
+              aria-controls="collapse{i}">
+              <span class="fa-stack text-primary">
+                <i class="fas fa-circle fa-stack-2x" />
+                <i class="fas fa-stack-1x fa-inverse fa-file" />
+              </span>
+              {file}
+            </button>
+          </h5>
         </div>
-        <div class="row mt-3 w-100">
-          <div class="col p-3 rounded-xl background bg-lightgrey">
-            <h3><small class="text-muted">Permissions</small></h3>
-            <div>
-              {#each permissions.sort((a, b) => a.permission_type < b.permission_type) as permission}
-                <div class="permission my-4">
-                  <File
-                    name={`${permission.dataset} (${permissionTypes[permission.permission_type] || permission.permission_type})`} />
-                </div>
-              {:else}No permissions given on this file.{/each}
+        <div
+          id="collapse{i}"
+          class="collapse"
+          aria-labelledby="heading{i}"
+          data-parent="#algorithms">
+          <div class="card-body">
+            <div class="row w-100">
+              <div class="col">
+                <h3><small class="text-muted">Active permissions</small></h3>
+                {#if permissions.length > 0}
+                  <table class="tasks table table-borderless table-sm">
+                    <thead>
+                      <th class="text-secondary">Dataset</th>
+                      <th class="text-secondary">Type</th>
+                      <th class="text-secondary">Action</th>
+                    </thead>
+                    <tbody>
+                      {#each permissions.sort((a, b) =>
+                        a.permission_type.localeCompare(b.permission_type)
+                      ) as permission}
+                        <tr>
+                          <td>
+                            <File name={permission.dataset} folder={false} />
+                          </td>
+                          <td>{permissionTypes[permission.permission_type]}</td>
+                        </tr>
+                      {/each}
+                    </tbody>
+                  </table>
+                {:else}
+                  <div>No active permissions on this file.</div>
+                {/if}
+              </div>
             </div>
-          </div>
-
-          <div class="col-1" />
-          <div class="col-5 p-3 rounded-xl background bg-lightgrey">
-            <h3><small class="text-muted">Runs</small></h3>
-            <div class="table-wrapper">
-              <table class="tasks table table-borderless table-sm">
-                <thead>
-                  <th class="text-secondary">Dataset</th>
-                  <th class="text-secondary">State</th>
-                  <th class="text-secondary">Date</th>
-                  <th class="text-secondary">Action</th>
-                </thead>
-                <tbody>
-                  {#each tasks as task}
-                    {#if task.state !== 'stream_permission_request'}
-                      <tr>
-                        <td>
-                          <File name={task.dataset} />
-                        </td>
-                        <td>
-                          <State state={task.state} />
-                        </td>
-                        <td>
-                          {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
-                        </td>
-                        <td class="font-weight-bold">
-                          <a href={`/tasks/${task.id}`}>
-                            {#if task.state === 'data_requested'}
-                              See request
-                            {:else if task.state === 'output_released'}
-                              See output
-                            {:else}See details{/if}
-                          </a>
-                        </td>
-                      </tr>
-                    {/if}
-                  {:else}No tasks for this algorithm.{/each}
-                </tbody>
-              </table>
+            <div class="row w-100">
+              <div class="col">
+                <h3><small class="text-muted">Runs</small></h3>
+                {#if tasks.length > 0}
+                  <div class="table-wrapper">
+                    <table class="tasks table table-borderless table-sm">
+                      <thead>
+                        <th class="text-secondary">Dataset</th>
+                        <th class="text-secondary">Permission</th>
+                        <th class="text-secondary">State</th>
+                        <th class="text-secondary">Date</th>
+                        <th class="text-secondary">Action</th>
+                      </thead>
+                      <tbody>
+                        {#each tasks as task}
+                          <tr>
+                            <td>
+                              <File name={task.dataset} />
+                            </td>
+                            <td>{permissionTypes[task.permission_type]}</td>
+                            <td>
+                              <State state={task.state} />
+                            </td>
+                            <td>
+                              {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
+                            </td>
+                            <td class="font-weight-bold">
+                              <a href={`/tasks/${task.id}`}>
+                                {#if task.state === 'output_released'}
+                                  See output
+                                {:else}See details{/if}
+                              </a>
+                            </td>
+                          </tr>
+                        {/each}
+                      </tbody>
+                    </table>
+                  </div>
+                {:else}
+                  <div>No runs on this algorithm yet</div>
+                {/if}
+              </div>
             </div>
           </div>
         </div>
@@ -98,5 +144,7 @@
     {:else}
       <div>You have not received any permissions</div>
     {/each}
-  {/if}
+  {:catch error}
+    <p style="color: red">{error.message}</p>
+  {/await}
 </div>

@@ -50,7 +50,7 @@
             href="/tasks/request"
             active={segment === 'tasks'} />
           <NavItem
-            name="My permissions"
+            name="My algorithms"
             href="/manage_algorithms"
             active={segment === 'manage_algorithms'} />
         {/if}

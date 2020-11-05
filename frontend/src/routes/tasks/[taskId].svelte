@@ -57,7 +57,7 @@
     {/if}
 
     {#if task.state === 'output_released' || (task.state === 'error' && !task.review_output)}
-      <div class="row mx-auto border border-primary rounded">
+      <div class="row mb-5 mx-auto border border-primary rounded">
         <div class="col-sm text-center text-secondary p-2 font-weight-bold">
           Execution finished
         </div>
@@ -68,13 +68,13 @@
       <div class="row mb-5 mx-auto border border-secondary rounded">
         <div class="col-sm text-center p-2">
           {#if $mode === 'data'}
-          You chose <u>not</u> to share output with requester
-          {:else}
-          Data owner chose <u>not</u> to share output with requester
-          {/if}
+            You chose
+            <u>not</u>
+            to share output with requester
+          {:else}Data owner chose <u>not</u> to share output with requester{/if}
         </div>
       </div>
-    {/if}    
+    {/if}
 
     {#if task.state === 'error'}
       <ErrorMessage

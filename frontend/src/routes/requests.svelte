@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="typescript">
   import { goto, stores } from '@sapper/app'
   import dayjs from 'dayjs'
   import relativeTime from 'dayjs/plugin/relativeTime'
@@ -224,7 +224,7 @@
             {:else}
               <tr>
                 <td colspan="6" class="text-center">
-                  You have reviewed requests
+                  You have not reviewed any requests yet
                 </td>
               </tr>
             {/each}

@@ -14,6 +14,7 @@ from surfsara import logger
 from surfsara.models import Permission, Task, User
 from surfsara.services import mail_service
 from surfsara.services import task_service
+from functools import reduce
 
 
 class PermissionSerializer(serializers.ModelSerializer):
@@ -227,42 +228,46 @@ class Permissions(viewsets.ViewSet):
         """
 
         all_shares = SharesClient().all()
+
         email = str(request.user)
-        user_alg_shares = filter(
+
+        user_algs = filter(
             lambda s: s["owner"] == email and s["isAlgorithm"], all_shares
         )
 
-        data = defaultdict(lambda: {"permissions": [], "tasks": []})
-
-        permissions = PermissionSerializer(
+        all_permissions = PermissionSerializer(
             Permission.objects.filter(
-                algorithm_provider=request.user.email, state=Permission.ACTIVE
+                algorithm_provider=email, state=Permission.ACTIVE
             ),
             many=True,
         ).data
 
-        for permission in permissions:
-            if permission["permission_type"] == Permission.USER_PERMISSION:
-                for algorithm in user_alg_shares or []:
-                    file_ = algorithm["path"]
-                    data[file_]["permissions"].append(permission)
-            elif permission["permission_type"] == Permission.ONE_TIME_PERMISSION:
-                # Don't include one time permissions
-                pass
-            else:
-                file_ = permission["algorithm"]
-                data[file_]["permissions"].append(permission)
-
-        # Append the log of tasks
-        tasks = TaskWithPermissionSerializer(
-            Task.objects.filter(author_email=request.user.email)
+        all_tasks = TaskWithPermissionSerializer(
+            Task.objects.filter(author_email=email)
             .order_by("-registered_on")
             .select_related("permission"),
             many=True,
         ).data
 
-        for task in tasks:
-            data[task["algorithm"]]["tasks"].append(task)
+        def reducer(acc, next):
+            def include_permission(p):
+                pt = p["permission_type"]
+                return pt == Permission.USER_PERMISSION or (
+                    pt != Permission.ONE_TIME_PERMISSION
+                    and p["algorithm"] == next["path"]
+                    and p["algorithm_storage"] == next["storage"]
+                )
+
+            def include_task(t):
+                return t["algorithm"] == next["path"]
+
+            acc[next["path"]] = {
+                "permissions": filter(include_permission, all_permissions),
+                "tasks": filter(include_task, all_tasks),
+            }
+            return acc
+
+        data = reduce(reducer, user_algs, {})
 
         return Response(data)
 

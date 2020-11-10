@@ -142,7 +142,7 @@
         </div>
       </div>
     {:else}
-      <div>You have not received any permissions</div>
+      <div>You have not uploaded any algorithms yet</div>
     {/each}
   {:catch error}
     <p style="color: red">{error.message}</p>

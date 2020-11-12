@@ -1,34 +1,36 @@
-<script lang="ts">
+<script lang="typescript">
   import { onMount } from 'svelte'
   import dayjs from 'dayjs'
   import { Share, getShares } from '../api/shares'
   import { StorageNames } from '../api/storage'
   import Tasks from '../api/tasks'
-  import Permissions from '../api/permissions'
+  import type { Task } from '../api/tasks'
+  import Permissions, {
+    Permission,
+    permissionTypesShortLabels,
+  } from '../api/permissions'
   import State from '../components/State.svelte'
 
   import Spinner from '../components/Spinner.svelte'
+  import File from '../components/File.svelte'
 
-  let datasetShares: Share[] | null = null
-  let data = {}
-  let dataset_tasks = {}
-  let givenPermissions: { [index: string]: any } = {}
+  let dataInfoP = Promise.resolve<
+    [Share[], { [path: string]: Task[] }, { [path: string]: Permission[] }]
+  >([[], {}, {}])
 
-  onMount(async () => {
-    datasetShares = await getShares().then((r) => r.own_datasets)
-    dataset_tasks = await Tasks.getLogs().then((r) => r.data.data_tasks)
+  const loadData = async () => {
+    dataInfoP = Promise.all([
+      getShares().then((r) => r.own_datasets),
+      Tasks.getLogs().then((r) => r.data_tasks),
+      Permissions.getGivenPerFile(),
+    ])
+  }
 
-    givenPermissions = await Permissions.getGivenPerFile()
-  })
+  onMount(loadData)
 
-  async function remove_permission(id: string, filename: string) {
-    await Permissions.remove(Number(id))
-
-    // TODO: test thoroughly
-    givenPermissions = {
-      ...givenPermissions,
-      [filename]: givenPermissions[filename].filter((p) => p.id !== id),
-    }
+  const revokePermission = async (id: number) => {
+    await Permissions.remove(id)
+    await loadData()
   }
 </script>
 
@@ -36,106 +38,137 @@
   <title>Manage Data</title>
 </svelte:head>
 
-<h3 class="display-5">Your datasets</h3>
+<h3 class="display-5">My datasets</h3>
 
-<div class="container-fluid mx-auto m-2">
-  {#if datasetShares === null}
+<div class="container-fluid mx-auto m-3 accordion">
+  {#await dataInfoP}
     <Spinner />
-  {:else}
-    {#each datasetShares as share}
-      <div class="row my-5 p-4">
-        <div class="row">
-          <div class="col-auto my-auto">
-            <span class="fa-stack fa-2x text-primary">
-              <i class="fas fa-circle fa-stack-2x" />
-              <i class="fas fa-file fa-stack-1x fa-inverse" />
-            </span>
-            {share.path}
-            ({StorageNames[share.storage]})
+  {:then [shares, tasks, permissions]}
+    <div class={shares.length > 1 ? 'accordion' : ''}>
+      {#each shares as s, i}
+        <div class="card">
+          <div class="card-header" id="heading{i}">
+            <div class="row">
+              <div class="col-3">
+                <button
+                  class="btn btn-link"
+                  data-toggle="collapse"
+                  data-target="#collapse{i}"
+                  aria-expanded="false"
+                  aria-controls="collapse{i}">
+                  <File name={s.path} folder={s.isDirectory} />
+                </button>
+              </div>
+              <div class="col-3 small">
+                <div class="row">
+                  <span class="text-muted">Storage:</span>
+                  &nbsp;
+                  {StorageNames[s.storage]}
+                </div>
+                <div class="row">
+                  {(permissions[s.path] || []).length}
+                  &nbsp;
+                  <span class="text-muted">permissions |</span>
+                  &nbsp;
+                  {(tasks[s.path] || []).length}
+                  &nbsp;
+                  <span class="text-muted">runs</span>
+                </div>
+              </div>
+              <div class="col-3">
+                <a
+                  class="text-danger font-weight-bold"
+                  href="#0"
+                  on:click|preventDefault={() => {
+                    const msg = `You will be redirected to the ${StorageNames[s.storage]} in order to unshare the folder.`
+                    if (confirm(msg)) window.open(s.webLink, '_blank')
+                  }}>
+                  Withdraw
+                </a>
+              </div>
+            </div>
           </div>
-          <div class="col">
-            <button
-              class="btn btn-danger rounded-xl font-weight-bold"
-              on:click={() => {
-                const msg = `You will be redirected to the ${StorageNames[share.storage]} in order to unshare the folder.`
-                if (confirm(msg)) window.open(share.webLink, '_blank')
-              }}>
-              <div class="px-4">Withdraw Data</div>
-            </button>
+          <div id="collapse{i}" class="collapse" aria-labelledby="heading{i}">
+            <div class="card-body">
+              <div class="row w-100">
+                <div class="col">
+                  <h3><small class="text-muted">Active permissions</small></h3>
+                  {#if permissions[s.path] !== undefined}
+                    <table class="table table-borderless">
+                      <thead>
+                        <th>With</th>
+                        <th>Algorithm</th>
+                        <th>Type</th>
+                        <th />
+                      </thead>
+                      <tbody>
+                        {#each permissions[s.path] as permission}
+                          <tr>
+                            <td>{permission.algorithm_provider}</td>
+                            <td>{permission.algorithm}</td>
+                            <td>
+                              {permissionTypesShortLabels[permission.permission_type]}
+                            </td>
+
+                            <td class="text-danger font-weight-bold">
+                              <a
+                                class="text-danger"
+                                href="#0"
+                                role="button"
+                                on:click|preventDefault={() => revokePermission(permission.id)}>
+                                Revoke
+                              </a>
+                            </td>
+                          </tr>
+                        {/each}
+                      </tbody>
+                    </table>
+                  {:else}No permissions given on this file{/if}
+                </div>
+              </div>
+              <div class="row w-100">
+                <div class="col">
+                  <h3><small class="text-muted">Runs</small></h3>
+                  {#if tasks[s.path] !== undefined}
+                    <table class="table table-borderless">
+                      <thead>
+                        <th>Permission</th>
+                        <th>Algorithm Owner</th>
+                        <th>Status</th>
+                        <th>When</th>
+                        <th>Action</th>
+                      </thead>
+                      <tbody>
+                        {#each tasks[s.path] as task}
+                          <tr class="my-1">
+                            <td>
+                              {permissionTypesShortLabels[task.permission.permission_type]}
+                            </td>
+                            <td>{task.author_email}</td>
+                            <td>
+                              <State state={task.state} />
+                            </td>
+                            <td>
+                              {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
+                            </td>
+                            <td class="text-primary font-weight-bold">
+                              <a href={`/tasks/${task.id}`}>See log</a>
+                            </td>
+                          </tr>
+                        {/each}
+                      </tbody>
+                    </table>
+                  {:else}No runs done with this file{/if}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="row mt-5 w-100">
-          <div class="col-6 mx-5 p-3 rounded-xl background bg-lightgrey">
-            <h3><small class="text-muted">Permissions</small></h3>
-            {#if givenPermissions !== null && givenPermissions[share.path] !== undefined}
-              <div class="table-wrapper">
-                <table class="table table-borderless">
-                  <thead>
-                    <th>With</th>
-                    <th>Algorithm</th>
-                    <th>Type</th>
-                    <th />
-                  </thead>
-                  <tbody>
-                    {#each givenPermissions[share.path] as permission}
-                      <tr id={permission['id']} class="my-1">
-                        <td>{permission.algorithm_provider}</td>
-                        <td>{permission.algorithm}</td>
-                        <td>{permission.permission_type}</td>
-                        {#if permission.permission_type != 'one time permission'}
-                          <td class="text-danger font-weight-bold">
-                            <a
-                              class="text-danger"
-                              href="#0"
-                              on:click|preventDefault={() => remove_permission(permission.id, share.path)}>
-                              Revoke permission
-                            </a>
-                          </td>
-                        {/if}
-                      </tr>
-                    {/each}
-                  </tbody>
-                </table>
-              </div>
-            {:else}No permissions given on this file{/if}
-          </div>
-          <div class="col mx-5 p-3 rounded-xl background bg-lightgrey">
-            <h3><small class="text-muted">Runs</small></h3>
-            {#if dataset_tasks !== undefined && dataset_tasks[share.path] !== undefined}
-              <div class="table-wrapper">
-                <table class="table table-borderless">
-                  <thead>
-                    <th>Algorithm Owner</th>
-                    <th>Passed</th>
-                    <th>When</th>
-                    <th>Action</th>
-                  </thead>
-                  <tbody>
-                    {#each dataset_tasks[share.path] as task}
-                      {#if task.state !== 'stream_permission_request'}
-                        <tr class="my-1">
-                          <td>{task.author_email}</td>
-                          <td>
-                            <State state={task.state} />
-                          </td>
-                          <td>
-                            {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
-                          </td>
-                          <td class="text-primary font-weight-bold">
-                            <a href={`/tasks/${task.id}`}>See log</a>
-                          </td>
-                        </tr>
-                      {/if}
-                    {/each}
-                  </tbody>
-                </table>
-              </div>
-            {:else}No runs done with this file{/if}
-          </div>
-        </div>
-      </div>
-    {:else}
-      <div>You have shared no datasets</div>
-    {/each}
-  {/if}
+      {:else}
+        <div>You have not shared any datasets</div>
+      {/each}
+    </div>
+  {:catch error}
+    <p style="color: red">{error.message}</p>
+  {/await}
 </div>

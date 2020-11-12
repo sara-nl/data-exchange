@@ -22,6 +22,11 @@ export interface Task {
   updated_on: Date
 }
 
+export type GetLogsResponse = {
+  algorithm_tasks: { [path: string]: Task[] }
+  data_tasks: { [path: string]: Task[] }
+}
+
 export async function spawnTaskFromPermission(
   permissionId: number
 ): Promise<Task> {
@@ -52,8 +57,8 @@ export default class Tasks extends Controller {
     return this.client.get('/tasks/')
   }
 
-  public static async getLogs(): Promise<AxiosResponse> {
-    return this.client.get('/tasks/list_logs/')
+  public static async getLogs(): Promise<GetLogsResponse> {
+    return this.client.get('/tasks/list_logs/').then((r) => r.data)
   }
 
   public static async retrieve(id: number): Promise<Task> {

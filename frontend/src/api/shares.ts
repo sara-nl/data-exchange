@@ -1,4 +1,5 @@
 import Controller from './controller'
+import type { Storage } from './storage'
 
 export type Share = {
   id: number

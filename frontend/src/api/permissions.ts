@@ -86,7 +86,9 @@ export async function headTaskId(id: number): Promise<{ id: number } | null> {
   return response.data
 }
 
-export type ObtainedPerFile = { [filename: string]: { permissions: object[], tasks: object[] } }
+export type ObtainedPerFile = {
+  [filename: string]: { permissions: object[]; tasks: object[] }
+}
 export async function getObtainerPerFile(): Promise<ObtainedPerFile> {
   const response = await Controller.client('/permissions/obtained_per_file/')
   return response.data
@@ -111,7 +113,9 @@ export default class Permissions extends Controller {
     return this.client.get('/permissions/')
   }
 
-  public static async getGivenPerFile(): Promise<AxiosResponse> {
+  public static async getGivenPerFile(): Promise<{
+    [path: string]: Permission[]
+  }> {
     const response = await this.client.get('/permissions/given_per_file/')
     return response.data
   }
@@ -119,6 +123,12 @@ export default class Permissions extends Controller {
   public static async remove(id: number): Promise<AxiosResponse> {
     return this.client.post(`/permissions/${id}/remove/`)
   }
+}
+
+export const permissionTypesShortLabels = {
+  'One specific user permission': 'any algorithm',
+  'stream permission': 'stream',
+  'one time permission': 'one time',
 }
 
 export const permissionTypeLabels = {

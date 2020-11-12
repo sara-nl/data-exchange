@@ -1,6 +1,5 @@
 import datetime
 from collections import defaultdict
-
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets, serializers
@@ -238,7 +237,7 @@ class Permissions(viewsets.ViewSet):
         all_permissions = PermissionSerializer(
             Permission.objects.filter(
                 algorithm_provider=email, state=Permission.ACTIVE
-            ),
+            ).exclude(permission_type=Permission.ONE_TIME_PERMISSION),
             many=True,
         ).data
 
@@ -253,8 +252,7 @@ class Permissions(viewsets.ViewSet):
             def include_permission(p):
                 pt = p["permission_type"]
                 return pt == Permission.USER_PERMISSION or (
-                    pt != Permission.ONE_TIME_PERMISSION
-                    and p["algorithm"] == next["path"]
+                    p["algorithm"] == next["path"]
                     and p["algorithm_storage"] == next["storage"]
                 )
 
@@ -262,6 +260,7 @@ class Permissions(viewsets.ViewSet):
                 return t["algorithm"] == next["path"]
 
             acc[next["path"]] = {
+                "share": next,
                 "permissions": filter(include_permission, all_permissions),
                 "tasks": filter(include_task, all_tasks),
             }
@@ -286,7 +285,7 @@ class Permissions(viewsets.ViewSet):
 
         given_permissions = Permission.objects.filter(
             dataset_provider=request.user.email, state=Permission.ACTIVE
-        )
+        ).exclude(permission_type=Permission.ONE_TIME_PERMISSION)
 
         given_permissions = PermissionSerializer(given_permissions, many=True).data
 

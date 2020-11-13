@@ -86,8 +86,9 @@
 <div class="alert alert-secondary" role="alert">
   <small>
     This is a prototype. It works, but has limited capacity and is not polished
-    yet. Please contact
-    <a href="mailto:freek.dijkstra@surf.nl">freek.dijkstra@surf.nl</a>
+    yet. Please see the
+    <a href="https://www.surf.nl/en/data-exchange-trusted-data-sharing">SURF
+    website</a> or <a href="mailto:freek.dijkstra@surf.nl">contact us</a>
     if you like some guidance or are interested to use it.
   </small>
 </div>

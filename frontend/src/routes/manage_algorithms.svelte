@@ -7,11 +7,13 @@
   } from '../api/permissions'
   import type { PermissionType, Permission } from '../api/permissions'
   import type { Task } from '../api/tasks'
+  import { startWithUserPermisson } from '../api/tasks'
   import { StorageNames } from '../api/storage'
   import type { Share } from '../api/shares'
   import Spinner from '../components/Spinner.svelte'
   import File from '../components/File.svelte'
   import State from '../components/State.svelte'
+  import { goto, stores } from '@sapper/app'
 
   type PermissionsAndTasksPerFile = [
     string,
@@ -27,6 +29,11 @@
   onMount(() => {
     dataInfoP = getObtainerPerFile().then(Object.entries)
   })
+
+  const runWithPermission = async (permissionId: number, algorithm: string) => {
+    const task = await startWithUserPermisson(permissionId, algorithm)
+    goto(`/tasks/${task.id}`)
+  }
 </script>
 
 <svelte:head>
@@ -95,6 +102,17 @@
                             <td>
                               {permissionTypesShortLabels[permission.permission_type]}
                             </td>
+                            <td>
+                              {#if permission.permission_type === 'One specific user permission'}
+                                <a
+                                  class="text-primary"
+                                  href="#0"
+                                  role="button"
+                                  on:click|preventDefault={() => runWithPermission(permission.id, share.path)}>
+                                  Run
+                                </a>
+                              {/if}
+                            </td>
                           </tr>
                         {/each}
                       </tbody>
@@ -132,7 +150,7 @@
                               <td>
                                 {dayjs(task.registered_on).format('DD-MM-YYYY HH:mm')}
                               </td>
-                              <td class="font-weight-bold">
+                              <td>
                                 <a href={`/tasks/${task.id}`}>
                                   {#if task.state === 'output_released'}
                                     See output

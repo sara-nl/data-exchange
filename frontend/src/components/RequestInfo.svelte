@@ -1,9 +1,8 @@
-<script lang="ts">
-  import AlgorithmReport from './AlgorithmReport.svelte'
+<script lang="typescript">
   import AlgorithmSourceCode from './AlgorithmSourceCode.svelte'
   import Spinner from './Spinner.svelte'
-  import { Permission } from '../api/permissions'
-  import { UserRole } from '../api/users'
+  import type { Permission } from '../api/permissions'
+  import type { UserRole } from '../api/users'
   import { mode, token, email } from '../stores'
   import { onMount } from 'svelte'
   import dayjs from 'dayjs'
@@ -160,11 +159,15 @@
     {/if}
   </div>
   <div class="col-sm-4 h-50">
-    <b>Libraries:</b>
-    {#each permission.algorithm_report.imports as dependency}
-      &nbsp;
-      <span class="badge badge-primary">{dependency}</span>
-    {/each}
+    {#if reportAvailable}
+      <b>Libraries:</b>
+      {#each permission.algorithm_report.imports as dependency}
+        &nbsp;
+        <span class="badge badge-primary">{dependency}</span>
+      {/each}
+    {:else}
+      <Spinner small />
+    {/if}
   </div>
 </div>
 

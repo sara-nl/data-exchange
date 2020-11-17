@@ -1,8 +1,4 @@
-<script lang="ts">
-  import AlgorithmReport from './AlgorithmReport.svelte'
-  import Spinner from './Spinner.svelte'
-  import { UserRole } from '../api/users'
-  import { mode, token, email } from '../stores'
+<script lang="typescript">
   import { onMount } from 'svelte'
   import * as hljs from 'highlight.js'
 

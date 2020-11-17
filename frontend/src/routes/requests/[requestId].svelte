@@ -1,4 +1,4 @@
-<script lang="ts">
+<script lang="typescript">
   import { onMount } from 'svelte'
 
   import {
@@ -8,20 +8,16 @@
     approvePermission,
     Permission,
   } from '../../api/permissions'
-  import {
-    spawnTaskFromPermission,
-    startWithUserPermisson,
-    Task,
-  } from '../../api/tasks'
+  import { spawnTaskFromPermission } from '../../api/tasks'
+  import type Task from '../../api/tasks'
   import { goto, stores } from '@sapper/app'
   import Spinner from '../../components/Spinner.svelte'
-  import TaskInfo from '../../components/TaskInfo.svelte'
   import StepsHeader from '../../components/StepsHeader.svelte'
   import RequestInfo from '../../components/RequestInfo.svelte'
   import RequestActions from '../../components/RequestActions.svelte'
-  import { UserRole } from '../../api/users'
+  import type { UserRole } from '../../api/users'
   import { mode, token, email } from '../../stores'
-  import { Share } from '../../api/shares'
+  import type { Share } from '../../api/shares'
 
   let currentPermission: Permission | null = null
   let currentTask: Task | null = null
@@ -41,7 +37,7 @@
         goto(`/tasks/${taskIdOption.id}`)
       } else {
         currentPermission = permission
-        email.subscribe(e => {
+        email.subscribe((e) => {
           if (
             permission.dataset_provider === e &&
             permission.algorithm_provider === e
@@ -111,12 +107,7 @@
       <RequestInfo permission={currentPermission} />
     {:else}
       <StepsHeader activeStep={getActiveStep(currentPermission)} />
-
-      {#if currentPermission.state === 'pending'}
-        <RequestInfo permission={currentPermission} />
-      {:else}
-        <TaskInfo permission={currentPermission} />
-      {/if}
+      <RequestInfo permission={currentPermission} />
     {/if}
 
     {#if currentPermission.state === 'pending'}

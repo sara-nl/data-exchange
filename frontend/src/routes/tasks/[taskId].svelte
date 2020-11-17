@@ -7,7 +7,6 @@
   import type { Task } from '../../api/tasks'
   import Spinner from '../../components/Spinner.svelte'
   import PermissionInfo from '../../components/PermissionInfo.svelte'
-  import AlgorithmReport from '../../components/AlgorithmReport.svelte'
   import TaskProgress from '../../components/TaskProgress.svelte'
   import ErrorMessage from '../../components/ErrorMessage.svelte'
   import StepsHeader from '../../components/StepsHeader.svelte'
@@ -108,23 +107,46 @@
         </div>
 
         <div class="col-sm-4 h-50">
-          <AlgorithmReport permission={task.permission} />
+          <div class="row mb-3 font-weight-bold">Algorithm Name</div>
+          <div class="row mt-1 mb-5">{task.permission.algorithm}</div>
 
+          <div class="row mb-3 font-weight-bold">Algorithm Dependencies</div>
+          <div class="row mt-1 mb-5">
+            {#each task.permission.algorithm_report.imports as dependency}
+              <div
+                class="col-sm-auto text-center bg-primary text-white rounded mr-1 mt-1">
+                {dependency}
+              </div>
+            {/each}
+          </div>
+        </div>
+        <div class="col-sm-4 h-50">
           <div class="row mb-3 font-weight-bold">Used Dataset</div>
           <div class="row mt-1 mb-5">{task.permission.dataset}</div>
-        </div>
-
-        {#if $mode === 'data' || task.state === 'output_released'}
-          <div class="col-sm-4 pl-0 pr-0" style="height:400px;">
-            <div class="row mb-3 font-weight-bold">Output</div>
-            <div class="col-12 border pt-2 h-100 overflow-auto">
-              <pre>{task.output || 'No output (yet)…'}</pre>
-            </div>
+          <div class="row mb-3 font-weight-bold">Algorithm Length</div>
+          <div class="row mt-1 mb-5">
+            Lines:
+            {task.permission.algorithm_report.lines}, Words:
+            {task.permission.algorithm_report.words}, Characters:
+            {task.permission.algorithm_report.chars}
           </div>
-        {/if}
+        </div>
       </div>
 
-      <div class="row">
+      <div class="row" />
+
+      {#if $mode === 'data' || task.state === 'output_released'}
+        <div class="row mb-3 font-weight-bold">Output</div>
+        <div class="row">
+          <div
+            class="col-12 border pt-2 h-100 overflow-auto"
+            style="max-height:400px;">
+            <pre>{task.output || 'No output (yet)…'}</pre>
+          </div>
+        </div>
+      {/if}
+
+      <div class="row mt-5">
         {#if task.state === 'success' || (task.state === 'error' && task.review_output)}
           {#if task.is_owner && $mode === 'data'}
             <button

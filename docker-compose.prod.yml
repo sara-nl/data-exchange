@@ -13,6 +13,7 @@ services:
     image: git.ia.surfsara.nl:5050/soil/secure-container/backend:${DOCKER_IMAGE_TAG}
     environment:
       DJANGO_DEBUG: 0
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY?}
       DJANGO_EMAIL_URL: "smtp://mh.surfsara.nl:25"
     restart: "always"
     command: "./docker/entrypoint.sh listen"
@@ -21,6 +22,7 @@ services:
     image: git.ia.surfsara.nl:5050/soil/secure-container/backend:${DOCKER_IMAGE_TAG}
     environment:
       DJANGO_DEBUG: 0
+      DJANGO_SECRET_KEY: ${DJANGO_SECRET_KEY?}
       DJANGO_EMAIL_URL: "smtp://mh.surfsara.nl:25"
     volumes:
       - "static:/var/www/html/static"

@@ -111,6 +111,7 @@ deploy_test2:
       CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
       RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"
       RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\" &&
+      DJANGO_SECRET_KEY=\"$DJANGO_SECRET_KEY\" &&
       cd data-exchange && git fetch --all && git checkout $CI_COMMIT_SHA &&
       docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d &&
       docker system prune -a -f &&
@@ -134,6 +135,7 @@ deploy_prod:
       CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
       RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"
       RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\" &&
+      DJANGO_SECRET_KEY=\"$DJANGO_SECRET_KEY\" &&
       cd data-exchange && git fetch --all && git checkout $CI_COMMIT_SHA &&
       docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d &&
       docker system prune -a -f &&

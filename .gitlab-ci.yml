@@ -110,7 +110,7 @@ deploy_test2:
       DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\"
       CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
       RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"
-      RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\" &&
+      RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\" 
       DJANGO_SECRET_KEY=\"$DJANGO_SECRET_KEY\" &&
       cd data-exchange && git fetch --all && git checkout $CI_COMMIT_SHA &&
       docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d &&
@@ -134,7 +134,7 @@ deploy_prod:
       DOCKER_IMAGE_TAG=\"$DOCKER_IMAGE_TAG\"
       CI_COMMIT_SHA=\"$CI_COMMIT_SHA\"
       RD_WEBDAV_USERNAME=\"$RD_WEBDAV_USERNAME\"
-      RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\" &&
+      RD_WEBDAV_PASSWORD=\"$RD_WEBDAV_PASSWORD\"
       DJANGO_SECRET_KEY=\"$DJANGO_SECRET_KEY\" &&
       cd data-exchange && git fetch --all && git checkout $CI_COMMIT_SHA &&
       docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d &&

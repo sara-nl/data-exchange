@@ -22,8 +22,10 @@ GitLab CI/CD is configured by a file called .gitlab-ci.yml placed at the reposit
 Both: the scripts and the source code depend upon environment variables stored in the configuration section "Vaiables" of [Gitlab CI/CD settings](https://git.ia.surfsara.nl/SOIL/secure-container/-/settings/ci_cd). At the moment the following variables must be configured there:
 * `RD_WEBDAV_PASSWORD`
 * `RD_WEBDAV_USERNAME`
+* `GDRIVE_CREDENTIALS_BASE64`
 * `TEST2_SSH_ADDRESS`
 * `TEST2_SSH_KEY`
+* `PROD_SSH_KEY`
 * `DJANGO_SECRET_KEY`
 
 

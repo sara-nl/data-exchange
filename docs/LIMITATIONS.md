@@ -4,7 +4,7 @@ This is the list of known ~issues~ limitations.
 
 ## Product limitations
 * Algorithm is Python only;
-* Research Drive only;
+* Research Drive / Google Drive only;
 * Output is only STDOUT/STDERR;
 * Webdav interface of Research Drive is relatively slow;
 * A shared algorithm is file or a folder with one layer depth
@@ -14,7 +14,6 @@ This is the list of known ~issues~ limitations.
 
 ## Known security issues
 * At the moment we mount data and algorithm during installation of dependencies. We should only mount the algorithm at this stage.
-* 
 
 ## File sharing
 * Maximal level of nested directories in code/data folders is 50;

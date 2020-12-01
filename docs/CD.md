@@ -24,6 +24,7 @@ Both: the scripts and the source code depend upon environment variables stored i
 * `RD_WEBDAV_USERNAME`
 * `TEST2_SSH_ADDRESS`
 * `TEST2_SSH_KEY`
+* `DJANGO_SECRET_KEY`
 
 
 ## Image Versioning

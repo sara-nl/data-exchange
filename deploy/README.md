@@ -30,6 +30,7 @@ ansible-playbook -i inventory.yml -u ubuntu \
 --extra-vars gitlab_password=<deploy_token_password> \
 --extra-vars RD_WEBDAV_USERNAME=<password> \
 --extra-vars RD_WEBDAV_PASSWORD=<password> \
+--extra-vars DJANGO_SECRET_KEY=<secret-key> \
 playbooks/dataexchange.yml
 ```
 

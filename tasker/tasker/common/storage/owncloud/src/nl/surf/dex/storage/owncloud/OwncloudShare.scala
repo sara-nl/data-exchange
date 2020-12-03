@@ -1,14 +1,18 @@
 package nl.surf.dex.storage.owncloud
 import cats.implicits._
+import better.files.{File => BFile}
 
 object OwncloudShare {
 
   def isFolder(os: OwncloudShare): Boolean = os.item_type === "folder"
 
-  def isAlgorithm(os: OwncloudShare, childrenNames: List[String] = Nil): Boolean =
-    childrenNames match {
+  def isAlgorithm(
+      os: OwncloudShare,
+      childrenUserPaths: List[String] = Nil
+  ): Boolean =
+    childrenUserPaths match {
       case Nil => os.path.endsWith(".py")
-      case _   => childrenNames.exists(_ === "run.py")
+      case _   => childrenUserPaths.exists(cup => BFile(cup).name === "run.py")
     }
 
 }

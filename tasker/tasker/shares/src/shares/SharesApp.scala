@@ -65,7 +65,7 @@ object SharesApp extends IOApp {
             _ <- logger.info(s"Fetched ${shares1.length} gdrive shares")
             shares2 <- OwnCloudShares.getShares.run(ocDeps).handleErrorWith {
               e =>
-                logger.error(e)("Could not OC shares") >>
+                logger.error(e)("Could not fetch OC shares") >>
                   IO.pure(Nil)
             }
             _ <- logger.info(s"Fetched ${shares2.length} OC shares")

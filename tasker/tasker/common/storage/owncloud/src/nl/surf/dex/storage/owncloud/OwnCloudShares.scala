@@ -60,12 +60,16 @@ object OwnCloudShares {
                         .toString
                     ).pure[IO]
                   case os @ OwncloudShare(_, uid_owner, path, _, _) =>
+                    val base = rdConf.webdavBase
                     for {
                       children <-
                         webdav
                           .asInstanceOf[Webdav]
-                          .list(rdConf.webdavBase.change(path))
-                      childrenNames = children.map(_.getPath)
+                          .list(base.change(path))
+                      childrenNames =
+                        children
+                          .map(base.change)
+                          .flatMap(_.userPath.toList)
                     } yield {
                       Share(
                         CloudStorage.ResearchDrive,

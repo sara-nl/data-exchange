@@ -17,8 +17,34 @@ before_script:
   - export
   - cat /proc/meminfo
 
+stages:
+  - sync
+  - check
+  - build
+  - deploy
+
+github_sync:
+  stage: sync
+  only:
+    - master
+  image: 
+    name: alpine/git
+    entrypoint: [""]
+  script:
+    - git fetch origin master
+    - chmod 0600 "${GITHUB_SARA_NL_SSH_KEY}"
+    - mkdir ~/.ssh/
+    - |
+      echo -e "Host github.com
+                HostName github.com
+                User git
+                StrictHostKeyChecking=no  
+                IdentityFile ${GITHUB_SARA_NL_SSH_KEY}" > ~/.ssh/config
+    - git checkout master
+    - git push git@github.com:sara-nl/data-exchange.git master
+
 backend_lint:
-  stage: .pre
+  stage: check
   image: python:3-alpine
   variables:
     PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
@@ -31,7 +57,7 @@ backend_lint:
     - black --check backend/backend backend/surfsara
 
 dexter_test:
-  stage: .pre
+  stage: check
   image: mkotsur/scala-mill
   cache:
     paths:
@@ -72,7 +98,7 @@ backend_build:
     - /kaniko/executor --cache=true --context $DOCKER_CONTEXT --dockerfile $DOCKERFILE --destination "$DOCKER_REGISTRY_PATH:$DOCKER_IMAGE_TAG" --destination "$DOCKER_REGISTRY_PATH:$CI_COMMIT_REF_NAME" --destination "$DOCKER_REGISTRY_PATH:latest"
 
 frontend_lint:
-  stage: .pre
+  stage: check
   image: node:12-alpine
   cache:
     key: ${CI_COMMIT_REF_SLUG}

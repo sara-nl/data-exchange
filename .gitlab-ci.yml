@@ -73,6 +73,7 @@ dexter_test:
 dexter_build:
   stage: build
   image:
+    # See: https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
@@ -89,6 +90,7 @@ dexter_build:
 backend_build:
   stage: build
   image:
+    # See: https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:
@@ -113,6 +115,7 @@ frontend_lint:
 frontend_build:
   stage: build
   image:
+    # See: https://docs.gitlab.com/ee/ci/docker/using_kaniko.html
     name: gcr.io/kaniko-project/executor:debug
     entrypoint: [""]
   script:

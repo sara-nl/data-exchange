@@ -42,7 +42,7 @@ github_sync:
                 IdentityFile ${GITHUB_SARA_NL_SSH_KEY}" > ~/.ssh/config
     - git checkout master
     - git pull --rebase origin master
-    - git push git@github.com:sara-nl/data-exchange.git master
+    - git push --tags git@github.com:sara-nl/data-exchange.git master
 
 backend_lint:
   stage: check

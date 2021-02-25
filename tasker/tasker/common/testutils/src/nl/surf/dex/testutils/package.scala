@@ -14,6 +14,9 @@ package object testutils {
       )
       .use(thunk)
 
+  def appendBytesOfSize(file: BFile, sizeBytes: Int): IO[BFile] =
+    IO(file.appendByteArray(Array.fill(sizeBytes) { 0.byteValue }))
+
   object implicits {
     implicit def IOunsafeToFuture[X](thunk: IO[X]): Future[X] =
       thunk.unsafeToFuture()

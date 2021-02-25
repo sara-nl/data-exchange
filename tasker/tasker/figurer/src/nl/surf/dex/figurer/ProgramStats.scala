@@ -10,7 +10,7 @@ import scala.collection.immutable
 
 object ProgramStats {
   // Constructors
-  val nothing = ProgramStats(0, 0, 0, Set.empty, Map.empty, Map.empty)
+  val nothing = ProgramStats(0, 0, 0, Set.empty, Map.empty, Map.empty, 0)
 
   // Internals
   case class Imports(foundImports: immutable.Set[String], skippedFiles: List[String] = Nil)
@@ -47,5 +47,6 @@ case class ProgramStats(
     // to store contents of the file here,
     // but since the rest of the app heavily depends on it,
     // keeping things as they are.
-    contents: Map[String, String]
+    contents: Map[String, String],
+    skippedFiles: Int
 )

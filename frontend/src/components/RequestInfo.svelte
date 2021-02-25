@@ -173,11 +173,22 @@
 
 {#if reportAvailable}
   <hr />
-  Lines:
-  {permission.algorithm_report.lines}, Words:
-  {permission.algorithm_report.words}, Characters:
-  {permission.algorithm_report.chars}
-  <AlgorithmSourceCode files={permission.algorithm_report.contents} />
+  <div class="row mx-auto">
+    <div class="col-sm">
+      Lines:
+      {permission.algorithm_report.lines}, Words:
+      {permission.algorithm_report.words}, Characters:
+      {permission.algorithm_report.chars}
+      <AlgorithmSourceCode files={permission.algorithm_report.contents} />
+    </div>
+    <div class="col-sm">
+      {#if permission.algorithm_report.skippedFiles > 0}
+        <span
+          class="badge badge-warning">{permission.algorithm_report.skippedFiles}
+          large files excluded from analysis</span>
+      {/if}
+    </div>
+  </div>
 {:else}
   <div class="row mx-auto">
     <Spinner small />

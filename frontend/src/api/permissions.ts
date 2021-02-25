@@ -23,6 +23,7 @@ export type Permission = {
     words: number
     imports: string[]
     contents: { [fileName: string]: string }
+    skippedFiles: number
   }
   algorithm_provider: string
   dataset: string

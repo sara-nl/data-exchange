@@ -1,11 +1,12 @@
 package nl.surf.dex.figurer
 
 import java.nio.file.NoSuchFileException
-
 import better.files.{Resource, File => BFile}
 import cats.effect.IO
 import cats.implicits._
+import nl.surf.dex.figurer
 import nl.surf.dex.figurer.program.PythonProgram
+import nl.surf.dex.testutils.{appendBytesOfSize, withTmpDir}
 import org.scalatest.funspec.AsyncFunSpecLike
 import org.scalatest.matchers.should.Matchers._
 
@@ -56,6 +57,7 @@ class FigurerSpec extends AsyncFunSpecLike {
         program <- PythonProgram(file)
         stats <- collectStats(program)
       } yield stats).unsafeToFuture().map { res =>
+        res.skippedFiles shouldEqual 0
         res.lines shouldEqual 1
         res.words shouldEqual 3
         res.chars shouldEqual 20
@@ -69,6 +71,7 @@ class FigurerSpec extends AsyncFunSpecLike {
       (for {
         stats <- collectStats(program)
       } yield stats).unsafeToFuture().map { res =>
+        res.skippedFiles shouldEqual 0
         res.lines shouldEqual 422
         res.words shouldEqual 2320
         res.chars shouldEqual 16816
@@ -85,6 +88,24 @@ class FigurerSpec extends AsyncFunSpecLike {
           "tensorflow.keras.models",
           "matplotlib.pyplot"
         )
+      }
+    }
+
+    it(s"should skip files larger than the limit of bytes") {
+      (withTmpDir { tmp =>
+        for {
+          largeFile <- appendBytesOfSize(tmp / "large.file", figurer.maxStatsCollectionBytes + 1)
+          justOkFile <- appendBytesOfSize(tmp / "ok.file", figurer.maxStatsCollectionBytes - 1)
+          pythonFile <- IO(BFile(Resource.getUrl("helloworld.py")).copyTo(tmp / "helloworld.py"))
+          program = PythonProgram(tmp, Set(largeFile, justOkFile, pythonFile))
+          stats <- collectStats(program)
+        } yield stats
+      }).unsafeToFuture().map { res =>
+        res.skippedFiles shouldEqual 1
+        res.lines shouldEqual 2
+        res.words shouldEqual 3
+        res.chars shouldEqual 10019
+        res.imports shouldEqual Set.empty
       }
     }
 

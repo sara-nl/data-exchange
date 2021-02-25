@@ -16,7 +16,7 @@ package object figurer {
 
   private val astAnalyzerScript = "imports.py"
 
-  private[figurer] val maxStatsCollectionBytes = 10000
+  private[figurer] val maxStatsCollectionBytes = 20000
 
   private[figurer] def moduleDeps(program: String): IO[Imports] = {
 

@@ -104,7 +104,7 @@ class FigurerSpec extends AsyncFunSpecLike {
         res.skippedFiles shouldEqual 1
         res.lines shouldEqual 2
         res.words shouldEqual 3
-        res.chars shouldEqual 10019
+        res.chars shouldEqual 20019
         res.imports shouldEqual Set.empty
       }
     }

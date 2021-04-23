@@ -28,24 +28,31 @@ object OwnCloudShares {
   def getShares(implicit ec: ContextShift[IO]): Kleisli[IO, Deps, List[Share]] =
     Kleisli {
       case Deps(httpClientR, webdavClientR, creds, rdConf) =>
+        val sharesRequest = Request[IO](
+          uri = Uri.unsafeFromString(rdConf.sharesSource.toString),
+          headers = Headers.of(Authorization(creds))
+        )
+
+        def shareeRequest(search: String) = Request[IO](
+          uri = Uri.unsafeFromString(rdConf.shareesSource.addParam("search", search).toString),
+          headers = Headers.of(Authorization(creds))
+        )
+
         for {
           sharesWithMetadata <- httpClientR.use { client =>
             for {
-              json <- client.expect[Json](
-                Request[IO](
-                  uri = Uri.unsafeFromString(rdConf.sharesSource.toString),
-                  headers = Headers.of(Authorization(creds))
-                )
-              )
-              _ <- logger.trace(
-                s"Research Drive returned JSON: ${json.spaces2}"
-              )
-              shares <- IO.fromEither(
-                json.hcursor
-                  .downField("ocs")
-                  .downField("data")
-                  .as[List[OwncloudShare]]
-              )
+              _ <- logger.trace(s"Begin shares request")
+              shares <- client.expect[Json](sharesRequest).flatMap(extractShares)
+              _ <- logger.trace(s"End shares request")
+              ownerShareeInfos <- shares
+                .map(_.uid_owner)
+                .distinct
+                .parTraverse(
+                  uid =>
+                    logger.trace(s"Begin sharee request $uid") *>
+                      client
+                        .expect[Json](shareeRequest(uid))
+                        .flatMap(logger.trace(s"End sharee request $uid") *> extractSharee(_)))
               result <- webdavClientR.use { webdav =>
                 shares.map {
                   case os @ OwncloudShare(_, uid_owner, path, "file", _) =>
@@ -54,7 +61,7 @@ object OwnCloudShares {
                       path.replaceFirst("^/", ""),
                       OwncloudShare.isAlgorithm(os),
                       OwncloudShare.isFolder(os),
-                      uid_owner,
+                      ownerShareeInfos.find(_.shareWith === uid_owner).get.shareWithAdditionalInfo,
                       FileBrowserConf
                         .resolve(rdConf.fileBrowser, os.file_source.toString)
                         .toString
@@ -62,21 +69,22 @@ object OwnCloudShares {
                   case os @ OwncloudShare(_, uid_owner, path, _, _) =>
                     val base = rdConf.webdavBase
                     for {
-                      children <-
-                        webdav
-                          .asInstanceOf[Webdav]
-                          .list(base.change(path))
-                      childrenNames =
-                        children
-                          .map(base.change)
-                          .flatMap(_.userPath.toList)
+                      children <- webdav
+                        .asInstanceOf[Webdav]
+                        .list(base.change(path))
+                      childrenNames = children
+                        .map(base.change)
+                        .flatMap(_.userPath.toList)
                     } yield {
                       Share(
                         CloudStorage.ResearchDrive,
                         path.replaceFirst("^/", ""),
                         OwncloudShare.isAlgorithm(os, childrenNames),
                         OwncloudShare.isFolder(os),
-                        uid_owner,
+                        ownerShareeInfos
+                          .find(_.shareWith === uid_owner)
+                          .get
+                          .shareWithAdditionalInfo,
                         FileBrowserConf
                           .resolve(rdConf.fileBrowser, os.file_source.toString)
                           .toString
@@ -92,4 +100,33 @@ object OwnCloudShares {
         } yield sharesWithMetadata
     }
 
+  private def extractShares(json: Json): IO[List[OwncloudShare]] =
+    for {
+      _ <- logger.trace(
+        s"Extracting OC Shares from: ${json.spaces2}"
+      )
+      shares <- IO.fromEither(
+        json.hcursor
+          .downField("ocs")
+          .downField("data")
+          .as[List[OwncloudShare]]
+      )
+    } yield shares
+
+  private def extractSharee(json: Json): IO[OwncloudSharee] =
+    for {
+      _ <- logger.trace(
+        s"Extracting OC Sharee from: ${json.spaces2}"
+      )
+      sharee <- IO.fromEither(
+        json.hcursor
+          .downField("ocs")
+          .downField("data")
+          .downField("exact")
+          .downField("users")
+          .downN(0)
+          .downField("value")
+          .as[OwncloudSharee]
+      )
+    } yield sharee
 }

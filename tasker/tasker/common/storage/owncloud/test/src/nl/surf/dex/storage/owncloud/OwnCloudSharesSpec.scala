@@ -6,12 +6,12 @@ import nl.surf.dex.storage.{CloudStorage, Share}
 import nl.surf.dex.storage.owncloud.config.DexResearchDriveConf
 import org.http4s.BasicCredentials
 import org.http4s.client.blaze.BlazeClientBuilder
-import org.scalatest.funspec.AsyncFunSpec
 import org.scalatest.matchers.must.Matchers._
 
 import scala.concurrent.{ExecutionContext, Future}
 import cats.implicits._
 import nl.surf.dex.storage.owncloud.OwnCloudShares.Deps
+import org.scalatest.funspec.AsyncFunSpec
 
 class OwnCloudSharesSpec extends AsyncFunSpec with StrictCatsEquality {
 
@@ -36,7 +36,7 @@ class OwnCloudSharesSpec extends AsyncFunSpec with StrictCatsEquality {
         )
       } yield {
         val foundShares = shares.map(_.path)
-        foundShares must not contain ("Paris.jpg")
+        foundShares must not contain "Paris.jpg"
         foundShares must contain("Squirrel.jpg")
         foundShares must contain("ownCloud Manual.pdf")
 

@@ -56,6 +56,6 @@ case class Share(
     path: String,
     isAlgorithm: Boolean,
     isDirectory: Boolean,
-    owner: String,
+    ownerEmail: String,
     webLink: String
 )

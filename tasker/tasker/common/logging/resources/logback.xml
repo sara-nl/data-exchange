@@ -26,12 +26,11 @@
         <appender-ref ref="STDOUT" />
     </logger>
 
-
     <logger name="nl.surf.dex.figurer" level="${figurerLogLevel:-info}" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 
-    <logger name="nl.surf.dex.app" level="INFO" additivity="false">
+    <logger name="nl.surf.dex" level="${dexLogLevel:-info}" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 </configuration>

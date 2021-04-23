@@ -61,13 +61,16 @@ object SharesApp extends IOApp {
         settings = config.update,
         fetchValue = {
           (for {
+            _ <- logger.trace("Starting fetch of grdive shares")
             shares1 <- GDriveShares.getShares.run(gdriveConf)
+            _ <- logger.trace("Finished fetch of grdive shares")
             _ <- logger.info(s"Fetched ${shares1.length} gdrive shares")
-            shares2 <- OwnCloudShares.getShares.run(ocDeps).handleErrorWith {
-              e =>
-                logger.error(e)("Could not fetch OC shares") >>
-                  IO.pure(Nil)
+            _ <- logger.trace("Starting fetch of OC shares")
+            shares2 <- OwnCloudShares.getShares.run(ocDeps).handleErrorWith { e =>
+              logger.error(e)("Could not fetch OC shares") >>
+                IO.pure(Nil)
             }
+            _ <- logger.trace("Finished fetch of OC shares")
             _ <- logger.info(s"Fetched ${shares2.length} OC shares")
           } yield shares1 ++ shares2).handleErrorWith { e =>
             logger.error(e)("Could not fetch shares") >>

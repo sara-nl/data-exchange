@@ -18,5 +18,7 @@ class SharesClient:
 
     def algorithms_shared_by_user(self, email: str):
         return [
-            s["path"] for s in self.all() if s["isAlgorithm"] and s["owner"] == email
+            s["path"]
+            for s in self.all()
+            if s["isAlgorithm"] and s["ownerEmail"] == email
         ]

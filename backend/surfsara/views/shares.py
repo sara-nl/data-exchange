@@ -13,5 +13,7 @@ class ViewShares(viewsets.ViewSet):
     def list(self, request):
         all_shares = SharesClient().all()
         email = str(request.user)
-        user_shares = filter(lambda s: s["ownerEmail"] == email, all_shares)
+        user_shares = filter(
+            lambda s: s["ownerEmail"].lower() == email.lower(), all_shares
+        )
         return Response(user_shares)

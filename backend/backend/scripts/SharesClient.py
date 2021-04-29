@@ -20,5 +20,5 @@ class SharesClient:
         return [
             s["path"]
             for s in self.all()
-            if s["isAlgorithm"] and s["ownerEmail"] == email
+            if s["isAlgorithm"] and s["ownerEmail"].lower() == email.lower()
         ]

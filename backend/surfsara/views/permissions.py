@@ -231,7 +231,8 @@ class Permissions(viewsets.ViewSet):
         email = str(request.user)
 
         user_algs = filter(
-            lambda s: s["ownerEmail"] == email and s["isAlgorithm"], all_shares
+            lambda s: s["ownerEmail"].lower() == email.lower() and s["isAlgorithm"],
+            all_shares,
         )
 
         all_permissions = PermissionSerializer(

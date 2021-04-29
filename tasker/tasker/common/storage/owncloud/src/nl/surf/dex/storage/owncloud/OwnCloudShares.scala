@@ -33,10 +33,11 @@ object OwnCloudShares {
           headers = Headers.of(Authorization(creds))
         )
 
-        def shareeRequest(search: String) = Request[IO](
-          uri = Uri.unsafeFromString(rdConf.shareesSource.addParam("search", search).toString),
-          headers = Headers.of(Authorization(creds))
-        )
+        def shareeRequest(search: String) =
+          Request[IO](
+            uri = Uri.unsafeFromString(rdConf.shareesSource.addParam("search", search).toString),
+            headers = Headers.of(Authorization(creds))
+          )
 
         for {
           sharesWithMetadata <- httpClientR.use { client =>
@@ -44,52 +45,47 @@ object OwnCloudShares {
               _ <- logger.trace(s"Begin shares request")
               shares <- client.expect[Json](sharesRequest).flatMap(extractShares)
               _ <- logger.trace(s"End shares request")
-              ownerShareeInfos <- shares
-                .map(_.uid_owner)
-                .distinct
-                .parTraverse(
-                  uid =>
+              ownerShareeInfos <-
+                shares
+                  .map(_.uid_owner)
+                  .distinct
+                  .parTraverse(uid =>
                     logger.trace(s"Begin sharee request $uid") *>
                       client
                         .expect[Json](shareeRequest(uid))
-                        .flatMap(logger.trace(s"End sharee request $uid") *> extractSharee(_)))
+                        .flatMap(logger.trace(s"End sharee request $uid") *> extractSharee(_))
+                  )
               result <- webdavClientR.use { webdav =>
+                def ocShare2DexShare(os: OwncloudShare, childrenNames: List[String] = Nil) =
+                  Share(
+                    CloudStorage.ResearchDrive,
+                    os.path.replaceFirst("^/", ""),
+                    OwncloudShare.isAlgorithm(os, childrenNames),
+                    OwncloudShare.isFolder(os),
+                    ownerShareeInfos
+                      .find(_.shareWith === os.uid_owner)
+                      .map(_.shareWithAdditionalInfo)
+                      .getOrElse(os.uid_owner),
+                    FileBrowserConf
+                      .resolve(rdConf.fileBrowser, os.file_source.toString)
+                      .toString
+                  )
+
                 shares.map {
                   case os @ OwncloudShare(_, uid_owner, path, "file", _) =>
-                    Share(
-                      CloudStorage.ResearchDrive,
-                      path.replaceFirst("^/", ""),
-                      OwncloudShare.isAlgorithm(os),
-                      OwncloudShare.isFolder(os),
-                      ownerShareeInfos.find(_.shareWith === uid_owner).get.shareWithAdditionalInfo,
-                      FileBrowserConf
-                        .resolve(rdConf.fileBrowser, os.file_source.toString)
-                        .toString
-                    ).pure[IO]
+                    ocShare2DexShare(os).pure[IO]
                   case os @ OwncloudShare(_, uid_owner, path, _, _) =>
                     val base = rdConf.webdavBase
                     for {
-                      children <- webdav
-                        .asInstanceOf[Webdav]
-                        .list(base.change(path))
-                      childrenNames = children
-                        .map(base.change)
-                        .flatMap(_.userPath.toList)
-                    } yield {
-                      Share(
-                        CloudStorage.ResearchDrive,
-                        path.replaceFirst("^/", ""),
-                        OwncloudShare.isAlgorithm(os, childrenNames),
-                        OwncloudShare.isFolder(os),
-                        ownerShareeInfos
-                          .find(_.shareWith === uid_owner)
-                          .get
-                          .shareWithAdditionalInfo,
-                        FileBrowserConf
-                          .resolve(rdConf.fileBrowser, os.file_source.toString)
-                          .toString
-                      )
-                    }
+                      children <-
+                        webdav
+                          .asInstanceOf[Webdav]
+                          .list(base.change(path))
+                      childrenNames =
+                        children
+                          .map(base.change)
+                          .flatMap(_.userPath.toList)
+                    } yield ocShare2DexShare(os, childrenNames)
                 }.parSequence
               }
               _ <- logger.debug(

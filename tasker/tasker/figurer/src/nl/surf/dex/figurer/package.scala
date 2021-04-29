@@ -43,7 +43,8 @@ package object figurer {
       .foldLeft(ProgramStats.nothing.pure[IO]) {
         case (pStatsIO, file) if file.size >= maxStatsCollectionBytes =>
           logger.info(
-            s"Skipping analisys of the file ${file.name} because of its large size: ${file.size}") >> pStatsIO
+            s"Skipping analisys of the file ${file.name} because of its large size: ${file.size}"
+          ) >> pStatsIO
             .map(ps => ps.copy(skippedFiles = ps.skippedFiles + 1))
         case (pStatsIO, file) =>
           val userPath = program.rootDir.relativize(file).toString

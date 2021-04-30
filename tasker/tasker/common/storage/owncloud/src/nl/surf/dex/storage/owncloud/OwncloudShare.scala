@@ -23,9 +23,14 @@ private[owncloud] case class OwncloudShare(
       */
     id: String,
     /**
-      * Email address of the original owner
+      * Username of the share owner
       */
     uid_owner: String,
+
+    /**
+      * Email address of the share owner
+      */
+    additional_info_owner: Option[String],
     /**
       * How is it different from file_target?
       */

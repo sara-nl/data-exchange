@@ -30,7 +30,6 @@ case class DexResearchDriveConf(
     webdavUsername: String,
     webdavPassword: String,
     sharesSource: Url,
-    shareesSource: Url,
     fileBrowser: FileBrowserConf,
     maxFolderDepth: Short,
     webdavBase: WebdavPath

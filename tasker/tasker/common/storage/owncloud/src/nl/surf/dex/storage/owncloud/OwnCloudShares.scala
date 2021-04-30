@@ -33,28 +33,12 @@ object OwnCloudShares {
           headers = Headers.of(Authorization(creds))
         )
 
-        def shareeRequest(search: String) =
-          Request[IO](
-            uri = Uri.unsafeFromString(rdConf.shareesSource.addParam("search", search).toString),
-            headers = Headers.of(Authorization(creds))
-          )
-
         for {
           sharesWithMetadata <- httpClientR.use { client =>
             for {
               _ <- logger.trace(s"Begin shares request")
               shares <- client.expect[Json](sharesRequest).flatMap(extractShares)
               _ <- logger.trace(s"End shares request")
-              ownerShareeInfos <-
-                shares
-                  .map(_.uid_owner)
-                  .distinct
-                  .parTraverse(uid =>
-                    logger.trace(s"Begin sharee request $uid") *>
-                      client
-                        .expect[Json](shareeRequest(uid))
-                        .flatMap(logger.trace(s"End sharee request $uid") *> extractSharee(_))
-                  )
               result <- webdavClientR.use { webdav =>
                 def ocShare2DexShare(os: OwncloudShare, childrenNames: List[String] = Nil) =
                   Share(
@@ -62,19 +46,16 @@ object OwnCloudShares {
                     os.path.replaceFirst("^/", ""),
                     OwncloudShare.isAlgorithm(os, childrenNames),
                     OwncloudShare.isFolder(os),
-                    ownerShareeInfos
-                      .find(_.shareWith === os.uid_owner)
-                      .map(_.shareWithAdditionalInfo)
-                      .getOrElse(os.uid_owner),
+                    os.additional_info_owner.getOrElse(os.uid_owner),
                     FileBrowserConf
                       .resolve(rdConf.fileBrowser, os.file_source.toString)
                       .toString
                   )
 
                 shares.map {
-                  case os @ OwncloudShare(_, uid_owner, path, "file", _) =>
+                  case os @ OwncloudShare(_, _, _, path, "file", _) =>
                     ocShare2DexShare(os).pure[IO]
-                  case os @ OwncloudShare(_, uid_owner, path, _, _) =>
+                  case os @ OwncloudShare(_, _, _, path, _, _) =>
                     val base = rdConf.webdavBase
                     for {
                       children <-
@@ -109,20 +90,4 @@ object OwnCloudShares {
       )
     } yield shares
 
-  private def extractSharee(json: Json): IO[OwncloudSharee] =
-    for {
-      _ <- logger.trace(
-        s"Extracting OC Sharee from: ${json.spaces2}"
-      )
-      sharee <- IO.fromEither(
-        json.hcursor
-          .downField("ocs")
-          .downField("data")
-          .downField("exact")
-          .downField("users")
-          .downN(0)
-          .downField("value")
-          .as[OwncloudSharee]
-      )
-    } yield sharee
 }

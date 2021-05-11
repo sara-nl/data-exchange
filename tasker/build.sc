@@ -106,7 +106,7 @@ object tasker extends dex.DexModule {
     override def ivyDeps = Agg(
       ivy"io.circe::circe-optics:$circeOptics",
       ivy"org.http4s::http4s-blaze-server:$http4s",
-      ivy"io.github.mkotsur::artc:0.1.0"
+      ivy"io.github.mkotsur::artc:0.1.1"
     ) ++ deps.restClient
   }
 

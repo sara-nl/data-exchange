@@ -1,8 +1,7 @@
 package shares.conf
 
-import shares.conf.SharesConf.{ClientConf, ServerConf}
+import shares.conf.SharesConf.{ClientConf, ServerConf, UpdateConf}
 import cats.effect.{ContextShift, IO}
-import io.github.mkotsur.artc.ActiveReadThroughCache
 import nl.surf.dex.config.DexConfig
 
 import scala.concurrent.duration._
@@ -22,10 +21,15 @@ object SharesConf extends DexConfig("shares") {
       connectionTimeout: FiniteDuration,
       responseHeaderTimeout: FiniteDuration
   )
+
+  case class UpdateConf(
+      initialInterval: FiniteDuration,
+      ceilingInterval: FiniteDuration,
+    )
 }
 
 case class SharesConf(
     server: ServerConf,
     client: ClientConf,
-    update: ActiveReadThroughCache.Settings
+    update: UpdateConf
 )

@@ -1,3 +1,4 @@
+import coursier.maven.MavenRepository
 import mill._
 import mill.api.Loose
 import mill.define.Target
@@ -6,6 +7,12 @@ import mill.scalalib.{ScalaModule, _}
 
 object dex {
   trait DexModule extends ScalaModule with ScalafmtModule {
+
+    override def repositoriesTask = T.task {
+      super.repositoriesTask() ++ Seq(
+        MavenRepository("https://oss.sonatype.org/content/repositories/snapshots")
+      )
+    }
 
   override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = Agg(
     ivy"org.typelevel:::kind-projector:0.11.0",
@@ -106,7 +113,7 @@ object tasker extends dex.DexModule {
     override def ivyDeps = Agg(
       ivy"io.circe::circe-optics:$circeOptics",
       ivy"org.http4s::http4s-blaze-server:$http4s",
-      ivy"io.github.mkotsur::artc:0.1.1"
+      ivy"io.github.mkotsur::artc:0.1.2-SNAPSHOT"
     ) ++ deps.restClient
   }
 

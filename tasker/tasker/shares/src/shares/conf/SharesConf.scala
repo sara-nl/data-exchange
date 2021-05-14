@@ -13,7 +13,11 @@ object SharesConf extends DexConfig("shares") {
     blocker.use(configSrc.loadF[IO, SharesConf])
   }
 
-  case class ServerConf(idleTimeout: FiniteDuration, responseHeaderTimeout: FiniteDuration)
+  case class ServerConf(
+      httpPort: Int,
+      idleTimeout: FiniteDuration,
+      responseHeaderTimeout: FiniteDuration
+  )
 
   case class ClientConf(
       idleTimeout: FiniteDuration,
@@ -24,8 +28,9 @@ object SharesConf extends DexConfig("shares") {
 
   case class UpdateConf(
       initialInterval: FiniteDuration,
-      ceilingInterval: FiniteDuration,
-    )
+      ceilingInterval: FiniteDuration
+  )
+
 }
 
 case class SharesConf(

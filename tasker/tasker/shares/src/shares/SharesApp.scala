@@ -59,8 +59,12 @@ object SharesApp extends IOApp {
         import config.update._
         Cache.Settings(ceilingInterval, initialInterval)
       }
-      c1 <- Cache.create(cacheSettings, GDriveShares.getShares.run(gdriveConf))
-      c2 <- Cache.create(cacheSettings, OwnCloudShares.getShares.run(ocDeps))
+      c1 <- Cache.create(
+        cacheSettings,
+        logger.info("GD fetch") >> GDriveShares.getShares.run(gdriveConf)
+      )
+      c2 <-
+        Cache.create(cacheSettings, logger.info("OC fetch") >> OwnCloudShares.getShares.run(ocDeps))
       _ <- httpServerR(
         for {
           shares1 <-
@@ -71,7 +75,7 @@ object SharesApp extends IOApp {
             c2.latest
               .handleErrorWith(handleFetchError)
               .map(_.getOrElse(Nil))
-          _ <- logger.info(s"Fetched ${shares1.size} GD and ${shares2.size} shares")
+          _ <- logger.info(s"Returned ${shares1.size} GD and ${shares2.size} OC shares")
         } yield shares1 ++ shares2,
         config.server
       )

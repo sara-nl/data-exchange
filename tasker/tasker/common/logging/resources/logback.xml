@@ -2,7 +2,7 @@
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>%date [%thread] %-5level %logger{36} - %msg%n</pattern>
+            <pattern>%date [%thread] %-5level %logger{10} - %msg%n</pattern>
         </encoder>
     </appender>
 
@@ -31,6 +31,11 @@
     </logger>
 
     <logger name="nl.surf.dex" level="${dexLogLevel:-info}" additivity="false">
+        <appender-ref ref="STDOUT" />
+    </logger>
+
+
+    <logger name="io.github.mkotsur.artc" level="debug" additivity="false">
         <appender-ref ref="STDOUT" />
     </logger>
 </configuration>

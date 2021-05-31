@@ -60,11 +60,11 @@ object SharesApp extends IOApp {
         Cache.Settings(ceilingInterval, initialInterval)
       }
       c1 <- Cache.create(
-        cacheSettings,
-        logger.info("GD fetch") >> GDriveShares.getShares.run(gdriveConf)
+        cacheSettings.copy(label = "GD".some),
+        GDriveShares.getShares.run(gdriveConf)
       )
       c2 <-
-        Cache.create(cacheSettings, logger.info("OC fetch") >> OwnCloudShares.getShares.run(ocDeps))
+        Cache.create(cacheSettings.copy(label = "OC".some), OwnCloudShares.getShares.run(ocDeps))
       _ <- httpServerR(
         for {
           shares1 <-
